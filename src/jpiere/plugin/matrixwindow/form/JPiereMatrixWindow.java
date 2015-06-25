@@ -48,6 +48,7 @@ import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
+import org.adempiere.webui.editor.IZoomableEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
@@ -439,6 +440,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				row.appendCellChild(Search_Field_Label.rightAlign());
 				row.appendCellChild(Search_Field_Editor.getComponent(),1);
 
+				//Zoom設定
+				Search_Field_Label.addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) Search_Field_Editor));
+				Search_Field_Label.setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(SearchButton);
 				row.appendCellChild(SaveButton);
@@ -473,6 +478,22 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
+	static class ZoomListener implements EventListener<Event> {
+
+		private IZoomableEditor searchEditor;
+
+		ZoomListener(IZoomableEditor editor) {
+			searchEditor = editor;
+		}
+
+		public void onEvent(Event event) throws Exception {
+			if (Events.ON_CLICK.equals(event.getName())) {
+				searchEditor.actionZoom();
+			}
+
+		}
+
+	}
 
 	@Override
 	public void tableChanged(WTableModelEvent e) {
@@ -1060,11 +1081,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		Columns clms = new Columns();
 
+		Column col  = null;
 		for(int i = 0; i < columnNameMap.size(); i++)
 		{
-			Column col = new Column(columnNameMap.get(i));
+			col = new Column(columnNameMap.get(i));
 			col.setWidth("100px");//TODO:表示するカラムの幅を変数で指定できるようにする。
-			col.setDraggable("true");
+//			col.setDraggable("true");
 			clms.appendChild(col);
 		}
 
