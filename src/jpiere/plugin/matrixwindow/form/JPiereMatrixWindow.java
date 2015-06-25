@@ -192,12 +192,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	TreeMap<Integer,Integer> fixItemFieldIDMap = new TreeMap<Integer,Integer>();
 
 
-	//表領域に表示する変動する項目のMAP<表示順番,項目(カラム)名>
-	TreeMap<Integer, String> contentItem = new TreeMap<Integer, String>();//TODO：SQLでパラメータ取得できるようにする。
-	//変動項目(繰返しとなるカラム)のAD_Field_IDのマップ<表示順番,AD_Field_ID>
-	TreeMap<Integer,Integer> contentItemFieldIDMap = new TreeMap<Integer,Integer>();
-
-
 	private String whereClause ;
 
 	private JPMatrixGridRowRenderer renderer;
@@ -214,6 +208,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MTab			m_Tab;
 	MMatrixField[]  m_matrixFields ;
 	MField[]		m_contentFields;
+	MColumn[]		m_contentColumns;
 
 	/*【パラメータ設定用定数】*/
 	final static String CLASS_INTTEGER = "Integer";
@@ -295,12 +290,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		m_matrixFields = m_matrixWindow.getMatrixFields();
 		m_contentFields = m_matrixWindow.getContentFields();
-
+		m_contentColumns = new MColumn[m_contentFields.length];
 		for(int i = 0; i < m_contentFields.length; i++)
 		{
-			contentItem.put(i, m_contentFields[i].getAD_Column().getColumnName());
-			contentItemFieldIDMap.put(i, m_contentFields[i].get_ID());
+			m_contentColumns[i]=new MColumn(Env.getCtx(),m_contentFields[i].getAD_Column_ID(),null);
 		}
+
 
 		AD_WINDOW_ID = m_matrixWindow.getAD_Window_ID();
 		m_Tab = new MTab(Env.getCtx(), m_matrixWindow.getAD_Tab_ID(), null);
@@ -956,7 +951,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			y.put(obj,x);
 			x.put(0, obj);
 
-			int columnNum = columnKeys.size() * contentItemFieldIDMap.size();
+			int columnNum = columnKeys.size() * m_contentFields.length;
 			for(int j = 1; j < columnNum+1; j++)
 			{
 				x.put(j, null);
@@ -998,10 +993,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //				}
 
 				/*変動カラムの処理*/
-				for(int k = 0; k < contentItemFieldIDMap.size(); k++)
+				for(int k = 0; k < m_contentFields.length; k++)
 				{
-					vmRow.put(fixItemFieldIDMap.size()+i*contentItemFieldIDMap.size()+k, POs.get(rowKey).get_Value(contentItem.get(k)));
-					ctRow.put(fixItemFieldIDMap.size()+i*contentItemFieldIDMap.size()+k, POs.get(rowKey).get_ID());
+					vmRow.put(fixItemFieldIDMap.size()+i*m_contentFields.length+k, POs.get(rowKey).get_Value(m_contentColumns[k].getColumnName()));
+					ctRow.put(fixItemFieldIDMap.size()+i*m_contentFields.length+k, POs.get(rowKey).get_ID());
 				}
 
 			}//for(Object rowKey : rowKeys)
@@ -1028,7 +1023,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				Auxheader auxheader = new Auxheader(columnKeyNameMap.get(columnKeys.get(i)));
 				auxhead.appendChild(auxheader);
-				auxheader.setColspan(contentItemFieldIDMap.size());
+				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 			}
 		}
@@ -1038,7 +1033,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				Auxheader auxheader = new Auxheader((String)columnKeys.get(i));
 				auxhead.appendChild(auxheader);
-				auxheader.setColspan(contentItemFieldIDMap.size());
+				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 			}
 		}
@@ -1048,7 +1043,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				Auxheader auxheader = new Auxheader(columnKeys.get(i).toString());
 				auxhead.appendChild(auxheader);
-				auxheader.setColspan(contentItemFieldIDMap.size());
+				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 			}
 		}else{
@@ -1130,12 +1125,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		//変動カラムの処理
 		for(int i = 0; i < columnKeys.size(); i++)
 		{
-			for(int j = 0; j < contentItemFieldIDMap.size(); j++)
+			for(int j = 0; j < m_contentFields.length; j++)
 			{
-				columnNameMap.put(c, Msg.getElement(Env.getCtx(), contentItem.get(j)));
+				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
 				for(int k = 0; k < gridFields.length; k++)
 				{
-					if(contentItemFieldIDMap.get(j).intValue()==gridFields[k].getAD_Field_ID())
+					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())
 						columnGridFieldMap.put(c, gridFields[k]);
 				}//k
 				c++;
