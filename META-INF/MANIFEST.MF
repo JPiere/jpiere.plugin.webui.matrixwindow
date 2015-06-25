@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: jpiere.plugin.webui.matrixwindow
+Bundle-SymbolicName: jpiere.plugin.webui.matrixwindow;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: OSS ERP Solutions
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8,
+ JavaSE-1.7
+Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
+ org.adempiere.ui;bundle-version="2.1.0",
+ org.adempiere.ui.zk;bundle-version="2.1.0",
+ org.zkoss.zk.library;bundle-version="6.0.0",
+ org.eclipse.osgi;bundle-version="3.7.2",
+ org.adempiere.plugin.utils;bundle-version="3.0.0"
+Bundle-ActivationPolicy: lazy
+Service-Component: OSGI-INF/JPierePluginMatrixWindowFormFactory.xml,
+ OSGI-INF/JPierePluginMatrixWindowModelFactory.xml
+Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
+Import-Package: org.compiere.model
