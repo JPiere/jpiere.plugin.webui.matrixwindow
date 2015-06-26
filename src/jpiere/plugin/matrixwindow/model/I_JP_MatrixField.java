@@ -108,6 +108,19 @@ public interface I_JP_MatrixField
 	  */
 	public String getDescription();
 
+    /** Column name FieldLength */
+    public static final String COLUMNNAME_FieldLength = "FieldLength";
+
+	/** Set Length.
+	  * Length of the column in the database
+	  */
+	public void setFieldLength (int FieldLength);
+
+	/** Get Length.
+	  * Length of the column in the database
+	  */
+	public int getFieldLength();
+
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 

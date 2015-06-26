@@ -183,6 +183,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	//全部(固定カラム+変動カラム)のカラムの名称のマップ<カラム順番,カラム名称>
 	HashMap<Integer,String> columnNameMap = new HashMap<Integer,String> ();
+	//全部(固定カラム+変動カラム)のカラムの表示長さのマップ<カラム順番,長さ>
+	HashMap<Integer,Integer> columnLengthMap = new HashMap<Integer,Integer> ();
 	//全部(固定カラム+変動カラム)のカラムのGridFieldのインスタンスのマップ<カラム順番,GridField>
 	HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
 
@@ -1051,7 +1053,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(int i = 0; i < columnNameMap.size(); i++)
 		{
 			col = new Column(columnNameMap.get(i));
-			col.setWidth("100px");//TODO:表示するカラムの幅を変数で指定できるようにする。
+			col.setWidth(columnLengthMap.get(i)+"px");
 //			col.setDraggable("true");
 			clms.appendChild(col);
 		}
@@ -1102,6 +1104,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
 		{
 			columnNameMap.put(c, Msg.getElement(Env.getCtx(), fixItem.get(i)));
+			columnLengthMap.put(c,m_matrixWindow.getFieldLength());
 			for(int j = 0; j < gridFields.length; j++)
 			{
 				if(fixItemFieldIDMap.get(i).intValue() == gridFields[j].getAD_Field_ID())
@@ -1116,6 +1119,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			for(int j = 0; j < m_contentFields.length; j++)
 			{
 				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
+				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
 				for(int k = 0; k < gridFields.length; k++)
 				{
 					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())

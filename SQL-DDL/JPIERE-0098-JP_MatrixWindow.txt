@@ -18,6 +18,7 @@ CREATE TABLE adempiere.JP_MatrixWindow
   AD_Tab_ID  numeric(10,0) NOT NULL,
   JP_MatrixColumnKey_ID  numeric(10,0) NOT NULL,
   JP_MatrixRowKey_ID  numeric(10,0) NOT NULL,
+  FieldLength numeric(10,0) DEFAULT 100::numeric,
 
   CONSTRAINT JP_MatrixWindow_pkey PRIMARY KEY (JP_MatrixWindow_ID)
 )

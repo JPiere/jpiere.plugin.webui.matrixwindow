@@ -123,6 +123,19 @@ public interface I_JP_MatrixWindow
 	  */
 	public String getDescription();
 
+    /** Column name FieldLength */
+    public static final String COLUMNNAME_FieldLength = "FieldLength";
+
+	/** Set Length.
+	  * Length of the column in the database
+	  */
+	public void setFieldLength (int FieldLength);
+
+	/** Get Length.
+	  * Length of the column in the database
+	  */
+	public int getFieldLength();
+
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -188,21 +201,6 @@ public interface I_JP_MatrixWindow
 	  * Alphanumeric identifier of the entity
 	  */
 	public String getName();
-
-    /** Column name Parent_Column_ID */
-    public static final String COLUMNNAME_Parent_Column_ID = "Parent_Column_ID";
-
-	/** Set Parent Column.
-	  * The link column on the parent tab.
-	  */
-	public void setParent_Column_ID (int Parent_Column_ID);
-
-	/** Get Parent Column.
-	  * The link column on the parent tab.
-	  */
-	public int getParent_Column_ID();
-
-	public org.compiere.model.I_AD_Column getParent_Column() throws RuntimeException;
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";

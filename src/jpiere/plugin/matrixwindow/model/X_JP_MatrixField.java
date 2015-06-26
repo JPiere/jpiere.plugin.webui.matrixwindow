@@ -30,7 +30,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150625L;
+	private static final long serialVersionUID = 20150626L;
 
     /** Standard Constructor */
     public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName)
@@ -117,6 +117,26 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	public String getDescription () 
 	{
 		return (String)get_Value(COLUMNNAME_Description);
+	}
+
+	/** Set Length.
+		@param FieldLength 
+		Length of the column in the database
+	  */
+	public void setFieldLength (int FieldLength)
+	{
+		set_Value (COLUMNNAME_FieldLength, Integer.valueOf(FieldLength));
+	}
+
+	/** Get Length.
+		@return Length of the column in the database
+	  */
+	public int getFieldLength () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_FieldLength);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set JP_MatrixField.

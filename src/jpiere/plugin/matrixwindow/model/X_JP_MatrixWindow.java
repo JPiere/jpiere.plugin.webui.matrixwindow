@@ -30,7 +30,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150625L;
+	private static final long serialVersionUID = 20150626L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)
@@ -44,7 +44,6 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			setJP_MatrixRowKey_ID (0);
 			setJP_MatrixWindow_ID (0);
 			setName (null);
-			setParent_Column_ID (0);
 			setValue (null);
         } */
     }
@@ -150,6 +149,26 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return (String)get_Value(COLUMNNAME_Description);
 	}
 
+	/** Set Length.
+		@param FieldLength 
+		Length of the column in the database
+	  */
+	public void setFieldLength (int FieldLength)
+	{
+		set_Value (COLUMNNAME_FieldLength, Integer.valueOf(FieldLength));
+	}
+
+	/** Get Length.
+		@return Length of the column in the database
+	  */
+	public int getFieldLength () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_FieldLength);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_AD_Field getJP_MatrixColumnKey() throws RuntimeException
     {
 		return (org.compiere.model.I_AD_Field)MTable.get(getCtx(), org.compiere.model.I_AD_Field.Table_Name)
@@ -249,34 +268,6 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	public String getName () 
 	{
 		return (String)get_Value(COLUMNNAME_Name);
-	}
-
-	public org.compiere.model.I_AD_Column getParent_Column() throws RuntimeException
-    {
-		return (org.compiere.model.I_AD_Column)MTable.get(getCtx(), org.compiere.model.I_AD_Column.Table_Name)
-			.getPO(getParent_Column_ID(), get_TrxName());	}
-
-	/** Set Parent Column.
-		@param Parent_Column_ID 
-		The link column on the parent tab.
-	  */
-	public void setParent_Column_ID (int Parent_Column_ID)
-	{
-		if (Parent_Column_ID < 1) 
-			set_Value (COLUMNNAME_Parent_Column_ID, null);
-		else 
-			set_Value (COLUMNNAME_Parent_Column_ID, Integer.valueOf(Parent_Column_ID));
-	}
-
-	/** Get Parent Column.
-		@return The link column on the parent tab.
-	  */
-	public int getParent_Column_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_Parent_Column_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
 	}
 
 	/** Set Search Key.

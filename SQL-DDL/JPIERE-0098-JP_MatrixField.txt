@@ -15,6 +15,7 @@ CREATE TABLE adempiere.JP_MatrixField
   AD_Field_ID  numeric(10,0) NOT NULL,
   seqno numeric(10,0) NOT NULL DEFAULT 0::numeric,
   Description character varying(255),
+  FieldLength numeric(10,0) DEFAULT 100::numeric,
 
   CONSTRAINT JP_MatrixField_pkey PRIMARY KEY (JP_MatrixField_ID)
 )
