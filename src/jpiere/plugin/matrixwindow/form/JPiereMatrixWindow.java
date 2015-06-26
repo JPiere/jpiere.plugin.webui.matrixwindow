@@ -202,46 +202,33 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	/**********************************************************************
 	 * 【パラメータ設定項目】
-	 * ここより下のプロパティ変数を変更すれば、汎用的に活用できます。
+	 * ここより下の変数は、マトリクスウィンドウの設定変数です。
 	 **********************************************************************/
 
+	//モデルクラス系
 	MMatrixWindow 	m_matrixWindow;
 	MTab			m_Tab;
 	MMatrixField[]  m_matrixFields ;
 	MField[]		m_contentFields;
 	MColumn[]		m_contentColumns;
 
-	/*【パラメータ設定用定数】*/
-	final static String CLASS_INTTEGER = "Integer";
-	final static String CLASS_STRING = "String";
-	final static String CLASS_TIMESTAMP = "Timestamp";
-
-
-	//AD_Window_IDを設定する
+	//AD_Window_ID
 	private int AD_WINDOW_ID = 0;
 
-	//テーブル名を設定する
+	//テーブル名
 	private String TABLE_NAME ;
 
-	//親テーブルとのリンクカラムを設定
+	//リンクカラムを設定
 	private String LINK_COLUMN ;
 
 
-	/*縦軸と横軸のパターンデータ1*/
-
-	//Columnキーの型
-	private String COLUMN_KEY_CLASS ; //TODO
-	//縦軸となるカラムを設定する
+	//縦軸となるカラム名称
 	private String COLUMN_KEY_NAME;
-	//縦軸となるカラムがテーブル名_IDの場合、そのテーブル名を設定する。COLUMN_KEY_NAMEがテーブル名_IDの場合は設定必須。
+	//縦軸となるカラムがID系の場合、外部参照しているテーブル名称。
 	private String COLUMN_KEY_TABLE;
-
-	//Rowキーの型
-	private String ROW_KEY_CLASS  ;	//TODO
-	//横軸となるカラムを設定する
+	//横軸となるカラム名称
 	private String ROW_KEY_NAME;
-	//横軸となるカラムがテーブル名_IDの場合、そのテーブル名を設定する
-	private String ROW_KEY_TABLE = "";
+
 
 	private int FIX_ITEM_FIELD_ID = 0;
 
@@ -314,7 +301,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR)
 		{
 			COLUMN_KEY_TABLE = COLUMN_KEY_NAME.substring(0, COLUMN_KEY_NAME.length() - "_ID".length());
-			COLUMN_KEY_CLASS = CLASS_INTTEGER;
 
 		}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
 				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
@@ -329,48 +315,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				COLUMN_KEY_TABLE = refTable.getAD_Table().getTableName();
 
 			}
-			COLUMN_KEY_CLASS = CLASS_INTTEGER;
-		}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
-				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
-				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
-			COLUMN_KEY_CLASS = CLASS_TIMESTAMP;
-		}else{
-			COLUMN_KEY_CLASS = CLASS_STRING;//TODO:まとめ過ぎ…
 		}
 
 		I_AD_Column keyRow = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 
 		ROW_KEY_NAME = keyRow.getColumnName();
 
-		if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR )
-		{
-			ROW_KEY_TABLE = ROW_KEY_NAME.substring(0, COLUMN_KEY_NAME.length() - "_ID".length());
-			ROW_KEY_CLASS = CLASS_INTTEGER;
-
-		}else if( keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
-				|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
-		{
-			if(keyRow.getAD_Reference_Value_ID()==0)
-			{
-				ROW_KEY_TABLE = ROW_KEY_NAME.substring(0, COLUMN_KEY_NAME.length() - "_ID".length());
-			}else{
-				I_AD_Reference ref = keyRow.getAD_Reference_Value();
-				MRefTable refTable =new MRefTable(Env.getCtx(), ref.getAD_Reference_ID(), null);
-				ROW_KEY_TABLE = refTable.getAD_Table().getTableName();
-			}
-
-			ROW_KEY_CLASS = CLASS_INTTEGER;
-		}else if( keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
-				|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
-				|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
-			ROW_KEY_CLASS = CLASS_TIMESTAMP;
-		}else{
-			ROW_KEY_CLASS = CLASS_STRING;//TODO:まとめ過ぎ…
-		}
-
 		FIX_ITEM_FIELD_ID = m_matrixWindow.getJP_MatrixRowKey().getAD_Field_ID();
-
-
 	}
 
 	public void dynInit() throws Exception
@@ -785,19 +736,22 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			pstmt = DB.prepareStatement(sql, null);
 			rs = pstmt.executeQuery();
+			I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
 			while (rs.next())
 			{
-				if(COLUMN_KEY_CLASS.equals(CLASS_INTTEGER))
+				if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
 				{
 					list.add(rs.getInt(1));
-					if(COLUMN_KEY_NAME.endsWith("_ID"))
-					{
-						columnKeyNameMap.put(rs.getInt(1), getNameFromTable(COLUMN_KEY_TABLE, rs.getInt(1)));
-
-					}
-				}else if(COLUMN_KEY_CLASS.equals(CLASS_STRING)){
+					columnKeyNameMap.put(rs.getInt(1), getNameFromTable(COLUMN_KEY_TABLE, rs.getInt(1)));
+				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
+					list.add(rs.getInt(1));
+				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
 					list.add(rs.getString(1));
-				}else if(COLUMN_KEY_CLASS.equals(CLASS_TIMESTAMP)){
+				}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
 					list.add(rs.getTimestamp(1));
 				}else{
 					list.add(rs.getObject(1));
@@ -825,21 +779,30 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		I_AD_Column keyRow = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 		try
 		{
 			pstmt = DB.prepareStatement(sql, null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
-				if(ROW_KEY_CLASS.equals(CLASS_INTTEGER)){
+				if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
+				{
 					list.add(rs.getInt(1));
-				}else if(ROW_KEY_CLASS.equals(CLASS_STRING)){
+				}else if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
+					list.add(rs.getInt(1));
+				}else if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
 					list.add(rs.getString(1));
-				}else if(ROW_KEY_CLASS.equals(CLASS_TIMESTAMP)){
+				}else if( keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
+						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
+						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
 					list.add(rs.getTimestamp(1));
 				}else{
 					list.add(rs.getObject(1));
 				}
+
 			}
 		}
 		catch (Exception e)
@@ -1038,7 +1001,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		auxhead.appendChild(fix);
 		fix.setColspan(fixItemFieldIDMap.size());
 
-		if(COLUMN_KEY_CLASS.equals(CLASS_INTTEGER) && COLUMN_KEY_NAME.endsWith("_ID"))
+		I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
+		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
 		{
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
@@ -1047,9 +1013,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 			}
-		}
-		else if(COLUMN_KEY_CLASS.equals(CLASS_STRING) )
-		{
+		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
+			;//auxheadなし
+		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
 				Auxheader auxheader = new Auxheader((String)columnKeys.get(i));
@@ -1057,9 +1023,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 			}
-		}
-		else if(COLUMN_KEY_CLASS.equals(CLASS_TIMESTAMP) )
-		{
+		}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
 				Auxheader auxheader = new Auxheader(columnKeys.get(i).toString());
