@@ -332,11 +332,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		MLookup lookupOrg = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.TableDir);
 		AD_Org_Editor = new WTableDirEditor("AD_Org_Editor", true, false, true, lookupOrg);
 		AD_Org_Editor.setValue(Env.getAD_Org_ID(Env.getCtx()));
+//		AD_Org_Editor.addValueChangeListener(this);
 
 		AD_Column_ID = MColumn.getColumn_ID(TABLE_NAME, LINK_COLUMN);
 		MLookup lookup = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.Search);
 		Search_Field_Editor = new WSearchEditor("Search_Field_Editor", true, false, true, lookup);
-//		Search_Field_Editor.setValue(1000000);
+		Search_Field_Editor.addValueChangeListener(this);
 
 		SearchButton = new Button("検索");
 		SearchButton.setId("SearchButton");
@@ -493,9 +494,30 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 	}
 
+
+
+
 	@Override
-	public void valueChange(ValueChangeEvent evt) {
-		;
+	public void valueChange(ValueChangeEvent e) {
+
+		String name = e.getPropertyName();
+		Object value = e.getNewValue();
+		if (log.isLoggable(Level.CONFIG)) log.config(name + "=" + value);
+
+
+//		if(name.equals("Search_Field_Editor"))
+//		{
+//			try
+//			{
+//				if(!createView ())
+//				{
+//					throw new Exception(message.toString());
+//				}
+//			} catch (Exception e1) {
+//				// TODO 自動生成された catch ブロック
+//				e1.printStackTrace();
+//			}
+//		}
 	}
 
 	@Override
@@ -611,6 +633,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
+	Auxhead auxhead ;
 
 	private boolean createView () throws ClassNotFoundException {
 
@@ -622,7 +645,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		ADWindowContent adWindowContent = adWindow.getADWindowContent();
 		IADTabbox adTabbox = adWindowContent.getADTab();
-		adTabpanel = adTabbox.getADTabpanel(1);
+		int tabCount = adTabbox.getTabCount();
+		for(int i = 0; i < tabCount; i++)
+		{
+			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
+			{
+				adTabpanel =adTabbox.getADTabpanel(i);
+			}
+		}
+		if(adTabpanel == null)
+		{
+			//TODO:エラー処理
+		}
 		gridTab = adTabpanel.getGridTab();
 		GridView gridView = adTabpanel.getGridView();
 		gridFields = gridTab.getFields();
@@ -679,9 +713,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		listbox.setModel(vmListModelMap);
 
 		org.zkoss.zul.Columns columns = listbox.getColumns();
+
 		if(columns==null)
 		{
-			Auxhead auxhead = createAuxhead();
+			auxhead = createAuxhead();
 			listbox.appendChild(auxhead);
 
 			createtColumnMap();
@@ -691,6 +726,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			Frozen frozen = new Frozen();
 			frozen.setColumns(fixItemFieldIDMap.size());
 			listbox.appendChild(frozen);
+		}else{
+			listbox.removeChild(columns);
+			listbox.removeChild(auxhead);
+			auxhead = createAuxhead();
+			listbox.appendChild(auxhead);
+
+			createtColumnMap();
+			Columns clms = createColumns();
+			listbox.appendChild(clms);
 		}
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo());
@@ -734,6 +778,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		columnKeyNameMap.clear();
 		try
 		{
 			pstmt = DB.prepareStatement(sql, null);
@@ -901,7 +946,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	{
 		Object columnKey = "";
 		TreeMap<Object, PO> obj = null;	//<Rowの識別子,PO>
-
+		keyColumnModel.clear();
 		for(int i = 0; i < POs.length; i++)
 		{
 			if(columnKey.equals(POs[i].get_Value(COLUMN_KEY_NAME)))
@@ -1099,6 +1144,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private void createtColumnMap()
 	{
 		int c = 0;	//	カラムマップ作成用カウンター
+		columnNameMap.clear();
+		columnLengthMap.clear();
 
 		//固定カラムの処理
 		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
