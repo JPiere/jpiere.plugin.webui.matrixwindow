@@ -62,12 +62,10 @@ import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_AD_Column;
-import org.compiere.model.I_AD_Reference;
 import org.compiere.model.MColumn;
 import org.compiere.model.MField;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
-import org.compiere.model.MRefTable;
 import org.compiere.model.MTab;
 import org.compiere.model.MTable;
 import org.compiere.model.PO;
@@ -214,22 +212,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MField[]		m_contentFields;
 	MColumn[]		m_contentColumns;
 
+	//縦軸となるカラム
+	I_AD_Column m_columnKeyColumn;
+	//横軸となるカラム
+	I_AD_Column m_rowKeyColumn ;
+
 	//AD_Window_ID
 	private int AD_WINDOW_ID = 0;
 
 	//テーブル名
 	private String TABLE_NAME ;
 
-	//リンクカラムを設定
+	//リンクカラム
 	private String LINK_COLUMN ;
-
-
-	//縦軸となるカラム名称
-	private String COLUMN_KEY_NAME;
-	//縦軸となるカラムがID系の場合、外部参照しているテーブル名称。
-	private String COLUMN_KEY_TABLE;
-	//横軸となるカラム名称
-	private String ROW_KEY_NAME;
 
 
 	private int FIX_ITEM_FIELD_ID = 0;
@@ -296,32 +291,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			;//TODO エラー処理
 		}
 
-		I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
-
-		COLUMN_KEY_NAME = keyColumn.getColumnName();
-
-		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR)
-		{
-			COLUMN_KEY_TABLE = COLUMN_KEY_NAME.substring(0, COLUMN_KEY_NAME.length() - "_ID".length());
-
-		}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
-				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
-		{
-			if(keyColumn.getAD_Reference_Value_ID()==0)
-			{
-				COLUMN_KEY_TABLE = COLUMN_KEY_NAME.substring(0, COLUMN_KEY_NAME.length() - "_ID".length());
-			}else{
-
-				I_AD_Reference ref = keyColumn.getAD_Reference_Value();
-				MRefTable refTable =new MRefTable(Env.getCtx(), ref.getAD_Reference_ID(), null);
-				COLUMN_KEY_TABLE = refTable.getAD_Table().getTableName();
-
-			}
-		}
-
-		I_AD_Column keyRow = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
-
-		ROW_KEY_NAME = keyRow.getColumnName();
+		m_columnKeyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
+		m_rowKeyColumn = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 
 		FIX_ITEM_FIELD_ID = m_matrixWindow.getJP_MatrixRowKey().getAD_Field_ID();
 	}
@@ -336,7 +307,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		AD_Column_ID = MColumn.getColumn_ID(TABLE_NAME, LINK_COLUMN);
 		MLookup lookup = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.Search);
-		Search_Field_Editor = new WSearchEditor("Search_Field_Editor", true, false, true, lookup);
+		Search_Field_Editor = new WSearchEditor(LINK_COLUMN, true, false, true, lookup);
 		Search_Field_Editor.addValueChangeListener(this);
 
 		SearchButton = new Button("検索");
@@ -349,7 +320,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		/*表領域に表示する項目<表示順番,項目(カラム)名>を取得する*/
 		//fixItemはRowの識別子となるカラムの1行で固定
-		fixItem.put(0, ROW_KEY_NAME);
+		fixItem.put(0, m_rowKeyColumn.getColumnName());
 		fixItemFieldIDMap.put(0,FIX_ITEM_FIELD_ID);
 
 	}
@@ -749,9 +720,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 
-	private String createWhere(){
-		Object oo = AD_Org_Editor.getValue();
-		Object dd = Search_Field_Editor.getValue();
+	private String createWhere()
+	{
 
 		if(AD_Org_Editor.getValue() == null)
 		{
@@ -773,8 +743,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createColumnKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + COLUMN_KEY_NAME +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + COLUMN_KEY_NAME;
+		final String sql = "SELECT DISTINCT " + m_columnKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
+							+ " ORDER BY " + m_columnKeyColumn.getColumnName();
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -791,7 +761,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
 				{
 					list.add(rs.getInt(1));
-					columnKeyNameMap.put(rs.getInt(1), getNameFromTable(COLUMN_KEY_TABLE, rs.getInt(1)));
+					columnKeyNameMap.put(rs.getInt(1), getDisplayValue(m_columnKeyColumn.getAD_Column_ID(), rs.getInt(1)));
 				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
 					list.add(rs.getInt(1));
 				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
@@ -821,8 +791,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createRowKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + ROW_KEY_NAME +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + ROW_KEY_NAME;
+		final String sql = "SELECT DISTINCT " + m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
+							+ " ORDER BY " + m_rowKeyColumn.getColumnName();
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -875,7 +845,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ArrayList<PO> list = new ArrayList<PO>();
 
 		final String sql = "SELECT *  FROM " + TABLE_NAME + whereClause
-				+ " ORDER BY " + COLUMN_KEY_NAME + "," + ROW_KEY_NAME;
+				+ " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName();;
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -949,13 +919,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		keyColumnModel.clear();
 		for(int i = 0; i < POs.length; i++)
 		{
-			if(columnKey.equals(POs[i].get_Value(COLUMN_KEY_NAME)))
+			if(columnKey.equals(POs[i].get_Value(m_columnKeyColumn.getColumnName())))
 			{
-				obj.put(POs[i].get_Value(ROW_KEY_NAME), POs[i]);
+				obj.put(POs[i].get_Value(m_rowKeyColumn.getColumnName()), POs[i]);
 			}else{
 				obj = new TreeMap<Object, PO> ();
-				obj.put(POs[i].get_Value(ROW_KEY_NAME), POs[i]);
-				columnKey = POs[i].get_Value(COLUMN_KEY_NAME);
+				obj.put(POs[i].get_Value(m_rowKeyColumn.getColumnName()), POs[i]);
+				columnKey = POs[i].get_Value(m_columnKeyColumn.getColumnName());
 				keyColumnModel.put(columnKey, obj);
 			}
 		}
@@ -1008,8 +978,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			for(Object rowKey : rowKeys)
 			{
 				//TreeMap<カラム番号,Data>
-				TreeMap<Integer,Object> vmRow = viewModel.get(POs.get(rowKey).get_Value(ROW_KEY_NAME));
-				TreeMap<Integer,Object> ctRow = conversionTable.get(POs.get(rowKey).get_Value(ROW_KEY_NAME));
+				TreeMap<Integer,Object> vmRow = viewModel.get(POs.get(rowKey).get_Value(m_rowKeyColumn.getColumnName()));
+				TreeMap<Integer,Object> ctRow = conversionTable.get(POs.get(rowKey).get_Value(m_rowKeyColumn.getColumnName()));
 
 
 				/*固定カラムの処理*/
@@ -1107,38 +1077,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 
-	private String getNameFromTable(String tableName, int Record_ID){
+	private String getDisplayValue(int AD_Column_ID, int Record_ID){
 
-		List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
-		if (factoryList == null)
-		{
-			;//エラー処理書いた方が良いのだろうけど、factoryListはあるのが前提という事で…。
-		}
+		MLookup lookup = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.Search);
+		WSearchEditor keyColumn = new WSearchEditor("keyColumn", true, false, true, lookup);
+		keyColumn.setValue(Record_ID);
 
-		PO po = null;
-		for(IModelFactory factory : factoryList) {
-			po = factory.getPO(tableName, Record_ID, null);//trxNameは保存時に取得されるので、ここでは不要と判断。
-			if (po != null)
-				break;
-		}//for
-
-		StringBuilder name= new StringBuilder();
-		int valueIndex = po.get_ColumnIndex("Value");
-		if(valueIndex != -1)
-		{
-			name.append(po.get_Value(valueIndex));
-		}
-
-		int nameIndex = po.get_ColumnIndex("Name");
-		if(nameIndex != -1)
-		{
-			if(!name.toString().isEmpty() && name.toString().length() > 0)
-				name.append("_");
-
-			name.append(po.get_Value(nameIndex));
-		}
-
-		return name.toString();
+		return keyColumn.getDisplay();
 	}
 
 	private void createtColumnMap()

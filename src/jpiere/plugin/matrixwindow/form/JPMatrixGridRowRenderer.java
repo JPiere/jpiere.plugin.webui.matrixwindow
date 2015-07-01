@@ -23,24 +23,30 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 import org.adempiere.util.GridRowCtx;
+import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.AbstractADWindowContent;
 import org.adempiere.webui.adwindow.GridTableListModel;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.NumberBox;
+import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WebEditorFactory;
+import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
+import org.adempiere.webui.session.SessionManager;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.PO;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
@@ -110,6 +116,162 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel);
 	}
 
+	private WEditor getEditorCell(GridField gridField) {
+		WEditor editor = fieldEditorMap.get(gridField);
+		if (editor != null)  {
+			prepareFieldEditor(gridField, editor);
+			editor.addValueChangeListener(dataBinder);
+			gridField.removePropertyChangeListener(editor);
+			gridField.addPropertyChangeListener(editor);
+			editor.setValue(gridField.getValue());
+		}
+		return editor;
+	}
+
+	private void prepareFieldEditor(GridField gridField, WEditor editor)
+	{
+		if (editor instanceof WButtonEditor)
+        {
+			if (buttonListener != null)
+			{
+				((WButtonEditor)editor).addActionListener(buttonListener);
+			}
+			else
+			{
+				Object window = SessionManager.getAppDesktop().findWindow(windowNo);
+            	if (window != null && window instanceof ADWindow)
+            	{
+            		AbstractADWindowContent windowPanel = ((ADWindow)window).getADWindowContent();
+            		((WButtonEditor)editor).addActionListener(windowPanel);
+            	}
+			}
+        }
+
+        //streach component to fill grid cell
+		if (editor.getComponent() instanceof HtmlBasedComponent)
+		{
+        	editor.fillHorizontal();
+		}
+	}
+
+	public int getColumnIndex(GridField field) {
+//		GridField[] fields = gridPanel.getFields();
+//		for(int i = 0; i < fields.length; i++) {
+//			if (fields[i] == field)
+//				return i;
+//		}
+		return 0;
+	}
+
+	private Component createReadonlyCheckbox(Object value) {
+		Checkbox checkBox = new Checkbox();
+		if (value != null && "true".equalsIgnoreCase(value.toString()))
+			checkBox.setChecked(true);
+		else
+			checkBox.setChecked(false);
+		checkBox.setDisabled(true);
+		return checkBox;
+	}
+
+
+	/**
+	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @return
+	 */
+	private String getDisplayText(Object value, GridField gridField, int rowIndex){
+		return getDisplayText(value, gridField, rowIndex, false);
+	}
+
+
+	/**
+	 * Get display text of a field. when field have isDisplay = false always return empty string, except isForceGetValue = true
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @param isForceGetValue
+	 * @return
+	 */
+	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
+	{
+		if (value == null)
+			return "";
+
+		if (rowIndex >= 0) {
+			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridField.getGridTab(), rowIndex);
+			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
+				return "";
+			}
+		}
+
+		if (gridField.isEncryptedField())
+		{
+			return "********";
+		}
+//		else if (readOnlyEditors.get(gridField) != null)
+//		{
+//			WEditor editor = readOnlyEditors.get(gridField);
+//			return editor.getDisplayTextForGridView(value);
+//		}
+    	else
+    		return value.toString();
+	}
+
+
+	/**
+	 * get component to display value of a field.
+	 * when display is boolean or button, return correspond component
+	 * other return a label with text get from {@link #getDisplayText(Object, GridField, int, boolean)}
+	 * @param rowIndex
+	 * @param value
+	 * @param gridField
+	 * @param isForceGetValue
+	 * @return
+	 */
+	private Component getDisplayComponent(int rowIndex, Object value, GridField gridField, boolean isForceGetValue) {
+		Component component;
+		if (gridField.getDisplayType() == DisplayType.YesNo) {
+			component = createReadonlyCheckbox(value);
+		} else if (gridField.getDisplayType() == DisplayType.Button) {
+			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
+			WButtonEditor editor = new WButtonEditor(gridField, rowIndex);
+			editor.setValue(gridTab.getValue(rowIndex, gridField.getColumnName()));
+			editor.setReadWrite(gridField.isEditable(gridRowCtx, true,true));
+			editor.getComponent().setAttribute(GRID_ROW_INDEX_ATTR, rowIndex);
+			editor.addActionListener(buttonListener);
+			component = editor.getComponent();
+		} else {
+			String text = getDisplayText(value, gridField, rowIndex, isForceGetValue);
+
+			Label label = new Label();
+			setLabelText(text, label);
+
+			component = label;
+		}
+		return component;
+	}
+
+
+
+
+
+
+
+
+
+	private void setLabelText(String text, Label label) {
+		String display = text;
+		if (text != null && text.length() > MAX_TEXT_LENGTH)
+			display = text.substring(0, MAX_TEXT_LENGTH - 3) + "...";
+		// since 5.0.8, the org.zkoss.zhtml.Text is encoded by default
+//		if (display != null)
+//			display = XMLs.encodeText(display);
+		label.setValue(display);
+		if (text != null && text.length() > MAX_TEXT_LENGTH)
+			label.setTooltiptext(text);
+	}
 
 	static class RowListener implements EventListener<Event> {
 
@@ -207,6 +369,9 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				 ********************************************************************************/
 
 				WEditor editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+				if (editor instanceof WButtonEditor) {
+					((WButtonEditor)editor).addActionListener(buttonListener);
+				}
 				editor.setValue(data.get(i));
 				editor.getComponent().setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));
 				if(columnGridFieldMap.get(i).isReadOnly() || i==0)
@@ -264,75 +429,27 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	{
 
 		Component component ;
-//		if (gridField.getDisplayType() == DisplayType.YesNo) {
-//			component = createReadonlyCheckbox(value);
-//		} else if (gridField.getDisplayType() == DisplayType.Button) {
-//			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
-//			WButtonEditor editor = new WButtonEditor(gridField, rowIndex);
-//			editor.setValue(gridTab.getValue(rowIndex, gridField.getColumnName()));
-//			editor.setReadWrite(gridField.isEditable(gridRowCtx, true,true));
-//			editor.getComponent().setAttribute(GRID_ROW_INDEX_ATTR, rowIndex);
-//			editor.addActionListener(buttonListener);
-//			component = editor.getComponent();
-//		} else {
+		if (gridField.getDisplayType() == DisplayType.YesNo) {
+			component = createReadonlyCheckbox(value);
+		} else if (gridField.getDisplayType() == DisplayType.Button) {
+			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
+			WButtonEditor editor = new WButtonEditor(gridField, rowIndex);
+			editor.setValue(gridTab.getValue(rowIndex, gridField.getColumnName()));
+			editor.setReadWrite(gridField.isEditable(gridRowCtx, true,true));
+			editor.getComponent().setAttribute(GRID_ROW_INDEX_ATTR, rowIndex);
+			editor.addActionListener(buttonListener);
+			component = editor.getComponent();
+		} else {
 			String text = getDisplayText(value, gridField, rowIndex, isGridViewCustomized);
 
 			Label label = new Label();
 			setLabelText(text, label);
 
 			component = label;
-//		}
+		}
 		return component;
 	}
 
-	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
-	{
-		if (value == null)
-			return "";
-
-		if (rowIndex >= 0) {
-			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridField.getGridTab(), rowIndex);
-			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
-				return "";
-			}
-		}
-
-		if (gridField.isEncryptedField())
-		{
-			return "********";
-		}
-//		else if (readOnlyEditors.get(gridField) != null)
-//		{
-//			WEditor editor = readOnlyEditors.get(gridField);
-//			return editor.getDisplayTextForGridView(value);
-//		}
-    	else
-    		return value.toString();
-	}
-
-	private void setLabelText(String text, Label label) {
-		String display = text;
-		if (text != null && text.length() > MAX_TEXT_LENGTH)
-			display = text.substring(0, MAX_TEXT_LENGTH - 3) + "...";
-		// since 5.0.8, the org.zkoss.zhtml.Text is encoded by default
-//		if (display != null)
-//			display = XMLs.encodeText(display);
-		label.setValue(display);
-		if (text != null && text.length() > MAX_TEXT_LENGTH)
-			label.setTooltiptext(text);
-	}
-
-	private WEditor getEditorCell(GridField gridField) {
-		WEditor editor = fieldEditorMap.get(gridField);
-		if (editor != null)  {
-//			prepareFieldEditor(gridField, editor);
-			editor.addValueChangeListener(dataBinder);//TODO:DataBinderの作業
-			gridField.removePropertyChangeListener(editor);
-			gridField.addPropertyChangeListener(editor);
-			editor.setValue(gridField.getValue());
-		}
-		return editor;
-	}
 
 
 	@Override
@@ -375,18 +492,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	public int getControls() {
 		// TODO 自動生成されたメソッド・スタブ
 		return 0;
-	}
-
-
-	/**
-	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
-	 * @param value
-	 * @param gridField
-	 * @param rowIndex
-	 * @return
-	 */
-	private String getDisplayText(Object value, GridField gridField, int rowIndex){
-		return getDisplayText(value, gridField, rowIndex, false);
 	}
 
 
@@ -584,7 +689,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	/**
 	 * set focus to first active editor
 	 */
-	public void focusToFirstEditor() {
+	public void focusToFirstEditor()
+	{
 		if (currentRow != null && currentRow.getParent() != null)
 		{
 			WEditor toFocus = null;
@@ -613,6 +719,31 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 //				focusToEditor(firstEditor);
 //			}
 		}//if
+	}
+
+	/**
+	 * @param windowPanel
+	 */
+	public void setADWindowPanel(AbstractADWindowContent windowPanel) {
+		if (this.m_windowPanel == windowPanel)
+			return;
+
+		this.m_windowPanel = windowPanel;
+
+		buttonListener = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				WButtonEditor editor = (WButtonEditor) event.getSource();
+				Integer rowIndex = (Integer) editor.getComponent().getAttribute(GRID_ROW_INDEX_ATTR);
+				if (rowIndex != null) {
+					int newRowIndex = gridTab.navigate(rowIndex);
+					if (newRowIndex == rowIndex) {
+						m_windowPanel.actionPerformed(event);
+					}
+				} else {
+					m_windowPanel.actionPerformed(event);
+				}
+			}
+		};
 	}
 
 
