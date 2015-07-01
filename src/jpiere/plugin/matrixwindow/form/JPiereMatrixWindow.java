@@ -708,12 +708,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			listbox.appendChild(clms);
 		}
 
-		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo());
+		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form);
 		renderer.setcColumnsSize(columnNameMap.size());					//TODO:コンストラクタの引数とする
 		renderer.gridView = gridView;									//TODO:コンストラクタの引数とする
 		renderer.gridTab = gridTab;										//TODO:コンストラクタの引数とする
 		renderer.columnGridFieldMap = columnGridFieldMap;				//TODO:コンストラクタの引数とする
 		listbox.setRowRenderer(renderer);
+		renderer.setADWindowPanel(adWindowContent,adTabpanel);
 
 		return true;
 

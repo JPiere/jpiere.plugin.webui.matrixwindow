@@ -23,13 +23,18 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 import org.adempiere.util.GridRowCtx;
+import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.AbstractADWindowContent;
 import org.adempiere.webui.adwindow.GridTableListModel;
 import org.adempiere.webui.adwindow.GridView;
+import org.adempiere.webui.adwindow.IADTabpanel;
+import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
+import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.NumberBox;
+import org.adempiere.webui.component.Window;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
@@ -37,6 +42,7 @@ import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
+import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.session.SessionManager;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
@@ -52,6 +58,7 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Cell;
+import org.zkoss.zul.Div;
 import org.zkoss.zul.Grid;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelMap;
@@ -91,6 +98,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private boolean editing = false;
 	private int currentRowIndex = -1;
 	private AbstractADWindowContent m_windowPanel;
+	private IADTabpanel adTabpanel;
 	private ActionListener buttonListener;
 
 //	private ListModelMap<Object, Object> listModelMap;
@@ -105,14 +113,17 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private int columnsSize=0;
 
+	private CustomForm form ;
+
 
 	public JPMatrixGridRowRenderer(ListModelMap<Object, Object> viewModel
-			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,int windowNo) {
+			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,int windowNo,CustomForm form) {
 		this.viewModel = viewModel;
 		this.convetionTable = convetionTable;
 		this.tableModel = tableModel;
 		this.dirtyModel = dirtyModel;
 		this.windowNo = windowNo;
+		this.form = form;
 		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel);
 	}
 
@@ -371,8 +382,19 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				WEditor editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
 				if (editor instanceof WButtonEditor) {
 					((WButtonEditor)editor).addActionListener(buttonListener);
+					((WButtonEditor)editor).setADTabpanel(adTabpanel);
+					Object  aaaa = convetionTable.get(data.get(0));
+					TreeMap<Integer,Object> bbb = new TreeMap<Integer,Object>();
+					if(aaaa instanceof TreeMap<?,?>)
+					{
+						bbb = (TreeMap<Integer,Object>)aaaa;
+						editor.setValue(bbb.get(i));
+					}
+
+				}else{
+					editor.setValue(data.get(i));
 				}
-				editor.setValue(data.get(i));
+
 				editor.getComponent().setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));
 				if(columnGridFieldMap.get(i).isReadOnly() || i==0)
 				{
@@ -392,7 +414,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//編集するフィールドだけWEditorのMapを作成する。
 					Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
 					div.appendChild(editor.getComponent());
-					editor.setValue(data.get(i));
+//					editor.setValue(data.get(i));
 					div.setAttribute("display.component", component);
 					div.setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//CellのY軸とX軸の設定
 
@@ -403,6 +425,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 //					div.addEventListener(Events.ON_CLICK, rowListener);
 //					div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
 				}
+//				div.addEventListener(Events.ON_CLICK, rowListener);
 				row.appendChild(div);
 
 			}else{//データが無い場合の処理
@@ -724,26 +747,58 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	/**
 	 * @param windowPanel
 	 */
-	public void setADWindowPanel(AbstractADWindowContent windowPanel) {
+	public void setADWindowPanel(AbstractADWindowContent windowPanel,IADTabpanel adTabpanel) {
 		if (this.m_windowPanel == windowPanel)
 			return;
 
 		this.m_windowPanel = windowPanel;
+		this.adTabpanel = adTabpanel;
 
 		buttonListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				WButtonEditor editor = (WButtonEditor) event.getSource();
-				Integer rowIndex = (Integer) editor.getComponent().getAttribute(GRID_ROW_INDEX_ATTR);
-				if (rowIndex != null) {
-					int newRowIndex = gridTab.navigate(rowIndex);
-					if (newRowIndex == rowIndex) {
-						m_windowPanel.actionPerformed(event);
-					}
-				} else {
-					m_windowPanel.actionPerformed(event);
+				String stringRecord_ID = editor.getDisplay();//valueの取得
+
+				ProcessModalDialog dialog = new ProcessModalDialog(windowNo, editor.getProcess_ID(), 0, Integer.parseInt(stringRecord_ID), false);
+
+
+				if (dialog.isValid())
+				{
+					//dialog.setWidth("500px");
+					dialog.setBorder("normal");
+					form.getParent().appendChild(dialog);
+//					showBusyMask(dialog);
+					LayoutUtils.openOverlappedWindow(form.getParent(), dialog, "middle_center");
+					dialog.focus();
 				}
+				else
+				{
+//					onRefresh(true, false);
+				}
+
 			}
 		};
+	}
+
+	public void showBusyMask(Window window) {
+		form.getParent().appendChild(getMask());
+		StringBuilder script = new StringBuilder("var w=zk.Widget.$('#");
+		script.append(form.getParent().getUuid()).append("');");
+		if (window != null) {
+			script.append("var d=zk.Widget.$('#").append(window.getUuid()).append("');w.busy=d;");
+		} else {
+			script.append("w.busy=true;");
+		}
+		Clients.response(new AuScript(script.toString()));
+	}
+
+	private Div mask;
+
+	private Div getMask() {
+		if (mask == null) {
+			mask = new Mask();
+		}
+		return mask;
 	}
 
 
