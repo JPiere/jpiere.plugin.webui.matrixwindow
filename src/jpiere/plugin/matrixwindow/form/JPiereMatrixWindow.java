@@ -36,6 +36,7 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
+import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
@@ -56,6 +57,7 @@ import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
+import org.adempiere.webui.grid.WQuickEntry;
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.window.FDialog;
@@ -113,6 +115,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
     private Button SearchButton;
 	@Wire
     private Button SaveButton;
+	@Wire
+    private Button CreateButton;
 
 
 	/**********************************************************************
@@ -315,8 +319,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		SearchButton.addActionListener(this);
 
 		SaveButton = new Button("保存");
-		SaveButton.setId("SavetButton");
+		SaveButton.setId("SaveButton");
 		SaveButton.addActionListener(this);
+
+		CreateButton = new Button("登録");
+		CreateButton.setId("CreateButton");
+		CreateButton.addActionListener(this);
 
 		/*表領域に表示する項目<表示順番,項目(カラム)名>を取得する*/
 		//fixItemはRowの識別子となるカラムの1行で固定
@@ -372,6 +380,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(SearchButton);
 				row.appendCellChild(SaveButton);
+				row.appendCellChild(CreateButton);
 
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(new Space(),1);//ボタンの下に空白行を入れているだけ。
@@ -600,9 +609,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				;//saveData()メソッド内でエラー処理しているのでここでのエラー処理は不要
 			}
 
+		}else if(e.getTarget().equals(CreateButton)){
+
+			final WQuickEntry vqe = new WQuickEntry (form.getWindowNo(), 1000053);
+			vqe.loadRecord (0);
+//			List<PO> POs = vqe.quickPOs;
+			AEnv.showWindow(vqe);
 		}
 
 	}
+
 
 	Auxhead auxhead ;
 
