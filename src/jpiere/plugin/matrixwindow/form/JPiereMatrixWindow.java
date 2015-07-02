@@ -57,7 +57,6 @@ import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
-import org.adempiere.webui.grid.WQuickEntry;
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.window.FDialog;
@@ -611,9 +610,25 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		}else if(e.getTarget().equals(CreateButton)){
 
-			final WQuickEntry vqe = new WQuickEntry (form.getWindowNo(), 1000053);
+//			final WQuickEntry vqe = new WQuickEntry (form.getWindowNo(), 1000053);
+			final JPiereMatrixWindowQuickEntry vqe = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), 1000053);
 			vqe.loadRecord (0);
-//			List<PO> POs = vqe.quickPOs;
+			List<WEditor> editors = vqe.getQuickEditors();
+			for(WEditor editor : editors)
+			{
+				if(editor.getColumnName().equals("AD_Org_ID"))
+				{
+					editor.setValue(AD_Org_Editor.getValue());
+					editor.setReadWrite(false);
+				}
+
+				if(editor.getColumnName().equals(LINK_COLUMN))
+				{
+					editor.setValue(Search_Field_Editor.getValue());
+					editor.setReadWrite(false);
+				}
+			}
+
 			AEnv.showWindow(vqe);
 		}
 
