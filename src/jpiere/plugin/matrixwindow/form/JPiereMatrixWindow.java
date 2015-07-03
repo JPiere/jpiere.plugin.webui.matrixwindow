@@ -45,7 +45,6 @@ import org.adempiere.webui.component.Columns;
 import org.adempiere.webui.component.EditorBox;
 import org.adempiere.webui.component.Grid;
 import org.adempiere.webui.component.GridFactory;
-import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
@@ -109,10 +108,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	 * 【Composer】
 	 **********************************************************************/
 	@Wire
-	private WTableDirEditor AD_Org_Editor;
-	@Wire
-	private WSearchEditor Search_Field_Editor;
-	@Wire
     private Button SearchButton;
 	@Wire
     private Button SaveButton;
@@ -123,13 +118,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	/**********************************************************************
 	 * 【UI Component】
 	 **********************************************************************/
-	//ラベル
-	private Label AD_Org_Label = new Label();					//組織マスタラベル
-	private Label Search_Field_Label =new Label();				//検索フィールドラベル
-
 	//メインレイアウト
 	private Borderlayout mainLayout = new Borderlayout();
-	private Panel southPanel = new Panel();
 
 	//パラメータパネル
 	private Panel parameterPanel = new Panel();						//検索条件などを設定するパラメータパネル
@@ -338,17 +328,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	public void dynInit() throws Exception
 	{
-		int AD_Column_ID = MColumn.getColumn_ID("C_BPartner", "AD_Org_ID");
-		MLookup lookupOrg = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.TableDir);
-		AD_Org_Editor = new WTableDirEditor("AD_Org_Editor", true, false, true, lookupOrg);
-		AD_Org_Editor.setValue(Env.getAD_Org_ID(Env.getCtx()));
-//		AD_Org_Editor.addValueChangeListener(this);
-
-		AD_Column_ID = MColumn.getColumn_ID(TABLE_NAME, LINK_COLUMN);
-		MLookup lookup = MLookupFactory.get(Env.getCtx(), form.getWindowNo(), 0, AD_Column_ID, DisplayType.Search);
-		Search_Field_Editor = new WSearchEditor(LINK_COLUMN, true, false, true, lookup);
-		Search_Field_Editor.addValueChangeListener(this);
-
 		SearchButton = new Button("検索");
 		SearchButton.setId("SearchButton");
 		SearchButton.addActionListener(this);
@@ -399,20 +378,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			searchGB.appendChild(searchGrid);
 			Rows rows = searchGrid.newRows();
 
-			//パラメータパネル-1段目(検索条件パネル)
-			row = rows.newRow();
-				AD_Org_Label.setText(Msg.translate(Env.getCtx(), "AD_Org_ID"));	//組織ラベル
-				row.appendCellChild(AD_Org_Label.rightAlign());
-				row.appendCellChild(AD_Org_Editor.getComponent(),1);
-				Search_Field_Label.setText(Msg.translate(Env.getCtx(), LINK_COLUMN));	//検索フィールドラベル
-				row.appendCellChild(Search_Field_Label.rightAlign());
-				row.appendCellChild(Search_Field_Editor.getComponent(),1);
-
-				//Zoom設定
-				Search_Field_Label.addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) Search_Field_Editor));
-				Search_Field_Label.setStyle("cursor: pointer; text-decoration: underline;color: #333;");
-
-			//パラメータパネル-2段目以降(検索条件パネル)
+			//検索条件パネル
 			for(int i = 0; i < m_matrixSearches.length; i++)
 			{
 				if(i%2 == 0)
@@ -425,6 +391,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
 					{
 						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
+
+						//Set zoom
+						if(editor instanceof WSearchEditor
+								|| editor instanceof WTableDirEditor)
+						{
+							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
+							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+						}
+
 						row.appendCellChild(editor.getLabel().rightAlign());
 						row.appendCellChild(editor.getComponent(),1);
 						editor.addValueChangeListener(this);
@@ -440,7 +415,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				row.appendCellChild(SaveButton);
 
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
+				{
 					row.appendCellChild(CreateButton);
+					CreateButton.setEnabled(false);
+				}
 
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(new Space(),1);//ボタンの下に空白行を入れているだけ。
@@ -505,7 +483,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
-	private void updateModel(ListModel<?> listmodel ,int row, int col) {
+	private void updateModel(ListModel<?> listmodel ,int row, int col)
+	{
 
 		if (m_calculating)  //  Avoid recursive calls
 			return ;
@@ -533,8 +512,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return;
 		}
 	}
-
-
 
 
 //	@Override
@@ -637,6 +614,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				throw new Exception(message.toString());
 			}
 
+			CreateButton.setEnabled(true);
+
 		}else if(e.getTarget().equals(SaveButton)){
 
 			boolean isOK = saveData();
@@ -657,19 +636,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			final JPiereMatrixWindowQuickEntry vqe = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), m_matrixWindow.getJP_QuickEntryWindow_ID(), this);
 			vqe.loadRecord (0);
 			List<WEditor> editors = vqe.getQuickEditors();
+
+			//検索パラメータを新規登録データの初期値として設定し変更不可とする
 			for(WEditor editor : editors)
 			{
-				if(editor.getColumnName().equals("AD_Org_ID"))
+				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 				{
-					editor.setValue(AD_Org_Editor.getValue());
-					editor.setReadWrite(false);
+					if(editor.getColumnName().equals(entry.getKey()))
+					{
+						editor.setValue(entry.getValue().getValue());
+						editor.setReadWrite(false);
+					}
 				}
 
-				if(editor.getColumnName().equals(LINK_COLUMN))
-				{
-					editor.setValue(Search_Field_Editor.getValue());
-					editor.setReadWrite(false);
-				}
 			}
 
 			AEnv.showWindow(vqe);
@@ -772,22 +751,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private String createWhere()
 	{
+		StringBuilder whereClause = new StringBuilder(" WHERE AD_Client_ID = "+ Env.getAD_Client_ID(Env.getCtx()));
 
-		if(AD_Org_Editor.getValue() == null)
+		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 		{
-			message.append("組織は必須入力です。");//要多言語化
+			if(entry.getValue().getValue()!=null)
+			{
+				whereClause.append(" AND "+ entry.getKey() + " = " + entry.getValue().getValue());
+			}
 		}
 
-		if(Search_Field_Editor.getValue() == null || (Integer)Search_Field_Editor.getValue() == 0)
-		{
-			message.append(LINK_COLUMN + "は必須入力です。");//要多言語化
-		}
-
-		String whereClause = " WHERE AD_Client_ID = "+ Env.getAD_Client_ID(Env.getCtx()) +" AND "
-							+ "AD_Org_ID = " + AD_Org_Editor.getValue() +" AND "
-							+ LINK_COLUMN  + " = " + Search_Field_Editor.getValue() ;
-
-		return whereClause;
+		return whereClause.toString();
 	}
 
 
