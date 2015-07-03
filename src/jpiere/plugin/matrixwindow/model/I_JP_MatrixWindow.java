@@ -189,6 +189,17 @@ public interface I_JP_MatrixWindow
 	/** Get JP_MatrixWindow_UU	  */
 	public String getJP_MatrixWindow_UU();
 
+    /** Column name JP_QuickEntryWindow_ID */
+    public static final String COLUMNNAME_JP_QuickEntryWindow_ID = "JP_QuickEntryWindow_ID";
+
+	/** Set JP_QuickEntryWindow_ID	  */
+	public void setJP_QuickEntryWindow_ID (int JP_QuickEntryWindow_ID);
+
+	/** Get JP_QuickEntryWindow_ID	  */
+	public int getJP_QuickEntryWindow_ID();
+
+	public org.compiere.model.I_AD_Window getJP_QuickEntryWindow() throws RuntimeException;
+
     /** Column name Name */
     public static final String COLUMNNAME_Name = "Name";
 

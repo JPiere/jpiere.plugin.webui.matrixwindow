@@ -379,7 +379,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(SearchButton);
 				row.appendCellChild(SaveButton);
-				row.appendCellChild(CreateButton);
+
+				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
+					row.appendCellChild(CreateButton);
 
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(new Space(),1);//ボタンの下に空白行を入れているだけ。
@@ -586,7 +588,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //					selectAll.setChecked(false);
 			}
 
-		}else if (e.getTarget().equals(SearchButton))
+		}else if (e.getTarget().equals(SearchButton) || e.getTarget().getId().equals("Ok"))
 		{
 			if(!createView ())
 			{
@@ -610,8 +612,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		}else if(e.getTarget().equals(CreateButton)){
 
-//			final WQuickEntry vqe = new WQuickEntry (form.getWindowNo(), 1000053);
-			final JPiereMatrixWindowQuickEntry vqe = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), 1000053);
+			final JPiereMatrixWindowQuickEntry vqe = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), m_matrixWindow.getJP_QuickEntryWindow_ID(), this);
 			vqe.loadRecord (0);
 			List<WEditor> editors = vqe.getQuickEditors();
 			for(WEditor editor : editors)
@@ -765,7 +766,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			message.append(LINK_COLUMN + "は必須入力です。");//要多言語化
 		}
 
-		String whereClause = " WHERE AD_Org_ID = " + AD_Org_Editor.getValue() +" AND "
+		String whereClause = " WHERE AD_Client_ID = "+ Env.getAD_Client_ID(Env.getCtx()) +" AND "
+							+ "AD_Org_ID = " + AD_Org_Editor.getValue() +" AND "
 							+ LINK_COLUMN  + " = " + Search_Field_Editor.getValue() ;
 
 		return whereClause;

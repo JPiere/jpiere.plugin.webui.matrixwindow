@@ -6,7 +6,11 @@ import java.util.List;
 import java.util.Properties;
 
 import org.compiere.model.MField;
+import org.compiere.model.MIndexColumn;
 import org.compiere.model.MTab;
+import org.compiere.model.MTable;
+import org.compiere.model.MTableIndex;
+import org.compiere.model.MWindow;
 import org.compiere.model.Query;
 import org.compiere.util.Env;
 import org.compiere.util.Util;
@@ -108,11 +112,89 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 			}
 		}
 
-		if(getJP_MatrixColumnKey_ID() == getJP_MatrixRowKey_ID())
+
+		//リンクカラム、列キー、行キーにユニーク制約がかかっている事の確認
+		if(newRecord
+				|| is_ValueChanged("AD_Tab_ID")
+				|| is_ValueChanged("JP_MatrixColumnKey_ID")
+				|| is_ValueChanged("JP_MatrixRowKey_ID"))
 		{
-			log.saveError("Error", "行キーと列キーが同じです");
-			return false;
+
+			if(getAD_Tab().getAD_Column_ID()==getJP_MatrixColumnKey().getAD_Column_ID())
+			{
+				log.saveError("Error", "タブのリンクカラムの設定と列キーが同じです");
+				return false;
+			}else if(getAD_Tab().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
+				log.saveError("Error", "タブのリンクカラムの設定と行キーが同じです");
+				return false;
+			}else if(getJP_MatrixColumnKey().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
+				log.saveError("Error", "行キーと列キーが同じです");
+				return false;
+			}
+
+			MTable mTable = MTable.get(getCtx(), getAD_Tab().getAD_Table_ID());
+			MTableIndex[] m_tableIndexes = MTableIndex.get(mTable);
+			boolean isUniqueConstraint = false;
+			for(int i = 0 ; i < m_tableIndexes.length; i++)
+			{
+				if(!m_tableIndexes[i].isUnique())
+					continue;
+
+				boolean isLinkColumn = false;
+				boolean isColumnKey = false;
+				boolean isRowKey = false;
+
+				MIndexColumn[] m_indexColumns = m_tableIndexes[i].getColumns(false);
+				for(int j = 0; j < m_indexColumns.length; j++)
+				{
+					if(m_indexColumns[j].getAD_Column_ID()==getAD_Tab().getAD_Column_ID())
+						isLinkColumn = true;
+
+					if(m_indexColumns[j].getAD_Column_ID()==getJP_MatrixColumnKey().getAD_Column_ID())
+						isColumnKey = true;
+
+					if(m_indexColumns[j].getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID())
+						isRowKey = true;
+				}
+
+				if(isLinkColumn && isColumnKey && isRowKey)
+				{
+					isUniqueConstraint = true;
+					break;
+				}
+			}
+
+			if(!isUniqueConstraint)
+			{
+				log.saveError("Error", "タブのリンクカラム、列キー、行キーにユニーク制約が設定されていません。");
+				return false;
+			}
+
 		}
+
+
+
+
+
+		if(getJP_QuickEntryWindow_ID() > 0)
+		{
+
+			if(newRecord || is_ValueChanged("JP_QuickEntryWindow_ID"))
+			{
+				MWindow quickEntryWindow = MWindow.get(getCtx(), getJP_QuickEntryWindow_ID());
+				MTab[] quickEntryTabs = quickEntryWindow.getTabs(false, null);
+
+				if(quickEntryTabs[0].getAD_Table_ID() != getAD_Tab().getAD_Table_ID())
+				{
+					log.saveError("Error", "タブとクィックウィンドウの関係が正しくありません");
+					return false;
+				}
+			}
+		}
+
+
+
+
 
 		return true;
 	}

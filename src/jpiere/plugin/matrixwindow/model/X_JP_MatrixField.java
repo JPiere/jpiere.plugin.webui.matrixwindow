@@ -30,7 +30,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150626L;
+	private static final long serialVersionUID = 20150703L;
 
     /** Standard Constructor */
     public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName)

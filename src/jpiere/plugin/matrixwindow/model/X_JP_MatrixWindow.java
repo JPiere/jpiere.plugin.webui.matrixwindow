@@ -30,7 +30,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150626L;
+	private static final long serialVersionUID = 20150703L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)
@@ -251,6 +251,31 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	public String getJP_MatrixWindow_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_JP_MatrixWindow_UU);
+	}
+
+	public org.compiere.model.I_AD_Window getJP_QuickEntryWindow() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Window)MTable.get(getCtx(), org.compiere.model.I_AD_Window.Table_Name)
+			.getPO(getJP_QuickEntryWindow_ID(), get_TrxName());	}
+
+	/** Set JP_QuickEntryWindow_ID.
+		@param JP_QuickEntryWindow_ID JP_QuickEntryWindow_ID	  */
+	public void setJP_QuickEntryWindow_ID (int JP_QuickEntryWindow_ID)
+	{
+		if (JP_QuickEntryWindow_ID < 1) 
+			set_Value (COLUMNNAME_JP_QuickEntryWindow_ID, null);
+		else 
+			set_Value (COLUMNNAME_JP_QuickEntryWindow_ID, Integer.valueOf(JP_QuickEntryWindow_ID));
+	}
+
+	/** Get JP_QuickEntryWindow_ID.
+		@return JP_QuickEntryWindow_ID	  */
+	public int getJP_QuickEntryWindow_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_JP_QuickEntryWindow_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Name.
