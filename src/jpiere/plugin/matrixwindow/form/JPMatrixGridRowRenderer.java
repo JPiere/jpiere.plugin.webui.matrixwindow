@@ -29,7 +29,6 @@ import org.adempiere.webui.adwindow.AbstractADWindowContent;
 import org.adempiere.webui.adwindow.GridTableListModel;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Mask;
@@ -115,15 +114,18 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private CustomForm form ;
 
+	private JPiereMatrixWindow matrixWindow;
 
 	public JPMatrixGridRowRenderer(ListModelMap<Object, Object> viewModel
-			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,int windowNo,CustomForm form) {
+			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,int windowNo,CustomForm form,
+			JPiereMatrixWindow matrixWindow) {
 		this.viewModel = viewModel;
 		this.convetionTable = convetionTable;
 		this.tableModel = tableModel;
 		this.dirtyModel = dirtyModel;
 		this.windowNo = windowNo;
 		this.form = form;
+		this.matrixWindow = matrixWindow;
 		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel);
 	}
 
@@ -759,7 +761,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				WButtonEditor editor = (WButtonEditor) event.getSource();
 				String stringRecord_ID = editor.getDisplay();//valueの取得
 
-				ProcessModalDialog dialog = new ProcessModalDialog(windowNo, editor.getProcess_ID(), 0, Integer.parseInt(stringRecord_ID), false);
+				JPiereMatrixWindowProcessModelDialog dialog = new JPiereMatrixWindowProcessModelDialog(windowNo, editor.getProcess_ID(), 0, Integer.parseInt(stringRecord_ID), false, matrixWindow);
 
 
 				if (dialog.isValid())

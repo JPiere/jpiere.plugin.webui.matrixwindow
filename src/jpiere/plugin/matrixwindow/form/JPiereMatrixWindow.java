@@ -588,7 +588,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //					selectAll.setChecked(false);
 			}
 
-		}else if (e.getTarget().equals(SearchButton) || e.getTarget().getId().equals("Ok"))
+		}else if (e.getTarget().equals(SearchButton) || e.getTarget().getId().equals("Ok") || e.getName().equals("onComplete"))
 		{
 			if(!createView ())
 			{
@@ -740,7 +740,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			listbox.appendChild(clms);
 		}
 
-		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form);
+		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form,this);
 		renderer.setcColumnsSize(columnNameMap.size());					//TODO:コンストラクタの引数とする
 		renderer.gridView = gridView;									//TODO:コンストラクタの引数とする
 		renderer.gridTab = gridTab;										//TODO:コンストラクタの引数とする
