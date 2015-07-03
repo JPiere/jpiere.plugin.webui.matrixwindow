@@ -16,6 +16,7 @@ package jpiere.plugin.matrixwindow.factory;
 import java.sql.ResultSet;
 
 import jpiere.plugin.matrixwindow.model.MMatrixField;
+import jpiere.plugin.matrixwindow.model.MMatrixSearch;
 import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 import org.adempiere.base.IModelFactory;
@@ -23,7 +24,7 @@ import org.compiere.model.PO;
 import org.compiere.util.Env;
 
 /**
- *  JPiere Base Plugin Model Factory
+ *  JPiere Plugins Matrix Window Model Factory
  *
  *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
  *
@@ -36,6 +37,8 @@ public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 			return MMatrixWindow.class;
 		}else if(tableName.equals(MMatrixField.Table_Name)){
 			return MMatrixField.class;
+		}else if(tableName.equals(MMatrixSearch.Table_Name)){
+			return MMatrixSearch.class;
 		}
 		return null;
 	}
@@ -46,6 +49,8 @@ public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 			return  new MMatrixWindow(Env.getCtx(), Record_ID, trxName);
 		}else if(tableName.equals(MMatrixField.Table_Name)){
 			return  new MMatrixField(Env.getCtx(), Record_ID, trxName);
+		}else if(tableName.equals(MMatrixSearch.Table_Name)){
+			return  new MMatrixSearch(Env.getCtx(), Record_ID, trxName);
 		}
 		return null;
 	}
@@ -56,6 +61,8 @@ public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 			return  new MMatrixWindow(Env.getCtx(), rs, trxName);
 		}else if(tableName.equals(MMatrixField.Table_Name)){
 			return  new MMatrixField(Env.getCtx(), rs, trxName);
+		}else if(tableName.equals(MMatrixSearch.Table_Name)){
+			return  new MMatrixSearch(Env.getCtx(), rs, trxName);
 		}
 
 		return null;

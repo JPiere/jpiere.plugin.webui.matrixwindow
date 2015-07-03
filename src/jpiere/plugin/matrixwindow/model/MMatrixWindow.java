@@ -18,7 +18,11 @@ import org.compiere.util.Util;
 public class MMatrixWindow extends X_JP_MatrixWindow {
 
 	MMatrixField[] matrixFields ;
+
+	MMatrixSearch[] matrixSearches ;
+
 	MField[] contentFields;
+
 	MTab mTab;
 
 	public MMatrixWindow(Properties ctx, int JP_MatrixWindow_ID, String trxName) {
@@ -99,6 +103,55 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	{
 		return getMatrixFields(false, null);
 	}	//	getLines
+
+
+	public MMatrixSearch[] getMatrixSearches(String whereClause, String orderClause)
+	{
+		//red1 - using new Query class from Teo / Victor's MDDOrder.java implementation
+		StringBuilder whereClauseFinal = new StringBuilder(MMatrixSearch.COLUMNNAME_JP_MatrixWindow_ID+"=? AND IsActive='Y'");
+		if (!Util.isEmpty(whereClause, true))
+			whereClauseFinal.append(whereClause);
+		if (orderClause.length() == 0)
+			orderClause = MMatrixSearch.COLUMNNAME_SeqNo;
+		//
+		List<MMatrixSearch> list = new Query(getCtx(), I_JP_MatrixSearch.Table_Name, whereClauseFinal.toString(), get_TrxName())
+										.setParameters(get_ID())
+										.setOrderBy(orderClause)
+										.list();
+		//
+		return list.toArray(new MMatrixSearch[list.size()]);
+	}	//	getLines
+
+	/**
+	 * 	Get MatrixSearches of Matrix Window.
+	 * 	@param requery requery
+	 * 	@param orderBy optional order by column
+	 * 	@return MatrixSearche
+	 */
+	public MMatrixSearch[] getMatrixSearches(boolean requery, String orderBy)
+	{
+		if (matrixSearches != null && !requery) {
+			set_TrxName(matrixSearches, get_TrxName());
+			return matrixSearches;
+		}
+		//
+		String orderClause = "";
+		if (orderBy != null && orderBy.length() > 0)
+			orderClause += orderBy;
+		else
+			orderClause += "SeqNo";
+
+		matrixSearches = getMatrixSearches(null, orderClause);
+		return matrixSearches;
+	}	//	getLines
+
+	/**
+	 * 	Get MatrixSearches of Matrix Window.
+	 */
+	public MMatrixSearch[] getMatrixSearches()
+	{
+		return getMatrixSearches(false, null);
+	}
 
 	@Override
 	protected boolean beforeSave(boolean newRecord) {

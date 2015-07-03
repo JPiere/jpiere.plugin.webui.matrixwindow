@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 
 import jpiere.plugin.matrixwindow.model.MMatrixField;
+import jpiere.plugin.matrixwindow.model.MMatrixSearch;
 import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 import org.adempiere.base.IModelFactory;
@@ -53,6 +54,7 @@ import org.adempiere.webui.editor.IZoomableEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
+import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.event.WTableModelEvent;
@@ -214,6 +216,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MMatrixField[]  m_matrixFields ;
 	MField[]		m_contentFields;
 	MColumn[]		m_contentColumns;
+	MMatrixSearch[] m_matrixSearches ;
+
+	//検索フィールドエディター
+	HashMap<String,WEditor> searchEditorMap = new HashMap<String,WEditor> ();
 
 	//縦軸となるカラム
 	I_AD_Column m_columnKeyColumn;
@@ -239,8 +245,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private CustomForm window = new CustomForm();
 	private ADWindow adWindow;
+	private ADWindowContent adWindowContent;
 	private IADTabpanel adTabpanel;
 	private GridTab gridTab ;
+	private GridView gridView ;
 	private GridField[] gridFields ;
 
     public JPiereMatrixWindow() throws IOException
@@ -270,6 +278,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	public void prepare(String Value) throws Exception
 	{
+		//マトリクスウィドウのモデルクラス群を作成
 		m_matrixWindow = MMatrixWindow.get(Env.getCtx(), Value);
 		if(m_matrixWindow == null)
 		{
@@ -278,6 +287,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		m_matrixFields = m_matrixWindow.getMatrixFields();
 		m_contentFields = m_matrixWindow.getContentFields();
+		m_matrixSearches = m_matrixWindow.getMatrixSearches();
 		m_contentColumns = new MColumn[m_contentFields.length];
 		for(int i = 0; i < m_contentFields.length; i++)
 		{
@@ -298,6 +308,32 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		m_rowKeyColumn = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 
 		FIX_ITEM_FIELD_ID = m_matrixWindow.getJP_MatrixRowKey().getAD_Field_ID();
+
+
+
+		//Windowの情報を使うので、画面上には表示させませんが、ウィンドウを作成します。
+		if(adWindow==null)
+		{
+			adWindow = new ADWindow(Env.getCtx(),AD_WINDOW_ID, null);
+			adWindow.createPart(window);
+		}
+		adWindowContent = adWindow.getADWindowContent();
+		IADTabbox adTabbox = adWindowContent.getADTab();
+		int tabCount = adTabbox.getTabCount();
+		for(int i = 0; i < tabCount; i++)
+		{
+			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
+			{
+				adTabpanel =adTabbox.getADTabpanel(i);
+			}
+		}
+		if(adTabpanel == null)
+		{
+			//TODO:エラー処理
+		}
+		gridTab = adTabpanel.getGridTab();
+		gridView = adTabpanel.getGridView();
+		gridFields = gridTab.getFields();
 	}
 
 	public void dynInit() throws Exception
@@ -375,6 +411,29 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				//Zoom設定
 				Search_Field_Label.addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) Search_Field_Editor));
 				Search_Field_Label.setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+
+			//パラメータパネル-2段目以降(検索条件パネル)
+			for(int i = 0; i < m_matrixSearches.length; i++)
+			{
+				if(i%2 == 0)
+				{
+					row = rows.newRow();
+				}
+
+				for(int j = 0; j < gridFields.length; j++)
+				{
+					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
+					{
+						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
+						row.appendCellChild(editor.getLabel().rightAlign());
+						row.appendCellChild(editor.getComponent(),1);
+						editor.addValueChangeListener(this);
+						searchEditorMap.put(editor.getColumnName(), editor);
+						break;
+					}
+				}//for j
+			}//for i
+
 
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(SearchButton);
@@ -478,27 +537,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 
-	@Override
-	public void valueChange(ValueChangeEvent e) {
-
-		String name = e.getPropertyName();
-		Object value = e.getNewValue();
-		if (log.isLoggable(Level.CONFIG)) log.config(name + "=" + value);
-
-
-//		if(name.equals("Search_Field_Editor"))
-//		{
-//			try
-//			{
-//				if(!createView ())
-//				{
-//					throw new Exception(message.toString());
-//				}
-//			} catch (Exception e1) {
-//				// TODO 自動生成された catch ブロック
-//				e1.printStackTrace();
-//			}
-//		}
+//	@Override
+	public void valueChange(ValueChangeEvent e)
+	{
+		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 	}
 
 	@Override
@@ -639,31 +681,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	Auxhead auxhead ;
 
 	private boolean createView () throws ClassNotFoundException {
-
-		//Windowの情報を使うので、画面上には表示させませんが、ウィンドウを作成します。
-		if(adWindow==null)
-		{
-			adWindow = new ADWindow(Env.getCtx(),AD_WINDOW_ID, null);
-			adWindow.createPart(window);
-		}
-		ADWindowContent adWindowContent = adWindow.getADWindowContent();
-		IADTabbox adTabbox = adWindowContent.getADTab();
-		int tabCount = adTabbox.getTabCount();
-		for(int i = 0; i < tabCount; i++)
-		{
-			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
-			{
-				adTabpanel =adTabbox.getADTabpanel(i);
-			}
-		}
-		if(adTabpanel == null)
-		{
-			//TODO:エラー処理
-		}
-		gridTab = adTabpanel.getGridTab();
-		GridView gridView = adTabpanel.getGridView();
-		gridFields = gridTab.getFields();
-
 
 		//Where句の作成(数か所で使用するので1か所で宣言しておく）
 		whereClause = createWhere();
