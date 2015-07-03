@@ -85,7 +85,6 @@ import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
-import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Auxheader;
@@ -107,11 +106,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	/**********************************************************************
 	 * 【Composer】
 	 **********************************************************************/
-	@Wire
+
     private Button SearchButton;
-	@Wire
+
     private Button SaveButton;
-	@Wire
+
     private Button CreateButton;
 
 
@@ -384,6 +383,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(i%2 == 0)
 				{
 					row = rows.newRow();
+					row.setStyle("background-color: #ffffff");
 				}
 
 				for(int j = 0; j < gridFields.length; j++)
@@ -397,8 +397,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 								|| editor instanceof WTableDirEditor)
 						{
 							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
-							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+							if(m_matrixSearches[i].isMandatory())
+								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+							else
+								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
 						}
+
+						editor.setMandatory(m_matrixSearches[i].isMandatory());
 
 						row.appendCellChild(editor.getLabel().rightAlign());
 						row.appendCellChild(editor.getComponent(),1);
@@ -518,6 +523,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	public void valueChange(ValueChangeEvent e)
 	{
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
+
+
+		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
+		{
+			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+		}else{
+			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+		}
 	}
 
 	@Override
@@ -758,6 +771,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			if(entry.getValue().getValue()!=null)
 			{
 				whereClause.append(" AND "+ entry.getKey() + " = " + entry.getValue().getValue());
+			}else{
+
+				if(entry.getValue().isMandatory())
+				{
+					message.append(entry.getValue().getLabel().getValue() + "は必須です。");
+				}
 			}
 		}
 

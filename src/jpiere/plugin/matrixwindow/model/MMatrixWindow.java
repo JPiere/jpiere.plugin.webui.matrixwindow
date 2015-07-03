@@ -27,15 +27,14 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 	public MMatrixWindow(Properties ctx, int JP_MatrixWindow_ID, String trxName) {
 		super(ctx, JP_MatrixWindow_ID, trxName);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	public MMatrixWindow(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
-	public MField[] getContentFields(){
+	public MField[] getContentFields()
+	{
 
 		if (contentFields != null) {
 			set_TrxName(contentFields, get_TrxName());
@@ -74,10 +73,10 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	}	//	getLines
 
 	/**
-	 * 	Get Lines of Order
+	 * 	Get MatrixFields
 	 * 	@param requery requery
 	 * 	@param orderBy optional order by column
-	 * 	@return lines
+	 * 	@return MatrixFields
 	 */
 	public MMatrixField[] getMatrixFields(boolean requery, String orderBy)
 	{
@@ -108,7 +107,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	public MMatrixSearch[] getMatrixSearches(String whereClause, String orderClause)
 	{
 		//red1 - using new Query class from Teo / Victor's MDDOrder.java implementation
-		StringBuilder whereClauseFinal = new StringBuilder(MMatrixSearch.COLUMNNAME_JP_MatrixWindow_ID+"=? AND IsActive='Y'");
+		StringBuilder whereClauseFinal = new StringBuilder(MMatrixSearch.COLUMNNAME_JP_MatrixWindow_ID + "=? AND IsActive='Y'");
 		if (!Util.isEmpty(whereClause, true))
 			whereClauseFinal.append(whereClause);
 		if (orderClause.length() == 0)
@@ -154,33 +153,17 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	}
 
 	@Override
-	protected boolean beforeSave(boolean newRecord) {
-
-		if(newRecord || is_ValueChanged("AD_Tab_ID"))
-		{
-			if(getTab().getTabLevel() == 0)
-			{
-				log.saveError("Error", "タブレベルが0のタブは設定する事ができません");
-				return false;
-			}
-		}
+	protected boolean beforeSave(boolean newRecord)
+	{
 
 
 		//リンクカラム、列キー、行キーにユニーク制約がかかっている事の確認
 		if(newRecord
-				|| is_ValueChanged("AD_Tab_ID")
 				|| is_ValueChanged("JP_MatrixColumnKey_ID")
 				|| is_ValueChanged("JP_MatrixRowKey_ID"))
 		{
 
-			if(getAD_Tab().getAD_Column_ID()==getJP_MatrixColumnKey().getAD_Column_ID())
-			{
-				log.saveError("Error", "タブのリンクカラムの設定と列キーが同じです");
-				return false;
-			}else if(getAD_Tab().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
-				log.saveError("Error", "タブのリンクカラムの設定と行キーが同じです");
-				return false;
-			}else if(getJP_MatrixColumnKey().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
+			if(getJP_MatrixColumnKey().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
 				log.saveError("Error", "行キーと列キーが同じです");
 				return false;
 			}
@@ -193,15 +176,12 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 				if(!m_tableIndexes[i].isUnique())
 					continue;
 
-				boolean isLinkColumn = false;
 				boolean isColumnKey = false;
 				boolean isRowKey = false;
 
 				MIndexColumn[] m_indexColumns = m_tableIndexes[i].getColumns(false);
 				for(int j = 0; j < m_indexColumns.length; j++)
 				{
-					if(m_indexColumns[j].getAD_Column_ID()==getAD_Tab().getAD_Column_ID())
-						isLinkColumn = true;
 
 					if(m_indexColumns[j].getAD_Column_ID()==getJP_MatrixColumnKey().getAD_Column_ID())
 						isColumnKey = true;
@@ -210,7 +190,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 						isRowKey = true;
 				}
 
-				if(isLinkColumn && isColumnKey && isRowKey)
+				if(isColumnKey && isRowKey)
 				{
 					isUniqueConstraint = true;
 					break;
@@ -219,7 +199,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 			if(!isUniqueConstraint)
 			{
-				log.saveError("Error", "タブのリンクカラム、列キー、行キーにユニーク制約が設定されていません。");
+				log.saveError("Error", "列キー、行キーにユニーク制約が設定されていません。");
 				return false;
 			}
 
