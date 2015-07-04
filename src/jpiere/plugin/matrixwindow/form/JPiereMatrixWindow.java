@@ -103,16 +103,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private CustomForm form = new CustomForm();
 
-	/**********************************************************************
-	 * 【Composer】
-	 **********************************************************************/
-
-    private Button SearchButton;
-
-    private Button SaveButton;
-
-    private Button CreateButton;
-
 
 	/**********************************************************************
 	 * 【UI Component】
@@ -131,6 +121,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	//リストボックス
 	Grid listbox  = new Grid();
 
+	private Button SearchButton;
+
+	private Button SaveButton;
+
+	private Button CreateButton;
 
 
 	/**********************************************************************
@@ -255,7 +250,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
     	try
 		{
     		prepare(Value);
-			dynInit();
 			zkInit();
 		}
 		catch(Exception e)
@@ -298,6 +292,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		FIX_ITEM_FIELD_ID = m_matrixWindow.getJP_MatrixRowKey().getAD_Field_ID();
 
+		/*表領域に表示する項目<表示順番,項目(カラム)名>を取得する*/
+		//fixItemはRowの識別子となるカラムの1行で固定
+		fixItem.put(0, m_rowKeyColumn.getColumnName());
+		fixItemFieldIDMap.put(0,FIX_ITEM_FIELD_ID);
 
 
 		//Windowの情報を使うので、画面上には表示させませんが、ウィンドウを作成します。
@@ -325,27 +323,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		gridFields = gridTab.getFields();
 	}
 
-	public void dynInit() throws Exception
-	{
-		SearchButton = new Button("検索");
-		SearchButton.setId("SearchButton");
-		SearchButton.addActionListener(this);
-
-		SaveButton = new Button("保存");
-		SaveButton.setId("SaveButton");
-		SaveButton.addActionListener(this);
-
-		CreateButton = new Button("登録");
-		CreateButton.setId("CreateButton");
-		CreateButton.addActionListener(this);
-
-		/*表領域に表示する項目<表示順番,項目(カラム)名>を取得する*/
-		//fixItemはRowの識別子となるカラムの1行で固定
-		fixItem.put(0, m_rowKeyColumn.getColumnName());
-		fixItemFieldIDMap.put(0,FIX_ITEM_FIELD_ID);
-
-	}
-
 
 	private void zkInit() throws Exception
 	{
@@ -361,7 +338,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 
-		//パラメータパネル
+		//Search Parameter Panel
 		north.appendChild(parameterPanel);
 		north.setStyle("border: none");
 		parameterPanel.appendChild(parameterLayout); 		//parameterLayout = Grid
@@ -377,7 +354,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			searchGB.appendChild(searchGrid);
 			Rows rows = searchGrid.newRows();
 
-			//検索条件パネル
+			//Search Fields
 			for(int i = 0; i < m_matrixSearches.length; i++)
 			{
 				if(i%2 == 0)
@@ -414,19 +391,31 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}//for j
 			}//for i
 
-
+		//Button
 		row = parameterLayoutRows.newRow();
+				SearchButton = new Button("検索");
+				SearchButton.setId("SearchButton");
+				SearchButton.addActionListener(this);
 				row.appendCellChild(SearchButton);
+
+				SaveButton = new Button("保存");
+				SaveButton.setId("SaveButton");
+				SaveButton.addActionListener(this);
 				row.appendCellChild(SaveButton);
 
+				CreateButton = new Button("登録");
+				CreateButton.setId("CreateButton");
+				CreateButton.addActionListener(this);
+				CreateButton.setEnabled(false);
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
 				{
+
 					row.appendCellChild(CreateButton);
-					CreateButton.setEnabled(false);
 				}
 
+		//for space under Button
 		row = parameterLayoutRows.newRow();
-				row.appendCellChild(new Space(),1);//ボタンの下に空白行を入れているだけ。
+				row.appendCellChild(new Space(),1);
 
 		Center center = new Center();
 		mainLayout.appendChild(center);
@@ -440,7 +429,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		deliveryLayout.setHeight("100%");
 		deliveryLayout.setStyle("border: none");
 
-		//情報パネル-北：請求書パネル-中央
+				//Contents
 				center = new Center();
 				deliveryLayout.appendChild(center);
 				center.appendChild(listbox);

@@ -155,8 +155,6 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	@Override
 	protected boolean beforeSave(boolean newRecord)
 	{
-
-
 		//リンクカラム、列キー、行キーにユニーク制約がかかっている事の確認
 		if(newRecord
 				|| is_ValueChanged("JP_MatrixColumnKey_ID")
@@ -204,10 +202,6 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 			}
 
 		}
-
-
-
-
 
 		if(getJP_QuickEntryWindow_ID() > 0)
 		{
