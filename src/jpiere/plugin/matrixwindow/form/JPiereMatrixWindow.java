@@ -357,7 +357,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		Row row = parameterLayoutRows.newRow();
 			Groupbox searchGB = new Groupbox();
 			row.appendCellChild(searchGB,8);
-			searchGB.appendChild(new Caption("検索条件"));
+			searchGB.appendChild(new Caption(Msg.getMsg(Env.getCtx(), "SearchCriteria")));
 			Grid searchGrid  = new Grid();
 			searchGrid.setStyle("background-color: #E9F0FF");
 			searchGrid.setStyle("border: none");
@@ -403,17 +403,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		//Button
 		row = parameterLayoutRows.newRow();
-				SearchButton = new Button("検索");
+				SearchButton = new Button(Msg.getMsg(Env.getCtx(), "search"));
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
 				row.appendCellChild(SearchButton);
 
-				SaveButton = new Button("保存");
+				SaveButton = new Button(Msg.getMsg(Env.getCtx(), "save"));
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				row.appendCellChild(SaveButton);
 
-				CreateButton = new Button("登録");
+				CreateButton = new Button(Msg.getMsg(Env.getCtx(), "NewRecord"));
 				CreateButton.setId("CreateButton");
 				CreateButton.addActionListener(this);
 				CreateButton.setEnabled(false);

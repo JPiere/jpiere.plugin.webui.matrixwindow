@@ -185,7 +185,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	@Override
 	protected boolean beforeSave(boolean newRecord)
 	{
-		//リンクカラム、列キー、行キーにユニーク制約がかかっている事の確認
+		//Check unique Constraint
 		if(newRecord
 				|| is_ValueChanged("JP_MatrixColumnKey_ID")
 				|| is_ValueChanged("JP_MatrixRowKey_ID"))
