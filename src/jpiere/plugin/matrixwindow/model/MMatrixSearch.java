@@ -71,7 +71,7 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 				return false;
 			}
 
-			if(getAD_Field().getAD_Column().isUpdateable())
+			if(!getAD_Field().getAD_Column().isUpdateable())
 			{
 				log.saveError("Error", "カラムのisUpdateableフラグをONにして下さい。");
 				return false;

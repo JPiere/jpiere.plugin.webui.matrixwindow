@@ -401,13 +401,14 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				if (editor instanceof WButtonEditor) {
 					((WButtonEditor)editor).addActionListener(buttonListener);
 					((WButtonEditor)editor).setADTabpanel(adTabpanel);
-					Object  aaaa = convetionTable.get(data.get(0));
-					TreeMap<Integer,Object> bbb = new TreeMap<Integer,Object>();
-					if(aaaa instanceof TreeMap<?,?>)
+
+					Object  obj = convetionTable.get(data.get(0));
+					if(obj instanceof TreeMap<?,?>)
 					{
-						bbb = (TreeMap<Integer,Object>)aaaa;
-						editor.setValue(bbb.get(i));
+						TreeMap<Integer,Object> treeMapObj = (TreeMap<Integer,Object>)obj;
+						editor.setValue(treeMapObj.get(i));
 					}
+
 
 				}else{
 					editor.setValue(data.get(i));

@@ -185,7 +185,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	@Override
 	protected boolean beforeSave(boolean newRecord)
 	{
-		//Check unique Constraint
+
 		if(newRecord
 				|| is_ValueChanged("JP_MatrixColumnKey_ID")
 				|| is_ValueChanged("JP_MatrixRowKey_ID"))
@@ -196,6 +196,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 				return false;
 			}
 
+			//Check unique Constraint
 			MTable mTable = MTable.get(getCtx(), getAD_Tab().getAD_Table_ID());
 			MTableIndex[] m_tableIndexes = MTableIndex.get(mTable);
 			boolean isUniqueConstraint = false;
