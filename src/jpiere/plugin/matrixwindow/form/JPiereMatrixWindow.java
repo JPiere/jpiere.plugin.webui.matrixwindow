@@ -1,11 +1,27 @@
 /******************************************************************************
- * Product: JPiere(ジェイピエール) - JPiere Plugins Matrix Window             *
+ * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
+ * Plugin Name:Window X(Matrix Window)                                        *
  * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * This program is free software, you can redistribute it and/or modify it    *
+ * under the terms version 2 of the GNU General Public License as published   *
+ * by the Free Software Foundation. This program is distributed in the hope   *
+ * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * See the GNU General Public License for more details.                       *
+ * You should have received a copy of the GNU General Public License along    *
+ * with this program, if not, write to the Free Software Foundation, Inc.,    *
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
+ * For the text or an alternative of this public license, you may reach us    *
+ * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
+ * or via info@compiere.org or http://www.compiere.org/license.html           *
+ *****************************************************************************/
+/******************************************************************************
+ * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
+ * プラグイン群です。                                                         *
  * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプラグラムの著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保持しており、 *
- * このプログラムを使用する場合には著作権の使用料をお支払頂く必要があります。 *
- * 著作権の使用料の支払い義務は、このプログラムから派生して作成された         *
- * プログラムにも発生します。 サポートサービスは                              *
+ * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
+ * いかなる保証もしていません。                                               *
+ * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
  * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
  * 提供しています。サポートをご希望の際には、                                 *
  * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
@@ -194,7 +210,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	 * ここより下の変数は、マトリクスウィンドウの設定変数です。
 	 **********************************************************************/
 
-	//モデルクラス系
+	//Model
 	MMatrixWindow 	m_matrixWindow;
 	MTab			m_Tab;
 	MMatrixField[]  m_matrixFields ;
@@ -202,22 +218,20 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MColumn[]		m_contentColumns;
 	MMatrixSearch[] m_matrixSearches ;
 
-	//検索フィールドエディター
+	//Search Field Editor Map
 	HashMap<String,WEditor> searchEditorMap = new HashMap<String,WEditor> ();
 
-	//縦軸となるカラム
+	//Column Key Column
 	I_AD_Column m_columnKeyColumn;
-	//横軸となるカラム
+
+	//Row Key Column
 	I_AD_Column m_rowKeyColumn ;
 
 	//AD_Window_ID
 	private int AD_WINDOW_ID = 0;
 
-	//テーブル名
+	//Table Name
 	private String TABLE_NAME ;
-
-	//リンクカラム
-	private String LINK_COLUMN ;
 
 
 	private int FIX_ITEM_FIELD_ID = 0;
@@ -281,11 +295,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		AD_WINDOW_ID = m_matrixWindow.getAD_Window_ID();
 		m_Tab = new MTab(Env.getCtx(), m_matrixWindow.getAD_Tab_ID(), null);
 		TABLE_NAME = MTable.get(Env.getCtx(), m_Tab.getAD_Table_ID()).getTableName();
-		LINK_COLUMN = MColumn.get(Env.getCtx(), m_Tab.getAD_Column_ID()).getColumnName();
-		if(LINK_COLUMN==null)
-		{
-			;//TODO エラー処理
-		}
+
 
 		m_columnKeyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
 		m_rowKeyColumn = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
@@ -468,10 +478,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ListModel<?> listModel = e.getModel();
 
 		updateModel(listModel,row, col);
-
-		ListModel listModelMapTable = listbox.getModel();
-//		listModelMapTable.updateComponent(row);
-
 
 		m_calculating = false;
 
