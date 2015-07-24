@@ -57,6 +57,8 @@ import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
+import org.adempiere.webui.event.ValueChangeEvent;
+import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.session.SessionManager;
 import org.compiere.model.GridField;
@@ -84,7 +86,7 @@ import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
 import org.zkoss.zul.impl.XulElement;
 
-public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Object>> ,RowRendererExt, RendererCtrl,EventListener<Event>{
+public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Object>> ,RowRendererExt, RendererCtrl,EventListener<Event>, ValueChangeListener{
 
 	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
 	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
@@ -430,6 +432,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				}else{
 
 					editor.addValueChangeListener(dataBinder);
+					editor.addValueChangeListener(this);
 					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//編集するフィールドだけWEditorのMapを作成する。
 					Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
 					div.appendChild(editor.getComponent());
@@ -443,6 +446,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
 //					div.addEventListener(Events.ON_CLICK, rowListener);
 //					div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
+					div.addEventListener(Events.ON_OK, this);
 				}
 //				div.addEventListener(Events.ON_CLICK, rowListener);
 				row.appendChild(div);
@@ -495,8 +499,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 
 	@Override
-	public void onEvent(Event event) throws Exception {
-		// TODO 自動生成されたメソッド・スタブ
+	public void onEvent(Event e) throws Exception {
 
 	}
 
@@ -818,6 +821,40 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			mask = new Mask();
 		}
 		return mask;
+	}
+
+	@Override
+	public void valueChange(ValueChangeEvent e) {
+		Object newValue = e.getNewValue();
+
+        Object source = e.getSource();
+        if (source instanceof WEditor)
+        {
+        	WEditor editor = (WEditor) source;
+        	Component cmp = editor.getComponent();
+        	String cmpId = cmp.getId();
+        	String[] yx = cmpId.split("_");	    //Get Row(Y) and Column(X) info
+        	int y =Integer.valueOf(yx[0]);
+            	int x =Integer.valueOf(yx[1]);
+;
+        	Cell cell = (Cell)grid.getCell(y+1, x);
+        	if(cell == null || cell.getChildren().get(0) instanceof Label)
+        	{
+        		cell = (Cell)grid.getCell(0, x);
+        	}
+
+        	cell.focus();
+
+        	return;
+
+        }
+        else
+        {
+//          if (logger.isLoggable(Level.CONFIG)) logger.config("(" + gridTab.toString() + ") " + e.getPropertyName());
+            return;
+        }
+
+
 	}
 
 
