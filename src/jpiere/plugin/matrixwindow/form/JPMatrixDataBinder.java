@@ -79,10 +79,6 @@ public class JPMatrixDataBinder implements ValueChangeListener {
     {
 
 		Object newValue = e.getNewValue();
-		if (e.getOldValue() != null && newValue != null && e.getOldValue().equals(newValue))
-	    {
-	    	    return;
-	    }
 
         Object source = e.getSource();
         if (source instanceof WEditor)
