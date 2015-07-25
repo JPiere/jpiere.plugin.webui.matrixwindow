@@ -73,6 +73,7 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Cell;
+import org.zkoss.zul.Decimalbox;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Grid;
 import org.zkoss.zul.Label;
@@ -82,6 +83,7 @@ import org.zkoss.zul.RendererCtrl;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
+import org.zkoss.zul.Textbox;
 import org.zkoss.zul.impl.XulElement;
 
 public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Object>> ,RowRendererExt, RendererCtrl,EventListener<Event>{
@@ -393,7 +395,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 			Cell div = new Cell();
 			String divStyle = CELL_DIV_STYLE;
-			if (data.get(i)!=null )
+
+			if (data.get(i) != null )
 			{
 				/*******************************************************************************
 				 * TODO:この段階でWEditorを作ってしまっているが、別途イベント処理で、編集している行だけ
@@ -499,35 +502,60 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	}
 
 
+	private String[] yx;
+	private int y = 0;
+	private int x = 0;
+	private Cell cell = null;
 
 	@Override
 	public void onEvent(Event event) throws Exception {
 
-		Component comp = event.getTarget();
-		Component parentComp =comp.getParent();
+		Component comp =event.getTarget();
 
-		if(parentComp instanceof NumberBox)
+		if(comp instanceof Decimalbox)
 		{
-			String cmpId = parentComp.getId();
-        	String[] yx = cmpId.split("_");	    //Get Row(Y) and Column(X) info
-        	int y =Integer.valueOf(yx[0]);
-            	int x =Integer.valueOf(yx[1]);
+			Component parentComp =event.getTarget().getParent();
+        	yx = parentComp.getId().split("_");	    //Get Row(Y) and Column(X) info
+        	y =Integer.valueOf(yx[0]);
+            x =Integer.valueOf(yx[1]);
 ;
-        	Cell cell = (Cell)grid.getCell(y+1, x);
+        	cell = (Cell)grid.getCell(y+1, x);
         	if(cell == null || cell.getChildren().get(0) instanceof Label)
         	{
         		cell = (Cell)grid.getCell(0, x);
+        		if((cell.getChildren().get(0) instanceof NumberBox)==false)
+        			return;
         	}
 
-//        	cell.focus();
-
-        	List<Component>cmp = cell.getChildren();
-        	NumberBox numbox = (NumberBox)cmp.get(0);
+        	NumberBox numbox = (NumberBox)cell.getChildren().get(0);
         	numbox.focus();
+        	numbox.getDecimalbox().select();
 
         	return;
+		}else if(comp instanceof Textbox){
+
+			yx = comp.getId().split("_");	    //Get Row(Y) and Column(X) info
+        	y =Integer.valueOf(yx[0]);
+            x =Integer.valueOf(yx[1]);
+;
+        	cell = (Cell)grid.getCell(y+1, x);
+        	if(cell == null || cell.getChildren().get(0) instanceof Label)
+        	{
+        		cell = (Cell)grid.getCell(0, x);
+        		if((cell.getChildren().get(0) instanceof Textbox)==false)
+        			return;
+        	}
+
+        	Textbox textbox = (Textbox)cell.getChildren().get(0);
+        	textbox.focus();
+        	textbox.setSelectionRange(textbox.getRawText().length(),textbox.getRawText().length());
+
+        	return;
+
 		}
+
 	}
+
 
 	@Override
 	public void doTry() {
