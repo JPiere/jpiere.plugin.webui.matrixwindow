@@ -369,12 +369,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	@Override
 	public void render(Row row, Map.Entry<Integer,Object> dataEntry, int rowIndex) throws Exception
 	{
-		//render()メソッドはrow単位で呼び出されます。つまりRowの行数だけ呼び出されます。
+		//render() method is called out per row. in other words, render() method is called only the number of rows.
 
 		@SuppressWarnings("unchecked")
 		TreeMap<Integer,Object> data = (TreeMap<Integer,Object>)dataEntry.getValue();
 
-		//TODO なぜか、ある時から１つだけComponentがrowに追加されている状態になって。要原因調査。
 		List<Component> comps = row.getChildren();
 		int size = comps.size();
 		if(size > 0)
@@ -389,33 +388,25 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			rowListener = new RowListener((Grid)row.getParent().getParent());
 
 
+		@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)convetionTable.get(data.get(0));
+		Cell div = null;
+		WEditor editor = null;
+		String divStyle = CELL_DIV_STYLE;
 
 		for (int i = 0; i < columnsSize; i++)
 		{
 
-			Cell div = new Cell();
-			String divStyle = CELL_DIV_STYLE;
+			div = new Cell();
 
-			if (data.get(i) != null )
+			if (treeMap.get(i) != null )
 			{
-				/*******************************************************************************
-				 * TODO:この段階でWEditorを作ってしまっているが、別途イベント処理で、編集している行だけ
-				 * TODO:作るようにするなどすれば、パフォーマンスが向上すると思われる
-				 ********************************************************************************/
-
-				WEditor editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
-				if (editor instanceof WButtonEditor) {
+				editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+				if (editor instanceof WButtonEditor)
+				{
 					((WButtonEditor)editor).addActionListener(buttonListener);
 					((WButtonEditor)editor).setADTabpanel(adTabpanel);
-
-					Object  obj = convetionTable.get(data.get(0));
-					if(obj instanceof TreeMap<?,?>)
-					{
-						TreeMap<Integer,Object> treeMapObj = (TreeMap<Integer,Object>)obj;
-						editor.setValue(treeMapObj.get(i));
-					}
-
-
+					editor.setValue(treeMap.get(i)); // Set Record ID in Button
 				}else{
 					editor.setValue(data.get(i));
 				}
@@ -439,7 +430,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//編集するフィールドだけWEditorのMapを作成する。
 					Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
 					div.appendChild(editor.getComponent());
-//					editor.setValue(data.get(i));
 					div.setAttribute("display.component", component);
 					div.setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//Set Row(Y-axis) and Column(X-axis) in ID of Cell(div)
 
@@ -523,8 +513,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
         	if(cell == null || cell.getChildren().get(0) instanceof Label)
         	{
         		cell = (Cell)grid.getCell(0, x);
-        		if((cell.getChildren().get(0) instanceof NumberBox)==false)
-        			return;
+//        		if((cell.getChildren().get(0) instanceof NumberBox)==false)
+//        			return;
         	}
 
         	NumberBox numbox = (NumberBox)cell.getChildren().get(0);
@@ -542,8 +532,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
         	if(cell == null || cell.getChildren().get(0) instanceof Label)
         	{
         		cell = (Cell)grid.getCell(0, x);
-        		if((cell.getChildren().get(0) instanceof Textbox)==false)
-        			return;
+//        		if((cell.getChildren().get(0) instanceof Textbox)==false)
+//        			return;
         	}
 
         	Textbox textbox = (Textbox)cell.getChildren().get(0);

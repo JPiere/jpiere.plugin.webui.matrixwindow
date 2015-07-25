@@ -518,7 +518,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	public void valueChange(ValueChangeEvent e)
 	{
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
-
+		CreateButton.setEnabled(false);
+		clearGrid();
 
 		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
 		{
@@ -619,7 +620,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(!createView ())
 			{
+				CreateButton.setEnabled(false);
+				clearGrid();
 				throw new Exception(message.toString());
+
 			}
 
 			CreateButton.setEnabled(true);
@@ -653,13 +657,27 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					if(editor.getColumnName().equals(entry.getKey()))
 					{
 						editor.setValue(entry.getValue().getValue());
-						editor.setReadWrite(false);
+						if(entry.getValue().getValue() == null)
+							editor.setReadWrite(true);
+						else
+							editor.setReadWrite(false);
 					}
-				}
-
-			}
+				}//for
+			}//for
 
 			AEnv.showWindow(vqe);
+		}
+
+	}
+
+
+	private void clearGrid() {
+
+		List<Component> cmp = listbox.getChildren();
+		int i = cmp.size();
+		for(int j = 0; j < i; j++)
+		{
+			cmp.get(0).detach();
 		}
 
 	}
@@ -678,7 +696,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
-			message.append("データがありません");//要多言語化
+			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -686,7 +704,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		rowKeys = createRowKeys(whereClause);
 		if(rowKeys.size()==0)
 		{
-			message.append("データがありません");//要多言語化
+			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -694,7 +712,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		m_POs = getPOs(whereClause,true);
 		if(m_POs.length==0)
 		{
-			message.append("データがありません");//要多言語化
+			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -1193,7 +1211,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //			rowIndex = start + rowIndex;
 //		}
 
-		if (gridTab.getCurrentRow() != rowIndex) {//TODO:これは不具合の原因になりそう　girdTabではなくrenderereの方がまだ適切か!?
+		if (gridTab.getCurrentRow() != rowIndex) {//TODO:これは不具合の原因になりそう。girdTabではなくrenderereの方がまだ適切か!?
 			gridTab.navigate(rowIndex);
 			return true;
 		}

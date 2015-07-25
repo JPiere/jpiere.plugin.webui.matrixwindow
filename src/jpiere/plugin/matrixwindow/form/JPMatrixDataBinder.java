@@ -93,12 +93,16 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 ;
             //viewModelの更新	TODO:処理的に考えるとviewModelの更新は現段階では不要な気がする…。コンポ―ネントをSave()前に更新する場合には必要になると思う…。
         	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
-        	TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
+
+        	@SuppressWarnings("unchecked")
+			TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
         	viewModelRowData.put(x, newValue);
 
         	//convetionTableからPOのIDを取得
         	ListModelMap.Entry<Object, Object>  conversionTableRow = convetionTable.getElementAt(y);
-        	TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
+
+        	@SuppressWarnings("unchecked")
+			TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
         	Object PO_ID = conversionTableRowData.get(x);
 
         	//Tableモデルの更新
