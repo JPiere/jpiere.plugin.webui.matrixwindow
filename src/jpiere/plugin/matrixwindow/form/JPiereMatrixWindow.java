@@ -1,31 +1,15 @@
 /******************************************************************************
- * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
- * Plugin Name:Window X(Matrix Window)                                        *
- * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * Product: JPiere(Japan + iDempiere)                                         *
+ * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
+ *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
  * under the terms version 2 of the GNU General Public License as published   *
  * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program, if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-/******************************************************************************
- * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
- * プラグイン群です。                                                         *
- * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
- * いかなる保証もしていません。                                               *
- * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
- * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
- * 提供しています。サポートをご希望の際には、                                 *
- * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
- * http://www.oss-erp.co.jp/                                                  *
+ *                                                                            *
+ * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
@@ -113,6 +97,14 @@ import org.zkoss.zul.ListModel;
 import org.zkoss.zul.North;
 import org.zkoss.zul.Space;
 
+/**
+ * JPiereMatrixWindow
+ *
+ * JPIERE-0098
+ *
+ * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
+ *
+ */
 public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements EventListener<Event>, ValueChangeListener,WTableModelListener{
 	/**	Logger			*/
 	public static CLogger log = CLogger.getCLogger(JPiereMatrixWindow.class);
@@ -411,6 +403,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton = new Button(Msg.getMsg(Env.getCtx(), "save"));
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
+				SaveButton.setEnabled(false);
 				row.appendCellChild(SaveButton);
 
 				CreateButton = new Button(Msg.getMsg(Env.getCtx(), "NewRecord"));
@@ -518,7 +511,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	public void valueChange(ValueChangeEvent e)
 	{
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
+
+		SaveButton.setEnabled(false);
 		CreateButton.setEnabled(false);
+
 		clearGrid();
 
 		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
@@ -620,12 +616,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(!createView ())
 			{
+				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(false);
 				clearGrid();
 				throw new Exception(message.toString());
 
 			}
 
+			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 
 		}else if(e.getTarget().equals(SaveButton)){
@@ -696,7 +694,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
-			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
+			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -704,7 +702,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		rowKeys = createRowKeys(whereClause);
 		if(rowKeys.size()==0)
 		{
-			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
+			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -712,7 +710,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		m_POs = getPOs(whereClause,true);
 		if(m_POs.length==0)
 		{
-			message.append(Msg.getMsg(Env.getCtx(), "not.found"));
+			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
 			return false;
 		}
 
@@ -788,7 +786,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 				if(entry.getValue().isMandatory())
 				{
-					message.append(entry.getValue().getLabel().getValue() + "は必須です。");
+					message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "FillMandatory") + entry.getValue().getLabel().getValue() );
 				}
 			}
 		}
@@ -914,13 +912,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
 			if (factoryList == null)
 			{
-				;//エラー処理書いた方が良いのだろうけど、factoryListはあるのが前提という事で…。
+				;//
 			}
 			PO po = null;
 			while (rs.next())
 			{
 				for(IModelFactory factory : factoryList) {
-					po = factory.getPO(TABLE_NAME, rs, null);//trxNameは保存時に取得されるので、ここでは不要と判断。
+					po = factory.getPO(TABLE_NAME, rs, null);//
 					if (po != null)
 					{
 						list.add(po);

@@ -1,31 +1,15 @@
 /******************************************************************************
- * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
- * Plugin Name:Window X(Matrix Window)                                        *
- * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * Product: JPiere(Japan + iDempiere)                                         *
+ * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
+ *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
  * under the terms version 2 of the GNU General Public License as published   *
  * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program, if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-/******************************************************************************
- * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
- * プラグイン群です。                                                         *
- * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
- * いかなる保証もしていません。                                               *
- * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
- * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
- * 提供しています。サポートをご希望の際には、                                 *
- * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
- * http://www.oss-erp.co.jp/                                                  *
+ *                                                                            *
+ * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
@@ -84,8 +68,18 @@ import org.zkoss.zul.Row;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
 import org.zkoss.zul.Textbox;
+import org.zkoss.zul.impl.InputElement;
 import org.zkoss.zul.impl.XulElement;
 
+
+/**
+ * JPMatrixGridRowRenderer
+ *
+ * JPIERE-0098
+ *
+ * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
+ *
+ */
 public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Object>> ,RowRendererExt, RendererCtrl,EventListener<Event>{
 
 	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
@@ -96,7 +90,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private static final int MAX_TEXT_LENGTH = 60;
 	public GridTab gridTab ;
 	private int windowNo;
-	private JPMatrixDataBinder dataBinder;//TODO Data Binder
+	private JPMatrixDataBinder dataBinder;
 
 	public HashMap<Integer,GridField> columnGridFieldMap;
 
@@ -427,17 +421,28 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				}else{
 
 					editor.addValueChangeListener(dataBinder);
-					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//編集するフィールドだけWEditorのMapを作成する。
+					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//Create WEditor Map that is edit field only.
 					Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
 					div.appendChild(editor.getComponent());
 					div.setAttribute("display.component", component);
 					div.setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//Set Row(Y-axis) and Column(X-axis) in ID of Cell(div)
 
-					editor.getComponent().addEventListener(Events.ON_OK, this);//TODO
+					editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
 
 					div.setStyle(divStyle);
 					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
+
+					if(div.getChildren().get(0) instanceof NumberBox ){
+						NumberBox numbox = (NumberBox)div.getChildren().get(0);
+						numbox.setWidth("100%");
+					}else if(div.getChildren().get(0) instanceof InputElement ){
+						Textbox textbox = (Textbox)div.getChildren().get(0);
+						textbox.setWidth("100%");
+					}else if(div.getChildren().get(0) instanceof Button ){
+						Button btn = (Button)div.getChildren().get(0);
+						btn.setWidth("100%");
+					}
 
 					/*In case you want to set a row event*/
 //					div.addEventListener(Events.ON_CLICK, rowListener);
@@ -492,55 +497,71 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	}
 
 
+	//These variables is used by onEvent() method only.
 	private String[] yx;
 	private int y = 0;
 	private int x = 0;
 	private Cell cell = null;
+	private NumberBox numberbox;
 
 	@Override
-	public void onEvent(Event event) throws Exception {
+	public void onEvent(Event event) throws Exception {	//Key Event onOK
 
-		Component comp =event.getTarget();
+		if(!event.getName().equals(Events.ON_OK))
+			return;
 
-		if(comp instanceof Decimalbox)
+		if(event.getTarget() instanceof Decimalbox)
 		{
-			Component parentComp =event.getTarget().getParent();
-        	yx = parentComp.getId().split("_");	    //Get Row(Y) and Column(X) info
+        	yx = event.getTarget().getParent().getId().split("_");	    //Get Row(Y) and Column(X) info
         	y =Integer.valueOf(yx[0]);
             x =Integer.valueOf(yx[1]);
-;
+
         	cell = (Cell)grid.getCell(y+1, x);
         	if(cell == null || cell.getChildren().get(0) instanceof Label)
         	{
         		cell = (Cell)grid.getCell(0, x);
-//        		if((cell.getChildren().get(0) instanceof NumberBox)==false)
-//        			return;
+        		cell.focus();
+        		return;
         	}
 
-        	NumberBox numbox = (NumberBox)cell.getChildren().get(0);
-        	numbox.focus();
-        	numbox.getDecimalbox().select();
+        	numberbox = (NumberBox)cell.getChildren().get(0);
+        	numberbox.focus();
+        	numberbox.getDecimalbox().select();
 
         	return;
-		}else if(comp instanceof Textbox){
 
-			yx = comp.getId().split("_");	    //Get Row(Y) and Column(X) info
-        	y =Integer.valueOf(yx[0]);
-            x =Integer.valueOf(yx[1]);
-;
-        	cell = (Cell)grid.getCell(y+1, x);
-        	if(cell == null || cell.getChildren().get(0) instanceof Label)
-        	{
-        		cell = (Cell)grid.getCell(0, x);
-//        		if((cell.getChildren().get(0) instanceof Textbox)==false)
-//        			return;
-        	}
+		}else if(event.getTarget() instanceof Textbox){
 
-        	Textbox textbox = (Textbox)cell.getChildren().get(0);
-        	textbox.focus();
-        	textbox.setSelectionRange(textbox.getRawText().length(),textbox.getRawText().length());
+			if(event.getTarget().getParent() instanceof Cell) //
+			{
+				yx = event.getTarget().getId().split("_");	    //Get Row(Y) and Column(X) info
+	        	y =Integer.valueOf(yx[0]);
+	            x =Integer.valueOf(yx[1]);
+	;
+	        	cell = (Cell)grid.getCell(y+1, x);
+	        	if(cell == null || cell.getChildren().get(0) instanceof Label)
+	        	{
+	        		cell = (Cell)grid.getCell(0, x);
+	        	}
 
-        	return;
+	        	cell.focus();
+	        	return;
+
+			}else{ //Search Editor
+				yx = event.getTarget().getParent().getId().split("_");	    //Get Row(Y) and Column(X) info
+	        	y =Integer.valueOf(yx[0]);
+	            x =Integer.valueOf(yx[1]);
+	;
+	        	cell = (Cell)grid.getCell(y+1, x);
+	        	if(cell == null || cell.getChildren().get(0) instanceof Label)
+	        	{
+	        		cell = (Cell)grid.getCell(0, x);
+	        	}
+
+	        	cell.focus();
+	        	return;
+
+			}
 
 		}
 
