@@ -439,15 +439,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				center = new Center();
 				displayDataLayout.appendChild(center);
 				center.appendChild(matrixGrid);
-				matrixGrid.setWidth("99%");
-				matrixGrid.setHeight("99%");
 				center.setStyle("border: none");
-
 				matrixGrid.setWidth("100%");
 				matrixGrid.setHeight("100%");
-				matrixGrid.setSizedByContent(false);
 				matrixGrid.setVflex(true);
-
 	}
 
 	static class ZoomListener implements EventListener<Event> {
@@ -634,6 +629,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		}else if(e.getTarget().equals(SaveButton)){
 
+			matrixGrid.focus();
 			boolean isOK = saveData();
 
 			if(isOK)
@@ -731,6 +727,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			createtColumnMap();
 			Columns clms = createColumns();
+			clms.setSizable(true);
 			matrixGrid.appendChild(clms);
 
 			Frozen frozen = new Frozen();
@@ -744,6 +741,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			createtColumnMap();
 			Columns clms = createColumns();
+			clms.setSizable(true);
 			matrixGrid.appendChild(clms);
 		}
 
@@ -1112,7 +1110,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			col = new Column(columnNameMap.get(i));
 			col.setWidth(columnLengthMap.get(i)+"px");
-//			col.setDraggable("true");
+			col.setDraggable("false");
 			clms.appendChild(col);
 		}
 
@@ -1131,11 +1129,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private void createtColumnMap()
 	{
-		int c = 0;	//	カラムマップ作成用カウンター
+		int c = 0;	//	Column counter
 		columnNameMap.clear();
 		columnLengthMap.clear();
 
-		//固定カラムの処理
+		//Fix Column
 		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
 		{
 			columnNameMap.put(c, Msg.getElement(Env.getCtx(), fixItem.get(i)));
@@ -1148,7 +1146,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			c++;
 		}
 
-		//変動カラムの処理
+		//Repetition Column
 		for(int i = 0; i < columnKeys.size(); i++)
 		{
 			for(int j = 0; j < m_contentFields.length; j++)
