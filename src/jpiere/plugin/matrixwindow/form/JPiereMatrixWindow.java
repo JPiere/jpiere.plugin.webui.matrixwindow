@@ -113,21 +113,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	/**********************************************************************
-	 * 【UI Component】
+	 * UI Component
 	 **********************************************************************/
-	//メインレイアウト
+
 	private Borderlayout mainLayout = new Borderlayout();
 
-	//パラメータパネル
-	private Panel parameterPanel = new Panel();						//検索条件などを設定するパラメータパネル
-	private Grid parameterLayout = GridFactory.newGridLayout();		//パラメータパネルのレイアウト
+	private Panel parameterPanel = new Panel();						//Set field of search condition
+	private Grid parameterLayout = GridFactory.newGridLayout();
 
-	//納品明細パネル
-	private Panel deliveryLinePanel = new Panel();
-	private Borderlayout deliveryLayout = new Borderlayout();
+	//Display Data
+	private Panel displayDataPanel = new Panel();
+	private Borderlayout displayDataLayout = new Borderlayout();
 
-	//リストボックス
-	Grid listbox  = new Grid();
+	Grid matrixGrid  = new Grid();			//main component
 
 	private Button SearchButton;
 
@@ -137,8 +135,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	/**********************************************************************
-	 * 【管理用変数】
-	 * ここより下の変数は、マトリクスウィンドウの動作管理用変数です。
+	 * Variable for management
 	 **********************************************************************/
 
 	private boolean     m_calculating = false;
@@ -230,7 +227,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	/****************************************************
-	 * Window情報
+	 * Window Info
 	 ****************************************************/
 
 	private CustomForm window = new CustomForm();
@@ -241,6 +238,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private GridView gridView ;
 	private GridField[] gridFields ;
 
+
+	/**
+	 * Constractor
+	 *
+	 * @throws IOException
+	 */
     public JPiereMatrixWindow() throws IOException
     {
     	;
@@ -422,28 +425,28 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		Center center = new Center();
 		mainLayout.appendChild(center);
-		center.appendChild(deliveryLinePanel);
-		deliveryLinePanel.appendChild(deliveryLayout);//Borderlayout
-		deliveryLinePanel.setWidth("100%");
-		deliveryLinePanel.setHeight("100%");
-		deliveryLinePanel.setHflex("1");
-		deliveryLinePanel.setVflex("1");
-		deliveryLayout.setWidth("100%");
-		deliveryLayout.setHeight("100%");
-		deliveryLayout.setStyle("border: none");
+		center.appendChild(displayDataPanel);
+		displayDataPanel.appendChild(displayDataLayout);//Borderlayout
+		displayDataPanel.setWidth("100%");
+		displayDataPanel.setHeight("100%");
+		displayDataPanel.setHflex("1");
+		displayDataPanel.setVflex("1");
+		displayDataLayout.setWidth("100%");
+		displayDataLayout.setHeight("100%");
+		displayDataLayout.setStyle("border: none");
 
 				//Contents
 				center = new Center();
-				deliveryLayout.appendChild(center);
-				center.appendChild(listbox);
-				listbox.setWidth("99%");
-				listbox.setHeight("99%");
+				displayDataLayout.appendChild(center);
+				center.appendChild(matrixGrid);
+				matrixGrid.setWidth("99%");
+				matrixGrid.setHeight("99%");
 				center.setStyle("border: none");
 
-				listbox.setWidth("100%");
-				listbox.setHeight("100%");
-				listbox.setSizedByContent(false);
-				listbox.setVflex(true);
+				matrixGrid.setWidth("100%");
+				matrixGrid.setHeight("100%");
+				matrixGrid.setSizedByContent(false);
+				matrixGrid.setVflex(true);
 
 	}
 
@@ -512,10 +515,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	{
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 
+		SearchButton.setEnabled(true);
 		SaveButton.setEnabled(false);
 		CreateButton.setEnabled(false);
 
-		clearGrid();
+		matrixGrid.setVisible(false);
 
 		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
 		{
@@ -534,7 +538,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			return;
 		}
-		else if (e.getTarget() == listbox && Events.ON_CLICK.equals(e.getName()))
+		else if (e.getTarget() == matrixGrid && Events.ON_CLICK.equals(e.getName()))
 		{
 			Object data = e.getData();
 			org.zkoss.zul.Row row = null;
@@ -569,7 +573,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 				else
 				{
-					int index = listbox.getRows().getChildren().indexOf(row);
+					int index = matrixGrid.getRows().getChildren().indexOf(row);
 					if (index >= 0 ) {
 						columnOnClick = columnName;
 						onSelectedRowChange(index);
@@ -616,13 +620,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(!createView ())
 			{
+				SearchButton.setEnabled(true);
 				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(false);
-				clearGrid();
+				matrixGrid.setVisible(false);
 				throw new Exception(message.toString());
 
 			}
 
+			SearchButton.setEnabled(false);
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 
@@ -633,10 +639,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			if(isOK)
 			{
 				dirtyModel.clear();
+
 				if(!createView ())
 				{
+					matrixGrid.setVisible(false);
 					throw new Exception(message.toString());
 				}
+
 			}else{
 				;//saveData()メソッド内でエラー処理しているのでここでのエラー処理は不要
 			}
@@ -668,29 +677,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
-
-	private void clearGrid() {
-
-		List<Component> cmp = listbox.getChildren();
-		int i = cmp.size();
-		for(int j = 0; j < i; j++)
-		{
-			cmp.get(0).detach();
-		}
-
-	}
-
-
 	Auxhead auxhead ;
 
 	private boolean createView () throws ClassNotFoundException {
 
-		//Where句の作成(数か所で使用するので1か所で宣言しておく）
+		matrixGrid.setVisible(true);
+
 		whereClause = createWhere();
 		if(message.length() > 0)
 			return false;
 
-		//columnKeysの作成
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
@@ -698,7 +694,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return false;
 		}
 
-		//rowKeysの作成
 		rowKeys = createRowKeys(whereClause);
 		if(rowKeys.size()==0)
 		{
@@ -706,7 +701,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return false;
 		}
 
-		//getLiesでTable Modelのハッシュマップを作成
 		m_POs = getPOs(whereClause,true);
 		if(m_POs.length==0)
 		{
@@ -717,55 +711,49 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		tableModel = createTableModel(m_POs);
 		keyColumnModel = createKeyColumnModel(m_POs);
 
-		//rowKeysだけを設定した空のハッシュマップのView Modelの作成
 		viewModel = createViewModelConvetionTable();
 		conversionTable = createViewModelConvetionTable();
 
-		//rowKeysが設定されているView Modelに、Table Modelから値を設定し、Convetion Tableを作成する。
 		setViewModelConvetionTable();
 
-
-		//JPWListBoxの初期化
-//		listbox.clear();
-//		listbox.getModel().removeTableModelListener(this);
 
 		JPListModelMapTable vmListModelMap = new JPListModelMapTable(viewModel);
 		JPListModelMapTable ctListModelMap = new JPListModelMapTable(conversionTable);
 
 		vmListModelMap.addTableModelListener(this);		//JPListModelMapTable#setDataAt()処理から、this#tableChanged()メソッドが呼び出される。
-		listbox.setModel(vmListModelMap);
+		matrixGrid.setModel(vmListModelMap);
 
-		org.zkoss.zul.Columns columns = listbox.getColumns();
-
-		if(columns==null)
+		org.zkoss.zul.Columns columns = matrixGrid.getColumns();
+		if(columns == null)
 		{
 			auxhead = createAuxhead();
-			listbox.appendChild(auxhead);
+			matrixGrid.appendChild(auxhead);
 
 			createtColumnMap();
 			Columns clms = createColumns();
-			listbox.appendChild(clms);
+			matrixGrid.appendChild(clms);
 
 			Frozen frozen = new Frozen();
 			frozen.setColumns(fixItemFieldIDMap.size());
-			listbox.appendChild(frozen);
+			matrixGrid.appendChild(frozen);
 		}else{
-			listbox.removeChild(columns);
-			listbox.removeChild(auxhead);
+			matrixGrid.removeChild(columns);
+			matrixGrid.removeChild(auxhead);
 			auxhead = createAuxhead();
-			listbox.appendChild(auxhead);
+			matrixGrid.appendChild(auxhead);
 
 			createtColumnMap();
 			Columns clms = createColumns();
-			listbox.appendChild(clms);
+			matrixGrid.appendChild(clms);
 		}
+
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form,this);
 		renderer.setcColumnsSize(columnNameMap.size());					//TODO:コンストラクタの引数とする
 		renderer.gridView = gridView;									//TODO:コンストラクタの引数とする
 		renderer.gridTab = gridTab;										//TODO:コンストラクタの引数とする
 		renderer.columnGridFieldMap = columnGridFieldMap;				//TODO:コンストラクタの引数とする
-		listbox.setRowRenderer(renderer);
+		matrixGrid.setRowRenderer(renderer);
 		renderer.setADWindowPanel(adWindowContent,adTabpanel);
 
 		return true;

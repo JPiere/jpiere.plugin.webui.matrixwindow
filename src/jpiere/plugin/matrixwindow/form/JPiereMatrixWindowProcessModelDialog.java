@@ -34,13 +34,11 @@ public class JPiereMatrixWindowProcessModelDialog extends ProcessModalDialog {
 	public JPiereMatrixWindowProcessModelDialog(int WindowNo, ProcessInfo pi,
 			boolean autoStart) {
 		super(WindowNo, pi, autoStart);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	public JPiereMatrixWindowProcessModelDialog(EventListener<Event> listener,
 			int WindowNo, ProcessInfo pi, boolean autoStart) {
 		super(listener, WindowNo, pi, autoStart);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	public JPiereMatrixWindowProcessModelDialog(int WindowNo,
@@ -48,14 +46,12 @@ public class JPiereMatrixWindowProcessModelDialog extends ProcessModalDialog {
 		super(WindowNo, AD_Process_ID, tableId, recordId, autoStart );
 
 		this.matrixWindow = matrixWindow;
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	public JPiereMatrixWindowProcessModelDialog(EventListener<Event> listener,
 			int WindowNo, int AD_Process_ID, int tableId, int recordId,
 			boolean autoStart) {
 		super(listener, WindowNo, AD_Process_ID, tableId, recordId, autoStart);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	@Override

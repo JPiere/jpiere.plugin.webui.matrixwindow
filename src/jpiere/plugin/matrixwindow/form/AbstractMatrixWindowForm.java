@@ -15,8 +15,6 @@
 package jpiere.plugin.matrixwindow.form;
 
 import org.adempiere.webui.panel.IFormController;
-import org.zkoss.zk.ui.Component;
-import org.zkoss.zk.ui.select.SelectorComposer;
 
 /**
  *  Abstract JPiere Form Window
@@ -26,7 +24,7 @@ import org.zkoss.zk.ui.select.SelectorComposer;
  *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
-public abstract class AbstractMatrixWindowForm extends SelectorComposer<Component> implements IMatrixWindowFormController,IFormController {
+public abstract class AbstractMatrixWindowForm implements IMatrixWindowFormController,IFormController {
 
 
 }
