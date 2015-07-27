@@ -359,7 +359,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		}
 	}
 
-
 	@Override
 	public void render(Row row, Map.Entry<Integer,Object> dataEntry, int rowIndex) throws Exception
 	{
@@ -400,7 +399,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				{
 					((WButtonEditor)editor).addActionListener(buttonListener);
 					((WButtonEditor)editor).setADTabpanel(adTabpanel);
-					editor.setValue(treeMap.get(i)); // Set Record ID in Button
+					editor.setValue(treeMap.get(i)); // Set Record ID in Button for process
 				}else{
 					editor.setValue(data.get(i));
 				}

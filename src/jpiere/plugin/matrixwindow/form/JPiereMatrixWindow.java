@@ -61,6 +61,7 @@ import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
+import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
@@ -402,18 +403,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton = new Button(Msg.getMsg(Env.getCtx(), "search"));
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
+				SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
 				row.appendCellChild(SearchButton);
 
 				SaveButton = new Button(Msg.getMsg(Env.getCtx(), "save"));
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				SaveButton.setEnabled(false);
+				SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
 				row.appendCellChild(SaveButton);
 
 				CreateButton = new Button(Msg.getMsg(Env.getCtx(), "NewRecord"));
 				CreateButton.setId("CreateButton");
 				CreateButton.addActionListener(this);
 				CreateButton.setEnabled(false);
+				CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
 				{
 
@@ -514,6 +518,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		SearchButton.setEnabled(true);
 		SaveButton.setEnabled(false);
 		CreateButton.setEnabled(false);
+
+		quickEntry = null;
 
 		matrixGrid.setVisible(false);
 
@@ -641,7 +647,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				SearchButton.setEnabled(true);
 				SaveButton.setEnabled(false);
-				CreateButton.setEnabled(false);
+				CreateButton.setEnabled(true);
 				matrixGrid.setVisible(false);
 				throw new Exception(message.toString());
 			}
