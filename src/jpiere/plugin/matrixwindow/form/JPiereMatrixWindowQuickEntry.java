@@ -50,13 +50,18 @@ public class JPiereMatrixWindowQuickEntry extends WQuickEntry {
 	@Override
 	public void onEvent(Event e) throws Exception
 	{
-		super.onEvent(e);
+
+		try{
+			super.onEvent(e);
+		}catch(Exception ex){
+			this.detach();
+			throw ex;
+		}
 
 		if (e.getTarget().getId().equals("Ok"))
 		{
 			matrixWindow.onEvent(e);
 		}
-
 
 	}
 

@@ -106,6 +106,7 @@ import org.zkoss.zul.Space;
  *
  */
 public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements EventListener<Event>, ValueChangeListener,WTableModelListener{
+
 	/**	Logger			*/
 	public static CLogger log = CLogger.getCLogger(JPiereMatrixWindow.class);
 
@@ -145,16 +146,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	StringBuilder message = new StringBuilder();
 
 
-	//View Model:画面表示用のデータモデルMAP<rowの識別子,<カラム番号,data>>
+	//View Model:Map of Data Model for Display<Identifier of Row.<Column Number,data>>
 	TreeMap<Object,TreeMap<Integer,Object>> viewModel = new TreeMap<Object,TreeMap<Integer,Object>>() ;
 
-	//Convetion Table:画面表示用データとテーブルのデータを結びつけるMAP<rowの識別子,<カラム番号,dataの識別子>>
+	//Convetion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
 	TreeMap<Object,TreeMap<Integer,Object>> conversionTable = new TreeMap<Object,TreeMap<Integer,Object>> ();
 
-	//テーブルに対応するPOのインスタンスMAP<POのID,PO>
+	//Map of PO Instance that corresponding to Table.<ID,PO>
 	HashMap<Integer,PO> 				tableModel = new HashMap<Integer,PO>();
 
-	//保存しなければならないPOのインスタンスMAP<POのID,PO>
+	//Map of PO Instance that have to save.<POのID,PO>
 	HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
 
 	//画面表示のためにキーカラム毎にモデルクラスのインスタンスを区分管理しているMAP
@@ -162,7 +163,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	TreeMap<Object,TreeMap<Object,PO>> keyColumnModel = new TreeMap<Object,TreeMap<Object,PO>>();
 
 
-	/*【縦軸と横軸のキー情報】*/
+	/*Information of key of Vertical axis and key of horizontal axis*/
 	//リンクカラムと縦軸のキーと横軸のキーの３つでユニーク制約をつけておく前提です。
 	//Columnキー(Columnの軸となるキー情報)のリスト
 	ArrayList<Object> columnKeys = new ArrayList<Object>();
@@ -195,8 +196,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	/**********************************************************************
-	 * 【パラメータ設定項目】
-	 * ここより下の変数は、マトリクスウィンドウの設定変数です。
+	 * Parameter of Application Dictionary(System Client)
 	 **********************************************************************/
 
 	//Model
@@ -613,6 +613,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		}else if (e.getTarget().equals(SearchButton) || e.getTarget().getId().equals("Ok") || e.getName().equals("onComplete"))
 		{
+
 			if(!createView ())
 			{
 				SearchButton.setEnabled(true);
@@ -620,12 +621,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setEnabled(false);
 				matrixGrid.setVisible(false);
 				throw new Exception(message.toString());
-
 			}
+
 
 			SearchButton.setEnabled(false);
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
+
+			if(e.getTarget().getId().equals("Ok"))//Keep on creating new record
+			{
+//				Events.echoEvent(Events.ON_CLICK, CreateButton, null);
+//				Events.sendEvent(Events.ON_CLICK, CreateButton, null);
+			}
 
 		}else if(e.getTarget().equals(SaveButton)){
 
@@ -675,7 +682,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	Auxhead auxhead ;
 
-	private boolean createView () throws ClassNotFoundException {
+	private boolean createView () throws Exception {
 
 		matrixGrid.setVisible(true);
 
