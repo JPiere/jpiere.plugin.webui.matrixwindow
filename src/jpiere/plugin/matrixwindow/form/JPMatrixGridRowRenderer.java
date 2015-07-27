@@ -503,6 +503,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private int x = 0;
 	private Cell cell = null;
 	private NumberBox numberbox;
+	private int loopCounter = 0;
 
 	@Override
 	public void onEvent(Event event) throws Exception {	//Key Event onOK
@@ -510,61 +511,73 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		if(!event.getName().equals(Events.ON_OK))
 			return;
 
+		//Set focuns on next Field that can edit.
 		if(event.getTarget() instanceof Decimalbox)
 		{
         	yx = event.getTarget().getParent().getId().split("_");	    //Get Row(Y) and Column(X) info
         	y =Integer.valueOf(yx[0]);
             x =Integer.valueOf(yx[1]);
 
-        	cell = (Cell)grid.getCell(y+1, x);
-        	if(cell == null || cell.getChildren().get(0) instanceof Label)
+            loopCounter = 0;
+           	for(int i = y + 1; i <= grid.getRows().getChildren().size(); i++)
         	{
-        		cell = (Cell)grid.getCell(0, x);
-        		cell.focus();
-        		return;
-        	}
 
-        	numberbox = (NumberBox)cell.getChildren().get(0);
-        	numberbox.focus();
-        	numberbox.getDecimalbox().select();
+        		cell = (Cell)grid.getCell(i, x);
+    			if(cell == null)
+    			{
+    				i = -1;
+    			}
+    			else if (cell.getChildren().get(0) instanceof NumberBox)
+        		{
+    	        	numberbox = (NumberBox)cell.getChildren().get(0);
+    	        	numberbox.focus();
+    	        	numberbox.getDecimalbox().select();
+    				return;
+        		}else{
+        			if(loopCounter > grid.getRows().getChildren().size())
+        				break;
+        		}
+
+    			loopCounter++;
+        	}
 
         	return;
 
 		}else if(event.getTarget() instanceof Textbox){
 
-			if(event.getTarget().getParent() instanceof Cell) //
+			if(event.getTarget().getParent() instanceof Cell)  //Get Row(Y) and Column(X) info
 			{
-				yx = event.getTarget().getId().split("_");	    //Get Row(Y) and Column(X) info
-	        	y =Integer.valueOf(yx[0]);
-	            x =Integer.valueOf(yx[1]);
-	;
-	        	cell = (Cell)grid.getCell(y+1, x);
-	        	if(cell == null || cell.getChildren().get(0) instanceof Label)
-	        	{
-	        		cell = (Cell)grid.getCell(0, x);
-	        	}
-
-	        	cell.focus();
-	        	return;
-
-			}else{ //Search Editor
-				yx = event.getTarget().getParent().getId().split("_");	    //Get Row(Y) and Column(X) info
-	        	y =Integer.valueOf(yx[0]);
-	            x =Integer.valueOf(yx[1]);
-	;
-	        	cell = (Cell)grid.getCell(y+1, x);
-	        	if(cell == null || cell.getChildren().get(0) instanceof Label)
-	        	{
-	        		cell = (Cell)grid.getCell(0, x);
-	        	}
-
-	        	cell.focus();
-	        	return;
-
+				yx = event.getTarget().getId().split("_");//TextBox,List,
+			}else{
+				yx = event.getTarget().getParent().getId().split("_");//Search Editor
 			}
 
-		}
+        	y =Integer.valueOf(yx[0]);
+            x =Integer.valueOf(yx[1]);
 
+            loopCounter = 0;
+           	for(int i = y + 1; i <= grid.getRows().getChildren().size(); i++)
+        	{
+           		cell = (Cell)grid.getCell(i, x);
+    			if(cell == null)
+    			{
+    				i = -1;
+    			}
+    			else if (!(cell.getChildren().get(0) instanceof Label))
+        		{
+    				cell.focus();
+    				return;
+        		}else{
+        			if(loopCounter > grid.getRows().getChildren().size())
+        				break;
+        		}
+
+    			loopCounter++;
+        	}
+;
+        	return;
+
+		}
 	}
 
 
