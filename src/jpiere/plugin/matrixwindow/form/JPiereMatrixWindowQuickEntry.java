@@ -15,6 +15,7 @@ package jpiere.plugin.matrixwindow.form;
 
 import java.util.List;
 
+import org.adempiere.webui.component.ConfirmPanel;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.grid.WQuickEntry;
 import org.zkoss.zk.ui.event.Event;
@@ -38,7 +39,6 @@ public class JPiereMatrixWindowQuickEntry extends WQuickEntry {
 
 	public JPiereMatrixWindowQuickEntry(int AD_Window_ID) {
 		super(AD_Window_ID);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 
@@ -47,20 +47,45 @@ public class JPiereMatrixWindowQuickEntry extends WQuickEntry {
 		return quickEditors;
 	}
 
+	public void onClose() {
+		detach();
+		try{
+			matrixWindow.onEvent(new Event(ConfirmPanel.A_CANCEL));
+		}catch(Exception ex){
+			;
+		}
+	}
+
 	@Override
 	public void onEvent(Event e) throws Exception
 	{
 
-		try{
-			super.onEvent(e);
-		}catch(Exception ex){
-			this.detach();
-			throw ex;
-		}
-
-		if (e.getTarget().getId().equals("Ok"))
+		if (e.getTarget().getId().equals(ConfirmPanel.A_OK))
 		{
-			matrixWindow.onEvent(e);
+			boolean isOK =false;
+			try{
+				isOK = actionSave();
+			}catch(Exception exception){
+				detach();
+				matrixWindow.onEvent(new Event(ConfirmPanel.A_CANCEL));//refresh
+				throw exception;
+			}
+
+			detach();
+			if(isOK)
+			{
+				matrixWindow.onEvent(new Event(ConfirmPanel.A_OK));
+			}else{
+				matrixWindow.onEvent(new Event(ConfirmPanel.A_CANCEL));//refresh
+			}
+
+
+		}else if (e.getTarget().getId().equals(ConfirmPanel.A_CANCEL)){
+			detach();
+			matrixWindow.onEvent(new Event(ConfirmPanel.A_CANCEL));//refresh
+
+		}else{
+			detach();
 		}
 
 	}

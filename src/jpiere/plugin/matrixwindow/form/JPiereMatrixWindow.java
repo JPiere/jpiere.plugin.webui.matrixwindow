@@ -42,6 +42,7 @@ import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
+import org.adempiere.webui.component.ConfirmPanel;
 import org.adempiere.webui.component.EditorBox;
 import org.adempiere.webui.component.Grid;
 import org.adempiere.webui.component.GridFactory;
@@ -524,6 +525,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 	}
 
+	JPiereMatrixWindowQuickEntry quickEntry = null;
+
 	@Override
 	public void onEvent(Event e) throws Exception {
 
@@ -611,8 +614,28 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //					selectAll.setChecked(false);
 			}
 
-		}else if (e.getTarget().equals(SearchButton) || e.getTarget().getId().equals("Ok") || e.getName().equals("onComplete"))
-		{
+		/*JPiereMatrixWindowQuickEntry#ConfirmPanel*/
+		}else if(e.getName().equals(ConfirmPanel.A_CANCEL)){
+
+			if(!createView ())
+			{
+				SearchButton.setEnabled(true);
+				SaveButton.setEnabled(false);
+				CreateButton.setEnabled(false);
+				matrixGrid.setVisible(false);
+				throw new Exception(message.toString());
+			}
+
+			SearchButton.setEnabled(false);
+			SaveButton.setEnabled(true);
+			CreateButton.setEnabled(true);
+
+		/*JPiereMatrixWindowQuickEntry#ConfirmPanel*/
+		}else if(e.getName().equals(ConfirmPanel.A_OK)){ //Keep on creating new record
+
+			Events.sendEvent(Events.ON_CLICK, CreateButton, null);
+
+		}else if (e.getTarget().equals(SearchButton) || e.getName().equals("onComplete")){
 
 			if(!createView ())
 			{
@@ -627,12 +650,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SearchButton.setEnabled(false);
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
-
-			if(e.getTarget().getId().equals("Ok"))//Keep on creating new record
-			{
-//				Events.echoEvent(Events.ON_CLICK, CreateButton, null);
-//				Events.sendEvent(Events.ON_CLICK, CreateButton, null);
-			}
 
 		}else if(e.getTarget().equals(SaveButton)){
 
@@ -650,14 +667,31 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 
 			}else{
-				;//saveData()メソッド内でエラー処理しているのでここでのエラー処理は不要
+				;//Nothing to do
 			}
 
 		}else if(e.getTarget().equals(CreateButton)){
 
-			final JPiereMatrixWindowQuickEntry vqe = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), m_matrixWindow.getJP_QuickEntryWindow_ID(), this);
-			vqe.loadRecord (0);
-			List<WEditor> editors = vqe.getQuickEditors();
+			Object old_rowKeyColumn_Value = null;
+			Object old_columnKeyColumn_Value = null;
+			if(quickEntry != null)
+			{
+				List<WEditor> editors = quickEntry.getQuickEditors();
+
+				for(WEditor editor : editors)
+				{
+					if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+					{
+						old_rowKeyColumn_Value = editor.getValue();
+					}else if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName())){
+						old_columnKeyColumn_Value = editor.getValue();
+					}
+				}
+			}
+
+			quickEntry = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), m_matrixWindow.getJP_QuickEntryWindow_ID(), this);
+			quickEntry.loadRecord (0);
+			List<WEditor> editors = quickEntry.getQuickEditors();
 
 			//検索パラメータを新規登録データの初期値として設定し変更不可とする
 			for(WEditor editor : editors)
@@ -675,7 +709,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}//for
 			}//for
 
-			AEnv.showWindow(vqe);
+			for(WEditor editor : editors)
+			{
+				if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+				{
+					editor.setValue(old_rowKeyColumn_Value);
+				}else if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName())){
+					editor.setValue(old_columnKeyColumn_Value);
+				}
+			}
+
+			AEnv.showWindow(quickEntry);
 		}
 
 	}
