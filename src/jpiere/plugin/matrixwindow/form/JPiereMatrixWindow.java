@@ -52,9 +52,11 @@ import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.editor.IZoomableEditor;
 import org.adempiere.webui.editor.WEditor;
+import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
+import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.event.WTableModelEvent;
@@ -98,6 +100,7 @@ import org.zkoss.zul.Groupbox;
 import org.zkoss.zul.ListModel;
 import org.zkoss.zul.North;
 import org.zkoss.zul.Space;
+import org.zkoss.zul.impl.XulElement;
 
 /**
  * JPiereMatrixWindow
@@ -390,7 +393,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						editor.setMandatory(m_matrixSearches[i].isMandatory());
 
 						row.appendCellChild(editor.getLabel().rightAlign());
-						row.appendCellChild(editor.getComponent(),1);
+						row.appendCellChild(editor.getComponent(),2);
+
+						WEditorPopupMenu popupMenu = editor.getPopupMenu();
+			            if (popupMenu != null)
+			            {
+			            	popupMenu.addMenuListener((ContextMenuListener)editor);
+			            	row.appendChild(popupMenu);
+
+			            	popupMenu.addContextElement((XulElement) editor.getComponent());
+			            }
+
 						editor.addValueChangeListener(this);
 						searchEditorMap.put(editor.getColumnName(), editor);
 						break;
@@ -688,7 +701,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			Object old_columnKeyColumn_Value = null;
 			if(quickEntry == null){
 
-				Events.sendEvent(Events.ON_CLICK, SaveButton, null);
+				saveData();
 
 			}else{
 				List<WEditor> editors = quickEntry.getQuickEditors();
