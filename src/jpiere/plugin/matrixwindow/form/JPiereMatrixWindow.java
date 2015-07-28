@@ -403,6 +403,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton = new Button(Msg.getMsg(Env.getCtx(), "search"));
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
+				SearchButton.setEnabled(true);
 				SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
 				row.appendCellChild(SearchButton);
 
@@ -448,6 +449,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setWidth("100%");
 				matrixGrid.setHeight("100%");
 				matrixGrid.setVflex(true);
+
+				matrixGrid.setMold("paging");
+				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
 	static class ZoomListener implements EventListener<Event> {
@@ -636,6 +640,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 
+			quickEntry = null;
+
 		/*JPiereMatrixWindowQuickEntry#ConfirmPanel*/
 		}else if(e.getName().equals(ConfirmPanel.A_OK)){ //Keep on creating new record
 
@@ -680,8 +686,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			Object old_rowKeyColumn_Value = null;
 			Object old_columnKeyColumn_Value = null;
-			if(quickEntry != null)
-			{
+			if(quickEntry == null){
+
+				Events.sendEvent(Events.ON_CLICK, SaveButton, null);
+
+			}else{
 				List<WEditor> editors = quickEntry.getQuickEditors();
 
 				for(WEditor editor : editors)
@@ -699,10 +708,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			quickEntry.loadRecord (0);
 			List<WEditor> editors = quickEntry.getQuickEditors();
 
-			//検索パラメータを新規登録データの初期値として設定し変更不可とする
+
+			String  JP_QuickEntryConf = m_matrixWindow.getJP_QuickEntryConf();
 			for(WEditor editor : editors)
 			{
-				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
+				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())//検索パラメータを新規登録データの初期値として設定し変更不可とする
 				{
 					if(editor.getColumnName().equals(entry.getKey()))
 					{
@@ -713,17 +723,32 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 							editor.setReadWrite(false);
 					}
 				}//for
-			}//for
 
-			for(WEditor editor : editors)
-			{
-				if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+				//Set Column key info or Row key info or Both;
+				if(JP_QuickEntryConf != null)
 				{
-					editor.setValue(old_rowKeyColumn_Value);
-				}else if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName())){
-					editor.setValue(old_columnKeyColumn_Value);
+
+					if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_ColumnInfoOnly))
+					{
+						if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+							editor.setValue(old_rowKeyColumn_Value);
+
+					}else if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_RowInfoOnly)){
+
+						if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName()))
+							editor.setValue(old_columnKeyColumn_Value);
+
+					}else if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_ColumnAndRowInfo)){
+
+						if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+							editor.setValue(old_rowKeyColumn_Value);
+						else if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName()))
+							editor.setValue(old_columnKeyColumn_Value);
+					}
 				}
-			}
+
+
+			}//for
 
 			AEnv.showWindow(quickEntry);
 		}

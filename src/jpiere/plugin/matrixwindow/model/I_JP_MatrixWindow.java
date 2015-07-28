@@ -189,6 +189,24 @@ public interface I_JP_MatrixWindow
 	/** Get JP_MatrixWindow_UU	  */
 	public String getJP_MatrixWindow_UU();
 
+    /** Column name JP_PageSize */
+    public static final String COLUMNNAME_JP_PageSize = "JP_PageSize";
+
+	/** Set Page Size	  */
+	public void setJP_PageSize (int JP_PageSize);
+
+	/** Get Page Size	  */
+	public int getJP_PageSize();
+
+    /** Column name JP_QuickEntryConf */
+    public static final String COLUMNNAME_JP_QuickEntryConf = "JP_QuickEntryConf";
+
+	/** Set Quick Entry Conf	  */
+	public void setJP_QuickEntryConf (String JP_QuickEntryConf);
+
+	/** Get Quick Entry Conf	  */
+	public String getJP_QuickEntryConf();
+
     /** Column name JP_QuickEntryWindow_ID */
     public static final String COLUMNNAME_JP_QuickEntryWindow_ID = "JP_QuickEntryWindow_ID";
 

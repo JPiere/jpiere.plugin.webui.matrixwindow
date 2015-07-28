@@ -30,7 +30,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150703L;
+	private static final long serialVersionUID = 20150728L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)
@@ -43,6 +43,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			setJP_MatrixColumnKey_ID (0);
 			setJP_MatrixRowKey_ID (0);
 			setJP_MatrixWindow_ID (0);
+			setJP_PageSize (0);
+// 20
 			setName (null);
 			setValue (null);
         } */
@@ -251,6 +253,44 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	public String getJP_MatrixWindow_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_JP_MatrixWindow_UU);
+	}
+
+	/** Set Page Size.
+		@param JP_PageSize Page Size	  */
+	public void setJP_PageSize (int JP_PageSize)
+	{
+		set_Value (COLUMNNAME_JP_PageSize, Integer.valueOf(JP_PageSize));
+	}
+
+	/** Get Page Size.
+		@return Page Size	  */
+	public int getJP_PageSize () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_JP_PageSize);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Column info only = 01 */
+	public static final String JP_QUICKENTRYCONF_ColumnInfoOnly = "01";
+	/** Row info Only = 02 */
+	public static final String JP_QUICKENTRYCONF_RowInfoOnly = "02";
+	/** Column and Row info = 03 */
+	public static final String JP_QUICKENTRYCONF_ColumnAndRowInfo = "03";
+	/** Set Quick Entry Conf.
+		@param JP_QuickEntryConf Quick Entry Conf	  */
+	public void setJP_QuickEntryConf (String JP_QuickEntryConf)
+	{
+
+		set_Value (COLUMNNAME_JP_QuickEntryConf, JP_QuickEntryConf);
+	}
+
+	/** Get Quick Entry Conf.
+		@return Quick Entry Conf	  */
+	public String getJP_QuickEntryConf () 
+	{
+		return (String)get_Value(COLUMNNAME_JP_QuickEntryConf);
 	}
 
 	public org.compiere.model.I_AD_Window getJP_QuickEntryWindow() throws RuntimeException

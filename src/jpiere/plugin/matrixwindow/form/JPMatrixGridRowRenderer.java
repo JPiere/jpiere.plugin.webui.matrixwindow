@@ -502,7 +502,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private int x = 0;
 	private Cell cell = null;
 	private NumberBox numberbox;
-	private int loopCounter = 0;
+	private int minY = 0;
+	private int maxY = 0;
 
 	@Override
 	public void onEvent(Event event) throws Exception {	//Key Event onOK
@@ -517,27 +518,22 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
         	y =Integer.valueOf(yx[0]);
             x =Integer.valueOf(yx[1]);
 
-            loopCounter = 0;
-           	for(int i = y + 1; i <= grid.getRows().getChildren().size(); i++)
-        	{
+            minY = grid.getActivePage() * grid.getPageSize();
+            maxY = minY + grid.getPageSize();
 
-        		cell = (Cell)grid.getCell(i, x);
-    			if(cell == null)
+           	for(int i = 0 ; i < grid.getPageSize(); i++)
+        	{
+        		cell = (Cell)grid.getCell(++y, x);
+    			if(cell == null || y == maxY)
     			{
-    				i = -1;
-    			}
-    			else if (cell.getChildren().get(0) instanceof NumberBox)
-        		{
+    				y = minY - 1 ;
+
+    			}else if (cell.getChildren().get(0) instanceof NumberBox){
     	        	numberbox = (NumberBox)cell.getChildren().get(0);
     	        	numberbox.focus();
     	        	numberbox.getDecimalbox().select();
     				return;
-        		}else{
-        			if(loopCounter > grid.getRows().getChildren().size())
-        				break;
         		}
-
-    			loopCounter++;
         	}
 
         	return;
@@ -554,26 +550,22 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
         	y =Integer.valueOf(yx[0]);
             x =Integer.valueOf(yx[1]);
 
-            loopCounter = 0;
-           	for(int i = y + 1; i <= grid.getRows().getChildren().size(); i++)
+            minY = grid.getActivePage() * grid.getPageSize();
+            maxY = minY + grid.getPageSize();
+
+            for(int i = 0 ; i < grid.getPageSize(); i++)
         	{
-           		cell = (Cell)grid.getCell(i, x);
-    			if(cell == null)
+        		cell = (Cell)grid.getCell(++y, x);
+        		if(cell == null || y == maxY)
     			{
-    				i = -1;
-    			}
-    			else if (!(cell.getChildren().get(0) instanceof Label))
-        		{
+    				y = minY - 1 ;
+
+    			}else if (!(cell.getChildren().get(0) instanceof Label)){
     				cell.focus();
     				return;
-        		}else{
-        			if(loopCounter > grid.getRows().getChildren().size())
-        				break;
         		}
-
-    			loopCounter++;
         	}
-;
+
         	return;
 
 		}
