@@ -743,13 +743,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 					if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_ColumnInfoOnly))
 					{
-						if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
-							editor.setValue(old_rowKeyColumn_Value);
+						if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName()))
+							editor.setValue(old_columnKeyColumn_Value);
 
 					}else if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_RowInfoOnly)){
 
-						if(editor.getColumnName().equals(m_columnKeyColumn.getColumnName()))
-							editor.setValue(old_columnKeyColumn_Value);
+						if(editor.getColumnName().equals(m_rowKeyColumn.getColumnName()))
+							editor.setValue(old_rowKeyColumn_Value);
 
 					}else if(JP_QuickEntryConf.equals(MMatrixWindow.JP_QUICKENTRYCONF_ColumnAndRowInfo)){
 
