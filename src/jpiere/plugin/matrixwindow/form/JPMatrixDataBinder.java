@@ -62,7 +62,7 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 	/**
 	 * @param e
 	 */
-	public void valueChange(ValueChangeEvent e)//TODO:ViewModelの更新
+	public void valueChange(ValueChangeEvent e)
     {
 
 		Object newValue = e.getNewValue();
@@ -70,31 +70,31 @@ public class JPMatrixDataBinder implements ValueChangeListener {
         Object source = e.getSource();
         if (source instanceof WEditor)
         {
-        	// Elaine 2009/05/06
+        	//Get Row(Y) and Column(X) info
         	WEditor editor = (WEditor) source;
-        	String[] yx = editor.getComponent().getId().split("_");	//行と列の情報を取得
+        	String[] yx = editor.getComponent().getId().split("_");
             	int y =Integer.valueOf(yx[0]);
             	int x =Integer.valueOf(yx[1]);
 ;
-            //viewModelの更新	TODO:処理的に考えるとviewModelの更新は現段階では不要な気がする…。コンポ―ネントをSave()前に更新する場合には必要になると思う…。
+            //Update viewModel	TODO:処理的に考えるとviewModelの更新は現段階では不要な気がする…。コンポ―ネントをSave()前に更新する場合には必要になると思う…。
         	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
 
         	@SuppressWarnings("unchecked")
 			TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
         	viewModelRowData.put(x, newValue);
 
-        	//convetionTableからPOのIDを取得
+        	//Get Po's ID form convetionTable
         	ListModelMap.Entry<Object, Object>  conversionTableRow = convetionTable.getElementAt(y);
 
         	@SuppressWarnings("unchecked")
 			TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
         	Object PO_ID = conversionTableRowData.get(x);
 
-        	//Tableモデルの更新
+        	//Update Table Model
         	PO po = tableModel.get(PO_ID);
         	po.set_ValueNoCheck(editor.getColumnName(), newValue);
 
-        	//DirtyModelに追加
+        	//Add DirtyModel for Save.
         	dirtyModel.put((Integer)PO_ID, po);
 
 

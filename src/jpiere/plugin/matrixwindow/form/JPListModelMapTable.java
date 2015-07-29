@@ -59,13 +59,11 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 
 	public JPListModelMapTable(int initialCapacity, float loadFactor) {
 		super(initialCapacity, loadFactor);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 
 	public JPListModelMapTable(int initialCapacity) {
 		super(initialCapacity);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 
@@ -82,7 +80,6 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 
 	public JPListModelMapTable(Map<Object, Object> map, boolean live) {
 		super(map, live);
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 
@@ -403,7 +400,7 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 	}
 
 	/*
-	 * マトリクスウィンドウではソートはしない
+	 * Matrix window can not sort.
 	 *
 	 */
 

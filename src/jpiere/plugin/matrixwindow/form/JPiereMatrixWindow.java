@@ -275,11 +275,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	public void prepare(String Value) throws Exception
 	{
-		//マトリクスウィドウのモデルクラス群を作成
+		//Create Models that is used by Matrix Window
 		m_matrixWindow = MMatrixWindow.get(Env.getCtx(), Value);
 		if(m_matrixWindow == null)
 		{
-			;//TODO エラー処理
+			;//Error
 		}
 
 		m_matrixFields = m_matrixWindow.getMatrixFields();
@@ -302,13 +302,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		FIX_ITEM_FIELD_ID = m_matrixWindow.getJP_MatrixRowKey().getAD_Field_ID();
 
-		/*表領域に表示する項目<表示順番,項目(カラム)名>を取得する*/
-		//fixItemはRowの識別子となるカラムの1行で固定
+		/*get <Display order,name of Column> for Grid*/
+		//fixItem is a row that is Identifier of row. it is specification only one column.
 		fixItem.put(0, m_rowKeyColumn.getColumnName());
 		fixItemFieldIDMap.put(0,FIX_ITEM_FIELD_ID);
 
 
-		//Windowの情報を使うので、画面上には表示させませんが、ウィンドウを作成します。
+		//Create Window because of use Window info.
 		if(adWindow==null)
 		{
 			adWindow = new ADWindow(Env.getCtx(),AD_WINDOW_ID, null);
@@ -326,7 +326,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		if(adTabpanel == null)
 		{
-			//TODO:エラー処理
+			//Error
 		}
 		gridTab = adTabpanel.getGridTab();
 		gridView = adTabpanel.getGridView();
@@ -338,15 +338,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	{
 		form.appendChild(mainLayout);
 
-		/*【メインレイアウト(Borderlayout)】*/
+		/*Main Layout(Borderlayout)*/
 		mainLayout.setWidth("99%");
 		mainLayout.setHeight("100%");
 
-		//【メインレイアウト(Borderlayout)-北】
+		//Main Layout(Borderlayout)-North
 		North north = new North();
 		mainLayout.appendChild(north);
-
-
 
 		//Search Parameter Panel
 		north.appendChild(parameterPanel);
@@ -728,6 +726,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 			}
 
+			//Create Quick entry window
 			quickEntry = new JPiereMatrixWindowQuickEntry (form.getWindowNo(), m_matrixWindow.getJP_QuickEntryWindow_ID(), this);
 			quickEntry.loadRecord (0);
 			List<WEditor> editors = quickEntry.getQuickEditors();
@@ -736,7 +735,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			String  JP_QuickEntryConf = m_matrixWindow.getJP_QuickEntryConf();
 			for(WEditor editor : editors)
 			{
-				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())//検索パラメータを新規登録データの初期値として設定し変更不可とする
+				//Search Field Value can not update.Search Field Value is read only
+				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 				{
 					if(editor.getColumnName().equals(entry.getKey()))
 					{
@@ -748,7 +748,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					}
 				}//for
 
-				//Set Column key info or Row key info or Both;
+				//Set Column key Valu or Row key Value or Both;
 				if(JP_QuickEntryConf != null)
 				{
 
@@ -822,7 +822,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		JPListModelMapTable vmListModelMap = new JPListModelMapTable(viewModel);
 		JPListModelMapTable ctListModelMap = new JPListModelMapTable(conversionTable);
 
-		vmListModelMap.addTableModelListener(this);		//JPListModelMapTable#setDataAt()処理から、this#tableChanged()メソッドが呼び出される。
+		//Call out this#tableChanged() method form JPListModelMapTable#setDataAt()
+		vmListModelMap.addTableModelListener(this);
 		matrixGrid.setModel(vmListModelMap);
 
 		org.zkoss.zul.Columns columns = matrixGrid.getColumns();
@@ -853,10 +854,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form,this);
-		renderer.setcColumnsSize(columnNameMap.size());					//TODO:コンストラクタの引数とする
-		renderer.gridView = gridView;									//TODO:コンストラクタの引数とする
-		renderer.gridTab = gridTab;										//TODO:コンストラクタの引数とする
-		renderer.columnGridFieldMap = columnGridFieldMap;				//TODO:コンストラクタの引数とする
+		renderer.setcColumnsSize(columnNameMap.size());
+		renderer.gridView = gridView;									//TODO:Create Setter method
+		renderer.gridTab = gridTab;										//TODO:Create Setter method
+		renderer.columnGridFieldMap = columnGridFieldMap;				//TODO:Create Setter method
 		matrixGrid.setRowRenderer(renderer);
 		renderer.setADWindowPanel(adWindowContent,adTabpanel);
 
@@ -1081,9 +1082,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 	/*
-	 * View ModelとConvetion Tableを作成するメソッドです。
-	 * View ModelとConvetion Tableは同じTreeMap構造になります。
-	 * 横軸のキー情報が設定され、必要となる縦軸のカラム数が確保されます。
+	 * This Method creates "View Model" and "Convetion Table".
+	 * "View Model" and "Convetion Table" is same TreeMap structure.
+	 * Set Row Key(Y-axis),and Secure number of column required.
 	 *
 	 * @return TreeMap<y,TreeMap<x,object>>
 	 */
@@ -1160,7 +1161,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		Auxhead auxhead = new Auxhead();
 
-		//固定カラムの部分は仕様上1行とし、空白にする。
+		//Fix item header is blank.
 		Auxheader fix = new Auxheader("");
 		auxhead.appendChild(fix);
 		fix.setColspan(fixItemFieldIDMap.size());
@@ -1178,7 +1179,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				auxheader.setAlign("center");
 			}
 		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
-			;//auxheadなし
+			;//no auxhead
 		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
@@ -1198,7 +1199,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				auxheader.setAlign("center");
 			}
 		}else{
-			;//auxheadなし
+			;//no auxhead
 		}
 
 
