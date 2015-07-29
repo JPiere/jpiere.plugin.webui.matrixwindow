@@ -19,6 +19,7 @@ import java.util.Properties;
 import org.compiere.model.MIndexColumn;
 import org.compiere.model.MTable;
 import org.compiere.model.MTableIndex;
+import org.compiere.util.Msg;
 
 /**
  * MMatrixSearch
@@ -57,41 +58,45 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 	{
 		if(newRecord || is_ValueChanged("AD_Field_ID"))
 		{
-			if(getAD_Field().getAD_Column().isParent())
-			{
-				log.saveError("Error", "カラムのIsParentフラグをOFFにして下さい。");
-				return false;
-			}
-
-			if(!getAD_Field().getAD_Column().isUpdateable())
-			{
-				log.saveError("Error", "カラムのisUpdateableフラグをONにして下さい。");
-				return false;
-			}
-
 
 			getParent();
 
-			if( getAD_Field().getAD_Column_ID()
-				== m_matrixWindow.getJP_MatrixColumnKey().getAD_Column_ID())
+			//Column key Check
+			if( getAD_Field().getAD_Column_ID() == m_matrixWindow.getJP_MatrixColumnKey().getAD_Column_ID())
 			{
-				log.saveError("Error", "フィールドは列キーに設定されています。");
+				Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+						,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+						,Msg.getElement(getCtx(), "JP_MatrixColumnKey_ID")};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 
-			if( getAD_Field().getAD_Column_ID()
-					== m_matrixWindow.getJP_MatrixRowKey().getAD_Column_ID())
+			//Row key Check
+			if( getAD_Field().getAD_Column_ID() == m_matrixWindow.getJP_MatrixRowKey().getAD_Column_ID())
 			{
-				log.saveError("Error", "フィールドは行キーに設定されています。");
+				Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+						,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+						,Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 
+			//Contents(Edit) Field Check
 			MMatrixField[] fields = m_matrixWindow.getMatrixFields();
 			for(int i = 0 ; i < fields.length; i++)
 			{
 				if(fields[i].getAD_Field_ID()==getAD_Field_ID())
 				{
-					log.saveError("Error", "フィールドは編集フィールドに設定されています。");
+					Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+							,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+							,Msg.getElement(getCtx(), "JP_MatrixField_ID")};
+					String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+					log.saveError("Error", errorMessage);
 					return false;
 				}
 
@@ -105,7 +110,7 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 	@Override
 	protected boolean afterSave(boolean newRecord, boolean success) {
 
-		//ユニークキーのチェック処理
+		//Check unique Constraint
 		if(success || newRecord || is_ValueChanged("AD_Field_ID") || is_ValueChanged("IsMandatory"))
 		{
 			MTable mTable = MTable.get(getCtx(), getParent().getAD_Tab().getAD_Table_ID());
@@ -152,7 +157,13 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 
 			if(!isUniqueConstraint)
 			{
-				log.saveError("Error", "列キー、行キー、必須検索フィールドにはユニーク制約を設定して下さい。");
+				Object[] objects = {Msg.getElement(getCtx(),"JP_MatrixColumnKey_ID")
+									+ "," + Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")
+									+ "," + Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+									+ "(" + Msg.getElement(getCtx(), "IsMandatory") + ")"};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_UniqueConstraintNecessary", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 

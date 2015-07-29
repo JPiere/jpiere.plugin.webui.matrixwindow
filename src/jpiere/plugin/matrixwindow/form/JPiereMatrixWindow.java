@@ -354,15 +354,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		parameterPanel.appendChild(parameterLayout); 		//parameterLayout = Grid
 		parameterLayout.setWidth("90%");
 		Rows parameterLayoutRows = parameterLayout.newRows();
-		Row row = parameterLayoutRows.newRow();
-			Groupbox searchGB = new Groupbox();
-			row.appendCellChild(searchGB,8);
-			searchGB.appendChild(new Caption(Msg.getMsg(Env.getCtx(), "SearchCriteria")));
-			Grid searchGrid  = new Grid();
-			searchGrid.setStyle("background-color: #E9F0FF");
-			searchGrid.setStyle("border: none");
-			searchGB.appendChild(searchGrid);
-			Rows rows = searchGrid.newRows();
+		Row row = null;
+		if(m_matrixSearches.length > 0)
+		{
+			row = parameterLayoutRows.newRow();
+				Groupbox searchGB = new Groupbox();
+				row.appendCellChild(searchGB,8);
+				searchGB.appendChild(new Caption(Msg.getMsg(Env.getCtx(), "SearchCriteria")));
+				Grid searchGrid  = new Grid();
+				searchGrid.setStyle("background-color: #E9F0FF");
+				searchGrid.setStyle("border: none");
+				searchGB.appendChild(searchGrid);
+				Rows rows = searchGrid.newRows();
 
 			//Search Fields
 			for(int i = 0; i < m_matrixSearches.length; i++)
@@ -378,6 +381,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
 					{
 						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
+						if(!editor.isReadWrite())
+						{
+							editor.setReadWrite(true);
+							if(editor instanceof WTableDirEditor)
+								((WTableDirEditor) editor).actionRefresh();
+
+						}
 
 						//Set zoom
 						if(editor instanceof WSearchEditor
@@ -410,6 +420,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					}
 				}//for j
 			}//for i
+		}//if
 
 		//Button
 		row = parameterLayoutRows.newRow();

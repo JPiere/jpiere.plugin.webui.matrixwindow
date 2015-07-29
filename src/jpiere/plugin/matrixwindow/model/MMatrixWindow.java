@@ -27,6 +27,7 @@ import org.compiere.model.MTableIndex;
 import org.compiere.model.MWindow;
 import org.compiere.model.Query;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
 import org.compiere.util.Util;
 
 
@@ -129,7 +130,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 	public MMatrixSearch[] getMatrixSearches(String whereClause, String orderClause)
 	{
-		//red1 - using new Query class from Teo / Victor's MDDOrder.java implementation
+
 		StringBuilder whereClauseFinal = new StringBuilder(MMatrixSearch.COLUMNNAME_JP_MatrixWindow_ID + "=? AND IsActive='Y'");
 		if (!Util.isEmpty(whereClause, true))
 			whereClauseFinal.append(whereClause);
@@ -185,7 +186,12 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 		{
 
 			if(getJP_MatrixColumnKey().getAD_Column_ID()==getJP_MatrixRowKey().getAD_Column_ID()){
-				log.saveError("Error", "行キーと列キーが同じです");
+
+				Object[] objects = {Msg.getElement(getCtx(), "JP_MatrixColumnKey_ID")
+						+ "," + Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_SameDataError", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 
@@ -221,7 +227,13 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 			if(!isUniqueConstraint)
 			{
-				log.saveError("Error", "列キー、行キーにユニーク制約が設定されていません。");
+				Object[] objects = {Msg.getElement(getCtx(),"JP_MatrixColumnKey_ID")
+						+ "," + Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")
+						+ "," + Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+						+ "(" + Msg.getElement(getCtx(), "IsMandatory") + ")"};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_UniqueConstraintNecessary", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 
@@ -237,7 +249,11 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 				if(quickEntryTabs[0].getAD_Table_ID() != getAD_Tab().getAD_Table_ID())
 				{
-					log.saveError("Error", "タブとクィックウィンドウの関係が正しくありません");
+					Object[] objects = {Msg.getElement(getCtx(),"AD_Tab_ID")
+							+ "," + Msg.getElement(getCtx(), "JP_QuickEntryWindow_ID")};
+					String errorMessage = Msg.getMsg(getCtx(), "JP_NoRelation", objects);
+
+					log.saveError("Error", errorMessage);
 					return false;
 				}
 			}

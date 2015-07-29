@@ -16,6 +16,8 @@ package jpiere.plugin.matrixwindow.model;
 import java.sql.ResultSet;
 import java.util.Properties;
 
+import org.compiere.util.Msg;
+
 
 /**
  * MMatrixField
@@ -59,14 +61,25 @@ public class MMatrixField extends X_JP_MatrixField {
 			if( getAD_Field().getAD_Column_ID()
 				== m_matrixWindow.getJP_MatrixColumnKey().getAD_Column_ID())
 			{
-				log.saveError("Error", "フィールドは列キーに設定されています。");
+				Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+						,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+						,Msg.getElement(getCtx(), "JP_MatrixColumnKey_ID")};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
+
 
 			if( getAD_Field().getAD_Column_ID()
 					== m_matrixWindow.getJP_MatrixRowKey().getAD_Column_ID())
 			{
-				log.saveError("Error", "フィールドは行キーに設定されています。");
+				Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+						,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+						,Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")};
+				String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+				log.saveError("Error", errorMessage);
 				return false;
 			}
 
@@ -75,7 +88,12 @@ public class MMatrixField extends X_JP_MatrixField {
 			{
 				if(fields[i].getAD_Field_ID()==getAD_Field_ID())
 				{
-					log.saveError("Error", "フィールドは検索フィールドに設定されています。");
+					Object[] objects = {Msg.getElement(getCtx(), getAD_Field().getAD_Column().getColumnName())
+							,Msg.getElement(getCtx(), "JP_MatrixField_ID")
+							,Msg.getElement(getCtx(), "JP_MatrixSearch_ID")};
+					String errorMessage = Msg.getMsg(getCtx(), "JP_CanNotUseAasB", objects);
+
+					log.saveError("Error", errorMessage);
 					return false;
 				}
 
