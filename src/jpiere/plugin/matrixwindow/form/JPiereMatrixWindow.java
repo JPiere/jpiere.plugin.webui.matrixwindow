@@ -204,6 +204,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MColumn[]		m_contentColumns;
 	MMatrixSearch[] m_matrixSearches ;
 
+	JPiereMatrixWindowQuickEntry quickEntry = null;
+
 	public static final String EDITMODE_EDIT ="edit";
 	public static final String EDITMODE_TEST ="test";
 	public static final String EDITMODE_READ ="read";
@@ -439,12 +441,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
 				row.appendCellChild(SearchButton);
 
+
+
 				SaveButton = new Button(Msg.getMsg(Env.getCtx(), "save"));
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				SaveButton.setEnabled(false);
 				SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
-				row.appendCellChild(SaveButton);
+
+				if(!editMode.equals(EDITMODE_READ))
+					row.appendCellChild(SaveButton);
 
 				CreateButton = new Button(Msg.getMsg(Env.getCtx(), "NewRecord"));
 				CreateButton.setId("CreateButton");
@@ -453,9 +459,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
 				{
-
-					row.appendCellChild(CreateButton);
+					if(!editMode.equals(EDITMODE_READ))
+						row.appendCellChild(CreateButton);
 				}
+
 
 		//for space under Button
 		row = parameterLayoutRows.newRow();
@@ -534,7 +541,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			Object value = mapValue.get(col);
 			Object poID = conversionTable.get(mapKey).get(col);
 			PO po = tableModel.get(poID);
-//			String columnName = columnNameMap.get(col);
 			String columnName = columnGridFieldMap.get(col).getColumnName();
 			po.set_ValueNoCheck(columnName, value);
 			dirtyModel.put(po.get_ID(), po);
@@ -569,7 +575,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 	}
 
-	JPiereMatrixWindowQuickEntry quickEntry = null;
+
 
 	@Override
 	public void onEvent(Event e) throws Exception {

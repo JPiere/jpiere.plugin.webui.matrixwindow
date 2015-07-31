@@ -14,18 +14,14 @@
 package jpiere.plugin.matrixwindow.form;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.TreeMap;
 
-import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
-import org.compiere.util.Env;
 import org.zkoss.zul.ListModelMap;
 
 /**
@@ -48,8 +44,6 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 	private HashMap<Integer,PO> 	tableModel;
 
 	private HashMap<Integer,PO> 	dirtyModel;
-
-	private Map<GridField, WEditor> readOnlyEditors = new LinkedHashMap<GridField, WEditor>();
 
 	/**
 	 *
@@ -126,44 +120,6 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
 
     } // ValueChange
-
-
-	/**
-	 * Get display text of a field. when field have isDisplay = false always return empty string, except isForceGetValue = true
-	 * @param value
-	 * @param gridField
-	 * @param rowIndex
-	 * @param isForceGetValue
-	 * @return
-	 */
-	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
-	{
-		if (value == null)
-			return "";
-
-		if (rowIndex >= 0) {
-			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridField.getGridTab(), rowIndex);
-			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
-				return "";
-			}
-		}
-
-		if (gridField.isEncryptedField())
-		{
-			return "********";
-		}
-		else if (readOnlyEditors.get(gridField) != null)
-		{
-			WEditor editor = readOnlyEditors.get(gridField);
-			return editor.getDisplayTextForGridView(value);
-		}
-    	else
-    		return value.toString();
-	}
-
-	public void setReadOnlyEditors( Map<GridField, WEditor> readOnlyEditors){
-		 this.readOnlyEditors = readOnlyEditors;
-	}
 
 
 }

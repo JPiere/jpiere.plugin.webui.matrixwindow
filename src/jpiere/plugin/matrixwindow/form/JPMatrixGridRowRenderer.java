@@ -101,8 +101,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private IADTabpanel adTabpanel;
 	private ActionListener buttonListener;
 
-//	private ListModelMap<Object, Object> listModelMap;
-
 	private ListModelMap<Object, Object>  viewModel;
 
 	private ListModelMap<Object, Object> convertionTable ;
@@ -324,7 +322,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
 					readOnlyEditor.setReadWrite(false);
 					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
-					dataBinder.setReadOnlyEditors(readOnlyEditors);
 
 				}//if
 
@@ -382,10 +379,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 			row.setStyle("cursor:pointer");
 			row.setTooltiptext("Row " + (rowIndex+1));
-
-			//After ValuChange Even, for display text
-			dataBinder.setReadOnlyEditors(readOnlyEditors);
-			;
 
 		}else if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_READ)){
 
