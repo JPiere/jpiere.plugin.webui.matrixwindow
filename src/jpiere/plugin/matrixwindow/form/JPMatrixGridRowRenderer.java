@@ -13,7 +13,6 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,25 +23,20 @@ import java.util.TreeMap;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.GridTableListModel;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
-import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.NumberBox;
-import org.adempiere.webui.component.Window;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
-import org.adempiere.webui.editor.WEditorPopupMenu;
+import org.adempiere.webui.editor.WSearchEditor;
+import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
-import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.CustomForm;
-import org.adempiere.webui.session.SessionManager;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.PO;
@@ -58,18 +52,14 @@ import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Decimalbox;
-import org.zkoss.zul.Div;
 import org.zkoss.zul.Grid;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelMap;
-import org.zkoss.zul.Paging;
 import org.zkoss.zul.RendererCtrl;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
 import org.zkoss.zul.Textbox;
-import org.zkoss.zul.impl.InputElement;
-import org.zkoss.zul.impl.XulElement;
 
 
 /**
@@ -82,32 +72,31 @@ import org.zkoss.zul.impl.XulElement;
  */
 public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Object>> ,RowRendererExt, RendererCtrl,EventListener<Event>{
 
-	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
+	private static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
 	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
 
 	private static final int MAX_TEXT_LENGTH = 60;
-	public GridTab gridTab ;
+	private GridTab gridTab ;
 	private int windowNo;
 	private JPMatrixDataBinder dataBinder;
 
-	public HashMap<Integer,GridField> columnGridFieldMap;
+	private HashMap<Integer,GridField> columnGridFieldMap;
+	private HashMap<Integer,WEditor>   columnEditorMap = new HashMap<Integer,WEditor> ();
 
 	private Map<GridField, WEditor> fieldEditorMap = new LinkedHashMap<GridField, WEditor>();
-
-	private Paging paging;
+	private Map<GridField, WEditor> readOnlyEditors = new LinkedHashMap<GridField, WEditor>();
 
 	private RowListener rowListener;
 
 	private Grid grid = null;
-	public GridView gridView = null;
+	private GridView gridView = null;
 
 	private Row currentRow;
 
-	private Object[] currentValues;
 	private boolean editing = false;
-	private int currentRowIndex = -1;
+
 	private AbstractADWindowContent m_windowPanel;
 	private IADTabpanel adTabpanel;
 	private ActionListener buttonListener;
@@ -116,11 +105,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private ListModelMap<Object, Object>  viewModel;
 
-	private ListModelMap<Object, Object> convetionTable ;
-
-	private HashMap<Integer,PO> 	tableModel;
-
-	private HashMap<Integer,PO> 	dirtyModel;
+	private ListModelMap<Object, Object> convertionTable ;
 
 	private int columnsSize=0;
 
@@ -128,65 +113,17 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private JPiereMatrixWindow matrixWindow;
 
-	public JPMatrixGridRowRenderer(ListModelMap<Object, Object> viewModel
-			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,int windowNo,CustomForm form,
-			JPiereMatrixWindow matrixWindow) {
+	public JPMatrixGridRowRenderer(ListModelMap<Object, Object> viewModel ,ListModelMap<Object, Object>  convetionTable
+			,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,CustomForm form, JPiereMatrixWindow matrixWindow)
+	{
 		this.viewModel = viewModel;
-		this.convetionTable = convetionTable;
-		this.tableModel = tableModel;
-		this.dirtyModel = dirtyModel;
-		this.windowNo = windowNo;
+		this.convertionTable = convetionTable;
+		this.windowNo = form.getWindowNo();//Need to create process dialog.
 		this.form = form;
 		this.matrixWindow = matrixWindow;
 		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel);
 	}
 
-	private WEditor getEditorCell(GridField gridField) {
-		WEditor editor = fieldEditorMap.get(gridField);
-		if (editor != null)  {
-			prepareFieldEditor(gridField, editor);
-			editor.addValueChangeListener(dataBinder);
-			gridField.removePropertyChangeListener(editor);
-			gridField.addPropertyChangeListener(editor);
-			editor.setValue(gridField.getValue());
-		}
-		return editor;
-	}
-
-	private void prepareFieldEditor(GridField gridField, WEditor editor)
-	{
-		if (editor instanceof WButtonEditor)
-        {
-			if (buttonListener != null)
-			{
-				((WButtonEditor)editor).addActionListener(buttonListener);
-			}
-			else
-			{
-				Object window = SessionManager.getAppDesktop().findWindow(windowNo);
-            	if (window != null && window instanceof ADWindow)
-            	{
-            		AbstractADWindowContent windowPanel = ((ADWindow)window).getADWindowContent();
-            		((WButtonEditor)editor).addActionListener(windowPanel);
-            	}
-			}
-        }
-
-        //streach component to fill grid cell
-		if (editor.getComponent() instanceof HtmlBasedComponent)
-		{
-        	editor.fillHorizontal();
-		}
-	}
-
-	public int getColumnIndex(GridField field) {
-//		GridField[] fields = gridPanel.getFields();
-//		for(int i = 0; i < fields.length; i++) {
-//			if (fields[i] == field)
-//				return i;
-//		}
-		return 0;
-	}
 
 	private Component createReadonlyCheckbox(Object value) {
 		Checkbox checkBox = new Checkbox();
@@ -196,18 +133,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			checkBox.setChecked(false);
 		checkBox.setDisabled(true);
 		return checkBox;
-	}
-
-
-	/**
-	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
-	 * @param value
-	 * @param gridField
-	 * @param rowIndex
-	 * @return
-	 */
-	private String getDisplayText(Object value, GridField gridField, int rowIndex){
-		return getDisplayText(value, gridField, rowIndex, false);
 	}
 
 
@@ -235,11 +160,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		{
 			return "********";
 		}
-//		else if (readOnlyEditors.get(gridField) != null)
-//		{
-//			WEditor editor = readOnlyEditors.get(gridField);
-//			return editor.getDisplayTextForGridView(value);
-//		}
+		else if (readOnlyEditors.get(gridField) != null)
+		{
+			WEditor editor = readOnlyEditors.get(gridField);
+			return editor.getDisplayTextForGridView(value);
+		}
     	else
     		return value.toString();
 	}
@@ -298,23 +223,23 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 *
 	 * In case you want to set a row event
 	 *
-	 *
 	 */
 	static class RowListener implements EventListener<Event> {
 
 		private Grid _grid;
 
-		private int currentRowNo;
-		private Integer currentColumnNo;
+		private String[] yx ;
+		private int x;
+		private int y;
 
 		public int getY()
 		{
-			return currentRowNo;
+			return y;
 		}
 
 		public int getX()
 		{
-			return currentColumnNo.intValue();
+			return x;
 		}
 
 
@@ -323,21 +248,12 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		}
 
 		public void onEvent(Event event) throws Exception {
-			String name = event.getName();
-			Object object = event.getData();
-			Component comp = event.getTarget();
-			Component parentComp =comp.getParent();
 
-			if(comp instanceof Cell)
+			if(event.getTarget() instanceof Cell)//Get Row(Y) and Column(X) info, When User Clicked.
 			{
-				Cell cell = (Cell)comp;
-				Object component = cell.getAttribute("display.component");
-
-				String cellID = cell.getId();			//TODO:
-				Row row = (Row)cell.getParent();
-				currentRowNo = row.getIndex();//IndexはRowの識別番号(Y)と一緒のはず
-//				String x = cellID.substring(String.valueOf(currentRowNo).length()+1);
-				currentColumnNo = Integer.valueOf(cellID.substring(String.valueOf(currentRowNo).length()+1));
+				yx = ((Cell)event.getTarget()).getId().split("_");
+	        	y =Integer.valueOf(yx[0]).intValue();
+	            x =Integer.valueOf(yx[1]).intValue();
 			}
 
 
@@ -347,6 +263,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				Event evt = new Event(Events.ON_CLICK, _grid, event.getTarget());
 				Events.sendEvent(_grid, evt);
 				evt.stopPropagation();
+
 			}
 			else if (Events.ON_DOUBLE_CLICK.equals(event.getName())) {
 				Event evt = new Event(Events.ON_DOUBLE_CLICK, _grid, _grid);
@@ -358,6 +275,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			}
 		}
 	}
+
 
 	@Override
 	public void render(Row row, Map.Entry<Integer,Object> dataEntry, int rowIndex) throws Exception
@@ -382,87 +300,212 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 
 		@SuppressWarnings("unchecked")
-		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)convetionTable.get(data.get(0));
+		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)convertionTable.get(data.get(0));
 		Cell div = null;
 		WEditor editor = null;
 		String divStyle = CELL_DIV_STYLE;
 
-		for (int i = 0; i < columnsSize; i++)
+		//Edit Mode start
+		if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
 		{
-
-			div = new Cell();
-
-			if (treeMap.get(i) != null )
+			for (int i = 0; i < columnsSize; i++)
 			{
-				editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
-				if (editor instanceof WButtonEditor)
+				if (fieldEditorMap.get(columnGridFieldMap.get(i)) == null)
 				{
-					((WButtonEditor)editor).addActionListener(buttonListener);
-					((WButtonEditor)editor).setADTabpanel(adTabpanel);
-					editor.setValue(treeMap.get(i)); // Set Record ID in Button for process
-				}else{
-					editor.setValue(data.get(i));
-				}
+					editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+					fieldEditorMap.put(columnGridFieldMap.get(i), editor);
+					if (editor instanceof WButtonEditor) {
+						((WButtonEditor)editor).addActionListener(buttonListener);
+					}else{
+						fieldEditorMap.put(columnGridFieldMap.get(i), editor);
+					}
 
-				editor.getComponent().setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));
-				if(columnGridFieldMap.get(i).isReadOnly() || i==0)
+					//readonly for display text
+					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+					readOnlyEditor.setReadWrite(false);
+					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
+					dataBinder.setReadOnlyEditors(readOnlyEditors);
+
+				}//if
+
+				columnEditorMap.put(i, WebEditorFactory.getEditor(columnGridFieldMap.get(i), true));
+
+
+				div = new Cell();
+				divStyle = CELL_DIV_STYLE;
+
+				if (treeMap.get(i) != null )
 				{
-					editor.setReadWrite(false);
-					div.appendChild(new Label(editor.getDisplay()));//WEDitorを経由して、文字列にする事で、表示形式をiDempiereのエンジン側で処理してもらえる。
-
-					//TODO:数値の場合は、右寄せにする処理をする。必要であれば、Editorによりスタイルを変える記述を追加する。
-					if(editor.getComponent() instanceof NumberBox)
+					Component component = getDisplayComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
+					if (component instanceof Button)
 					{
-						div.setStyle(CELL_DIV_STYLE_ALIGN_RIGHT);
-					}//
+						WButtonEditor button  = (WButtonEditor)WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+						button.addActionListener(buttonListener);
+						button.setADTabpanel(adTabpanel);
+						button.setValue(treeMap.get(i)); // Set Record ID in Button for process
+						div.appendChild(button.getComponent());
+					}else{
+						div.appendChild(component);
+					}
 
-
-				}else{
-
-					editor.addValueChangeListener(dataBinder);
-					fieldEditorMap.put(columnGridFieldMap.get(i), editor);//Create WEditor Map that is edit field only.
-					Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
-					div.appendChild(editor.getComponent());
 					div.setAttribute("display.component", component);
 					div.setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//Set Row(Y-axis) and Column(X-axis) in ID of Cell(div)
+					div.addEventListener(Events.ON_OK, this);//OnEvent()
 
-					editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
+					if (DisplayType.YesNo ==  columnGridFieldMap.get(i).getDisplayType() || DisplayType.Image ==  columnGridFieldMap.get(i).getDisplayType()) {
+						divStyle = CELL_DIV_STYLE_ALIGN_CENTER;
+					}
+					else if (DisplayType.isNumeric(columnGridFieldMap.get(i).getDisplayType())) {
+						divStyle = CELL_DIV_STYLE_ALIGN_RIGHT;
+					}
 
 					div.setStyle(divStyle);
 					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
+					div.addEventListener(Events.ON_CLICK, rowListener);
+//					div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
+					row.appendChild(div);
 
-					if(div.getChildren().get(0) instanceof NumberBox ){
-						NumberBox numbox = (NumberBox)div.getChildren().get(0);
-						numbox.setWidth("100%");
-					}else if(div.getChildren().get(0) instanceof InputElement ){
-						Textbox textbox = (Textbox)div.getChildren().get(0);
-						textbox.setWidth("100%");
-					}else if(div.getChildren().get(0) instanceof Button ){
-						Button btn = (Button)div.getChildren().get(0);
-						btn.setWidth("100%");
+				}else{//when there are not data
+
+					Component component = new Label("");
+					div.appendChild(component);
+					div.setAttribute("display.component", component);
+					div.setStyle(divStyle);
+					div.setWidth("100%");
+					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
+					div.addEventListener(Events.ON_OK, this);//OnEvent()
+					row.appendChild(div);
+
+				}//if
+			}//for
+
+			row.setStyle("cursor:pointer");
+			row.setTooltiptext("Row " + (rowIndex+1));
+
+			//After ValuChange Even, for display text
+			dataBinder.setReadOnlyEditors(readOnlyEditors);
+			;
+
+		}else if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_READ)){
+
+
+			for (int i = 0; i < columnsSize; i++)
+			{
+				if (fieldEditorMap.get(columnGridFieldMap.get(i)) == null)
+				{
+					//readonly for display text
+					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+					readOnlyEditor.setReadWrite(false);
+					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
+				}//if
+
+				div = new Cell();
+				divStyle = CELL_DIV_STYLE;
+
+				if (treeMap.get(i) != null )
+				{
+					editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+
+					Component component = getDisplayComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
+					if (component instanceof Button)
+					{
+						WButtonEditor button  = (WButtonEditor)WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+						button.setVisible(false);
+					}else{
+						div.appendChild(component);
+					}
+					div.setAttribute("display.component", component);
+
+					if (DisplayType.YesNo ==  columnGridFieldMap.get(i).getDisplayType() || DisplayType.Image ==  columnGridFieldMap.get(i).getDisplayType()) {
+						divStyle = CELL_DIV_STYLE_ALIGN_CENTER;
+					}
+					else if (DisplayType.isNumeric(columnGridFieldMap.get(i).getDisplayType())) {
+						divStyle = CELL_DIV_STYLE_ALIGN_RIGHT;
 					}
 
-					/*In case you want to set a row event*/
-//					div.addEventListener(Events.ON_CLICK, rowListener);
-//					div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
-				}
+					div.setStyle(divStyle);
+					div.setWidth("100%");
+					row.appendChild(div);
 
-				row.appendChild(div);
+				}else{//when there are not data
 
-			}else{//when there are not data
+					Component component = new Label("");
+					div.appendChild(component);
+					div.setAttribute("display.component", component);
+					div.setStyle(divStyle);
+					div.setWidth("100%");
+					row.appendChild(div);
 
-				Component component = new Label("");
-				div.appendChild(component);
-				div.setAttribute("display.component", component);
-				div.setStyle(divStyle);
-				div.setWidth("100%");
-				div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
-				row.appendChild(div);
+				}//if
+			}//for
 
-			}//if
-		}//for
-		return;
+		}else if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_TEST)){
+
+			for (int i = 0; i < columnsSize; i++)
+			{
+				div = new Cell();
+
+				if (treeMap.get(i) != null )
+				{
+					editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+
+					if (editor instanceof WButtonEditor)
+					{
+						((WButtonEditor)editor).addActionListener(buttonListener);
+						((WButtonEditor)editor).setADTabpanel(adTabpanel);
+						editor.setValue(treeMap.get(i)); // Set Record ID in Button for process
+					}else{
+						editor.setValue(data.get(i));
+					}
+
+					editor.getComponent().setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//Set Row(Y-axis) and Column(X-axis) in ID
+					if(columnGridFieldMap.get(i).isReadOnly() || i==0)
+					{
+						editor.setReadWrite(false);
+						div.appendChild(new Label(editor.getDisplay()));
+
+						if(editor.getComponent() instanceof NumberBox)
+						{
+							div.setStyle(CELL_DIV_STYLE_ALIGN_RIGHT);
+						}
+
+					}else{
+
+						editor.addValueChangeListener(dataBinder);
+						fieldEditorMap.put(columnGridFieldMap.get(i), editor);//Create WEditor Map that is edit field only.
+						Component component = getCellComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
+						div.appendChild(editor.getComponent());
+						div.setAttribute("display.component", component);
+						div.setId(String.valueOf(row.getIndex())+"_"+String.valueOf(i));//Set Row(Y-axis) and Column(X-axis) in ID of Cell(div)
+
+						editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
+
+						div.setStyle(divStyle);
+						div.setWidth("100%");
+						div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
+						((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
+
+					}
+
+					row.appendChild(div);
+
+				}else{//when there are not data
+
+					Component component = new Label("");
+					div.appendChild(component);
+					div.setAttribute("display.component", component);
+					div.setStyle(divStyle);
+					div.setWidth("100%");
+					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
+					row.appendChild(div);
+
+				}//if
+
+			}//for
+
+		}//Edit Mode End
+
 	}
 
 	public void setcColumnsSize(int size)
@@ -496,82 +539,98 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	}
 
 
-	//These variables is used by onEvent() method only.
+	//These variables is used by onEvent() method only except y,x.
 	private String[] yx;
 	private int y = 0;
 	private int x = 0;
-	private Cell cell = null;
 	private NumberBox numberbox;
 	private int minY = 0;
 	private int maxY = 0;
 
+
+	/**
+	 * Enter Key Event(onOK)
+	 */
 	@Override
-	public void onEvent(Event event) throws Exception {	//Key Event onOK
+	public void onEvent(Event event) throws Exception {
 
 		if(!event.getName().equals(Events.ON_OK))
 			return;
 
-		//Set focuns on next Field that can edit.
+		//Get Row(Y) and Column(X) info
 		if(event.getTarget() instanceof Decimalbox)
 		{
-        	yx = event.getTarget().getParent().getId().split("_");	    //Get Row(Y) and Column(X) info
-        	y =Integer.valueOf(yx[0]);
-            x =Integer.valueOf(yx[1]);
-
-            minY = grid.getActivePage() * grid.getPageSize();
-            maxY = minY + grid.getPageSize();
-
-           	for(int i = 0 ; i < grid.getPageSize(); i++)
-        	{
-        		cell = (Cell)grid.getCell(++y, x);
-    			if(cell == null || y == maxY)
-    			{
-    				y = minY - 1 ;
-
-    			}else if (cell.getChildren().get(0) instanceof NumberBox){
-    	        	numberbox = (NumberBox)cell.getChildren().get(0);
-    	        	numberbox.focus();
-    	        	numberbox.getDecimalbox().select();
-    				return;
-        		}
-        	}
-
-        	return;
+			yx = event.getTarget().getParent().getId().split("_");
 
 		}else if(event.getTarget() instanceof Textbox){
 
-			if(event.getTarget().getParent() instanceof Cell)  //Get Row(Y) and Column(X) info
+			if(event.getTarget().getParent() instanceof Cell)
 			{
 				yx = event.getTarget().getId().split("_");//TextBox,List,
+
 			}else{
 				yx = event.getTarget().getParent().getId().split("_");//Search Editor
 			}
 
-        	y =Integer.valueOf(yx[0]);
-            x =Integer.valueOf(yx[1]);
-
-            minY = grid.getActivePage() * grid.getPageSize();
-            maxY = minY + grid.getPageSize();
-
-            for(int i = 0 ; i < grid.getPageSize(); i++)
-        	{
-        		cell = (Cell)grid.getCell(++y, x);
-        		if(cell == null || y == maxY)
-    			{
-    				y = minY - 1 ;
-
-    			}else if (!(cell.getChildren().get(0) instanceof Label)){
-    				cell.focus();
-    				return;
-        		}
-        	}
-
-        	return;
-
 		}
-	}
+
+		y = Integer.valueOf(yx[0]);
+		if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
+		{
+			x = rowListener.getX();
+		}else{ //EDITMODE_TEST
+			x = Integer.valueOf(yx[1]);
+		}
+
+        minY = grid.getActivePage() * grid.getPageSize();
+        maxY = minY + grid.getPageSize();
+
+        if(maxY > convertionTable.getSize())
+        	maxY = convertionTable.getSize();
+
+		for(int i = 0 ; i < grid.getPageSize(); i++)
+     	{
+         	if(y == maxY-1)
+         		y = minY - 1 ;
+
+      		if(getRawData(++y,x) == null){
+      			continue;
+     		}else{
+
+     			if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
+     			{
+	 				editNextRow(y,x);
+	 				event.stopPropagation();
+	 				return;
+
+     			}else{//EDITMODE_TEST
+
+     				if(event.getTarget() instanceof Decimalbox)
+     				{
+     					Cell cell = (Cell)grid.getCell(y, x);
+     					if (cell.getChildren().get(0) instanceof NumberBox)
+     					{
+     						numberbox = (NumberBox)cell.getChildren().get(0);
+     	    	        	numberbox.focus();
+     	    	        	numberbox.getDecimalbox().select();
+     	    				return;
+     	        		}
+     					return;
+     				}else if(event.getTarget() instanceof Textbox){
+     					((Cell)grid.getCell(y, x)).focus();
+       					return;
+     				}else{
+     					((Cell)grid.getCell(y, x)).focus();
+     					return;
+     				}
+     			}
+
+     		}//if
+     	}//for
+	}//onEvent
 
 
+	/* RendererCtrl */
 	@Override
 	public void doTry() {
 
@@ -587,6 +646,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	}
 
+
+	/* RowRendererExt */
 	@Override
 	public Row newRow(Grid grid) {
 		return null;
@@ -607,57 +668,61 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 * Detach all editor and optionally set the current value of the editor as cell label.
 	 * @param updateCellLabel
 	 */
-	public void stopEditing(boolean updateCellLabel) {
+	public void stopEditing() {
 		if (!editing) {
 			return;
 		} else {
 			editing = false;
 		}
-		Row row = null;
-		for (Entry<GridField, WEditor> entry : fieldEditorMap.entrySet()) {
-			if (entry.getValue().getComponent().getParent() != null) {
+
+		String string = null;
+		WEditor editor= null;
+		for (Entry<Integer, WEditor> entry : columnEditorMap.entrySet())
+		{
+			editor = entry.getValue();
+			string = null;
+			if(editor instanceof WButtonEditor)
+			{
+            	continue;
+
+			}else if(editor instanceof WSearchEditor || editor instanceof WTableDirEditor){
+
+            	string =getDisplayText(editor.getValue(), editor.getGridField(), -1, false);
+
+			}else if(editor.getValue() != null){
+
+            	string = editor.getValue().toString();
+
+            }else{
+
+            	continue;
+            }
+
+			if (entry.getValue().getComponent().getParent() != null)
+			{
 				Component child = entry.getValue().getComponent();
 				Cell div = null;
-				while (div == null && child != null) {
+				while (div == null && child != null)
+				{
 					Component parent = child.getParent();
 					if (parent instanceof Cell && parent.getParent() instanceof Row)
 						div = (Cell)parent;
 					else
 						child = parent;
-				}
-				Component component = div!=null ? (Component) div.getAttribute("display.component") : null;
-				if (updateCellLabel) {
-					if (component instanceof Label) {
-						Label label = (Label)component;
-						label.getChildren().clear();
-						String text = getDisplayText(entry.getValue().getValue(), entry.getValue().getGridField(), -1);
-						setLabelText(text, label);
-					} else if (component instanceof Checkbox) {
-						Checkbox checkBox = (Checkbox)component;
-						Object value = entry.getValue().getValue();
-						if (value != null && "true".equalsIgnoreCase(value.toString()))
-							checkBox.setChecked(true);
-						else
-							checkBox.setChecked(false);
-					}
-				}
-				if (row == null)
-					row = ((Row)div.getParent());
+				}//While
 
+				Label component = new Label(string);
 				entry.getValue().getComponent().detach();
-				entry.getKey().removePropertyChangeListener(entry.getValue());
 				entry.getValue().removeValuechangeListener(dataBinder);
-
 				if (component.getParent() == null || component.getParent() != div)
+				{
 					div.appendChild(component);
-				else if (!component.isVisible()) {
+				}else if (!component.isVisible()) {
 					component.setVisible(true);
 				}
 			}
-		}
 
-		GridTableListModel model = (GridTableListModel) grid.getModel();
-		model.setEditing(false);
+		}//for
 	}
 
 
@@ -665,45 +730,15 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 * @param row
 	 */
 	public void setCurrentRow(Row row) {
-		if (currentRow != null && currentRow.getParent() != null && currentRow != row) {
-			Cell cell = (Cell) currentRow.getChildren().get(1);
-			if (cell != null) {
-				cell.setSclass("row-indicator");
-			}
-		}
-		currentRow = row;
-		Cell cell = (Cell) currentRow.getChildren().get(1);
-		if (cell != null) {
-			cell.setSclass("row-indicator-selected");
-		}
-		currentRowIndex = gridTab.getCurrentRow();
 
-		if (currentRowIndex == gridTab.getCurrentRow()) {
-			if (editing) {
-				stopEditing(false);
-				editCurrentRow();
-			}
-		} else {
-			currentRowIndex = gridTab.getCurrentRow();
-			if (editing) {
-				stopEditing(false);
-			}
+		currentRow = row;
+
+		if (editing) {
+			stopEditing();
+			editCurrentRow();
 		}
 
 		String script = "jq('#"+row.getUuid()+"').addClass('highlight').siblings().removeClass('highlight')";
-
-		Boolean isActive = null;
-		Object isActiveValue = gridTab.getValue(currentRowIndex, "IsActive");
-		if (isActiveValue != null) {
-			if ("true".equalsIgnoreCase(isActiveValue.toString())) {
-				isActive = Boolean.TRUE;
-			} else {
-				isActive = Boolean.FALSE;
-			}
-		}
-		if (isActive != null && !isActive.booleanValue()) {
-			script = "jq('#"+row.getUuid()+"').addClass('grid-inactive-row').siblings().removeClass('highlight')";
-		}
 
 		Clients.response(new AuScript(script));
 	}
@@ -715,64 +750,129 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		if (currentRow != null && currentRow.getParent() != null && currentRow.isVisible()
 			&& grid != null && grid.isVisible() && grid.getParent() != null && grid.getParent().isVisible()) {
 
-			org.zkoss.zul.Columns columns = grid.getColumns();
-			//skip selection and indicator column
-			int colIndex = 1;
-			for (int i = 0; i < columnGridFieldMap.size(); i++) {
-				GridField gridFeld = columnGridFieldMap.get(i);
+			y = rowListener.getY();
+			x = rowListener.getX();
 
-//				if ((!isGridViewCustomized && !gridPanelFields[i].isDisplayedGrid()) || gridPanelFields[i].isToolbarOnlyButton()) {
-//					continue;
-//				}
-				colIndex ++;
-
-				if (fieldEditorMap.get(gridFeld) == null)
-					fieldEditorMap.put(gridFeld, WebEditorFactory.getEditor(gridFeld, true));
-
-				org.zkoss.zul.Column column = (org.zkoss.zul.Column) columns.getChildren().get(colIndex);
-				if (column.isVisible()) {
-					Cell div = (Cell) currentRow.getChildren().get(colIndex);
-					WEditor editor = getEditorCell(gridFeld);
-					if (div.getChildren().isEmpty() || !(div.getChildren().get(0) instanceof Button))
-						div.getChildren().clear();
-					else if (!div.getChildren().isEmpty()) {
-						div.getChildren().get(0).setVisible(false);
-					}
-					div.appendChild(editor.getComponent());
-					WEditorPopupMenu popupMenu = editor.getPopupMenu();
-
-		            if (popupMenu != null)
-		            {
-		            	popupMenu.addMenuListener((ContextMenuListener)editor);
-		            	div.appendChild(popupMenu);
-		            	popupMenu.addContextElement((XulElement) editor.getComponent());
-		            }
-
-
-		            Properties ctx = gridFeld.getVO().ctx;
-		            //check context
-					if (!gridFeld.isDisplayed(ctx, true)){
-						// IDEMPIERE-2253
-						div.removeChild(editor.getComponent());
-					}
-
-					editor.setReadWrite(gridFeld.isEditableGrid(true));
-				}
-			}
-			editing = true;
-
-			GridTableListModel model = (GridTableListModel) grid.getModel();
-			model.setEditing(true);
+			editRow();
 
 		}
 	}
 
+	private void editNextRow(int y2, int x2) {
+
+		Cell cell = (Cell)grid.getCell(y2, rowListener.getX());
+		setCurrentRow((Row)cell.getParent());
+
+		y = y2;
+		x = x2;
+
+		editRow();
+	}
+
+	private void editRow()
+	{
+		@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object> rowValueMap = (TreeMap<Integer,Object>)viewModel.getElementAt(y).getValue();
+		org.zkoss.zul.Columns columns = grid.getColumns();
+
+		//skip selection and indicator column
+		for (int i = 0; i < columnEditorMap.size(); i++) {
+
+			GridField gridFeld = columnGridFieldMap.get(i);
+
+			if ((!gridFeld.isDisplayedGrid()) || gridFeld.isToolbarOnlyButton()) {
+				continue;
+			}
+
+			if (fieldEditorMap.get(gridFeld) == null)
+				fieldEditorMap.put(gridFeld, WebEditorFactory.getEditor(gridFeld, true));
+
+			org.zkoss.zul.Column column = (org.zkoss.zul.Column) columns.getChildren().get(i);
+			if (column.isVisible()) {
+				Cell div = (Cell) currentRow.getChildren().get(i);
+
+
+				WEditor editor = columnEditorMap.get(i);
+				editor.setValue(rowValueMap.get(i));
+				editor.getComponent().setId(String.valueOf(y +"_"+ i+"_"));
+				editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
+				editor.addValueChangeListener(dataBinder);
+
+				if (div.getChildren().isEmpty() || !(div.getChildren().get(0) instanceof Button))
+					div.getChildren().clear();
+				else if (!div.getChildren().isEmpty()) {
+					div.getChildren().get(0).setVisible(true);//Button
+				}
+
+				Properties ctx = gridFeld.getVO().ctx;
+
+				if(getRawData(y,i) == null)
+	        	{
+	        		if (!gridFeld.isDisplayed(ctx, true)){
+						div.removeChild(editor.getComponent());
+					}
+	        		continue;
+	        	}
+
+				if(i == 0)	//Fix Item
+				{
+					div.appendChild(new Label(editor.getDisplay()));
+				}else{
+					div.appendChild(editor.getComponent());
+					((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
+				}
+
+
+
+	            //check context
+				if (!gridFeld.isDisplayed(ctx, true)){
+					div.removeChild(editor.getComponent());
+				}
+
+//				editor.setReadWrite(gridFeld.isEditableGrid(true));
+				editor.setReadWrite(true);
+
+				if(i == x)
+				{
+					List<Component> cmpList = div.getChildren();
+
+					if(div.getChildren().get(0) instanceof NumberBox)
+					{
+						numberbox = (NumberBox)div.getChildren().get(0);
+	    	        	numberbox.focus();
+	    	        	numberbox.getDecimalbox().select();
+
+//					}else if(div.getChildren().get(0) instanceof Textbox){
+//						Textbox textbox = (Textbox)div.getChildren().get(0);
+//						int cols =textbox.getCols();
+//						List<Component> aa = textbox.getChildren();
+//						textbox.select();
+//						div.focus();
+
+					}else{
+						div.focus();
+					}
+				}
+			}
+		}
+		editing = true;
+	}
+
+	private Object getRawData(int y, int x)
+	{
+		ListModelMap.Entry<Object, Object> convertionTableRow = convertionTable.getElementAt(y);
+    	@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object> convertionTableRowData = (TreeMap<Integer,Object>)convertionTableRow.getValue();
+
+		return convertionTableRowData.get(x);
+	}
 
 	/**
 	 * @return Row
 	 */
 	public Row getCurrentRow() {
-		return currentRow;
+		Cell cell = (Cell)grid.getCell(rowListener.getY(), rowListener.getX());
+		return (Row)cell.getParent();
 	}
 
 	/**
@@ -782,55 +882,14 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		return editing;
 	}
 
+
+
 	/**
 	 *
-	 * @return active editor list
-	 */
-	public List<WEditor> getEditors() {
-		List<WEditor> editorList = new ArrayList<WEditor>();
-		if (!fieldEditorMap.isEmpty())
-			editorList.addAll(fieldEditorMap.values());
-
-		return editorList;
-	}
-
-	/**
-	 * set focus to first active editor
-	 */
-	public void focusToFirstEditor()
-	{
-		if (currentRow != null && currentRow.getParent() != null)
-		{
-			WEditor toFocus = null;
-			WEditor firstEditor = null;
-//			if (defaultFocusField != null
-//					&& defaultFocusField.isVisible() && defaultFocusField.isReadWrite() && defaultFocusField.getComponent().getParent() != null
-//					&& !(defaultFocusField instanceof WImageEditor)) {
-//				toFocus = defaultFocusField;
-//			}
-//			else
-//			{
-				for (WEditor editor : getEditors()) {
-					if (editor.isVisible() && editor.getComponent().getParent() != null) {
-						if (editor.isReadWrite()) {
-							toFocus = editor;
-							break;
-						}
-						if (firstEditor == null)
-							firstEditor = editor;
-					}
-				}
-//			}
-//			if (toFocus != null) {
-//				focusToEditor(toFocus);
-//			} else if (firstEditor != null) {
-//				focusToEditor(firstEditor);
-//			}
-		}//if
-	}
-
-	/**
-	 * @param windowPanel
+	 * setADWindowPanel Method
+	 *
+	 * Need to Create Process Dialog
+	 *
 	 */
 	public void setADWindowPanel(AbstractADWindowContent windowPanel,IADTabpanel adTabpanel) {
 		if (this.m_windowPanel == windowPanel)
@@ -865,26 +924,18 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		};
 	}
 
-	public void showBusyMask(Window window) {
-		form.getParent().appendChild(getMask());
-		StringBuilder script = new StringBuilder("var w=zk.Widget.$('#");
-		script.append(form.getParent().getUuid()).append("');");
-		if (window != null) {
-			script.append("var d=zk.Widget.$('#").append(window.getUuid()).append("');w.busy=d;");
-		} else {
-			script.append("w.busy=true;");
-		}
-		Clients.response(new AuScript(script.toString()));
+	public void setGridView(GridView gridView)
+	{
+		this.gridView = gridView;
 	}
 
-	private Div mask;
-
-	private Div getMask() {
-		if (mask == null) {
-			mask = new Mask();
-		}
-		return mask;
+	public void setGridTab(GridTab gridTab)
+	{
+		this.gridTab = gridTab;
 	}
 
-
+	public void setColumnGridFieldMap(HashMap<Integer,GridField> columnGridFieldMap)
+	{
+		this.columnGridFieldMap = columnGridFieldMap;
+	}
 }

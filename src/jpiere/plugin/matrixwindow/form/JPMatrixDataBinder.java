@@ -14,15 +14,18 @@
 package jpiere.plugin.matrixwindow.form;
 
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.TreeMap;
 
+import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
+import org.compiere.util.Env;
 import org.zkoss.zul.ListModelMap;
 
 /**
@@ -45,6 +48,8 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 	private HashMap<Integer,PO> 	tableModel;
 
 	private HashMap<Integer,PO> 	dirtyModel;
+
+	private Map<GridField, WEditor> readOnlyEditors = new LinkedHashMap<GridField, WEditor>();
 
 	/**
 	 *
@@ -75,10 +80,9 @@ public class JPMatrixDataBinder implements ValueChangeListener {
         	String[] yx = editor.getComponent().getId().split("_");
             	int y =Integer.valueOf(yx[0]);
             	int x =Integer.valueOf(yx[1]);
-;
-            //Update viewModel	TODO:処理的に考えるとviewModelの更新は現段階では不要な気がする…。コンポ―ネントをSave()前に更新する場合には必要になると思う…。
-        	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
 
+            /** update ViewModel that is used JPMatrixGridRowRenderer.editRow() method**/
+        	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
         	@SuppressWarnings("unchecked")
 			TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
         	viewModelRowData.put(x, newValue);
@@ -123,50 +127,43 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
     } // ValueChange
 
-	/**************************************************************************
-	 * Save Multiple records - Clone a record and assign new values to each
-	 * clone for a specific column.
-	 * @param ctx context
-	 * @param tableName Table Name
-	 * @param columnName Column for which value need to be changed
-	 * @param recordId Record to clone
-	 * @param values Values to be assigned to clones for the specified column
-	 * @param trxName Transaction
-	 * @throws Exception If error is occured when loading the PO or saving clones
-	 *
-	 * @author ashley
+
+	/**
+	 * Get display text of a field. when field have isDisplay = false always return empty string, except isForceGetValue = true
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @param isForceGetValue
+	 * @return
 	 */
-	protected void saveMultipleRecords(Properties ctx, String tableName,
-			String columnName, int recordId, Integer[] values,
-			String trxName) throws Exception
+	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
 	{
-//		if (values == null)
-//		{
-//			return ;
-//		}
-//
-//		int oldRow = gridTab.getCurrentRow();
-//		GridField lineField = gridTab.getField("Line");
-//
-//		for (int i = 0; i < values.length; i++)
-//		{
-//			if (!gridTab.dataNew(false))
-//			{
-//				throw new IllegalStateException("Could not create new row");
-//			}
-//
-//			gridTab.setValue(columnName, values[i]);
-//
-//			if (lineField != null)
-//			{
-//				gridTab.setValue(lineField, 0);
-//			}
-//
-//			if (!gridTab.dataSave(false))
-//			{
-//				throw new IllegalStateException("Could not update row");
-//			}
-//		}
-//		gridTab.setCurrentRow(oldRow);
+		if (value == null)
+			return "";
+
+		if (rowIndex >= 0) {
+			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridField.getGridTab(), rowIndex);
+			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
+				return "";
+			}
+		}
+
+		if (gridField.isEncryptedField())
+		{
+			return "********";
+		}
+		else if (readOnlyEditors.get(gridField) != null)
+		{
+			WEditor editor = readOnlyEditors.get(gridField);
+			return editor.getDisplayTextForGridView(value);
+		}
+    	else
+    		return value.toString();
 	}
+
+	public void setReadOnlyEditors( Map<GridField, WEditor> readOnlyEditors){
+		 this.readOnlyEditors = readOnlyEditors;
+	}
+
+
 }

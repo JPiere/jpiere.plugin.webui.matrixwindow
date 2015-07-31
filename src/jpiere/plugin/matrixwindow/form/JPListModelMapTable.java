@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zul.ListModelMap;
 import org.zkoss.zul.event.ListDataEvent;
 import org.zkoss.zul.ext.Sortable;
@@ -412,6 +413,9 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 	}
 
 
+	public void onEvent(Event event) throws Exception
+	{
 
+	}
 
 }

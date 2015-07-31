@@ -33,20 +33,16 @@ import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowContent;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Button;
-import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
 import org.adempiere.webui.component.ConfirmPanel;
-import org.adempiere.webui.component.EditorBox;
 import org.adempiere.webui.component.Grid;
 import org.adempiere.webui.component.GridFactory;
-import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
@@ -83,13 +79,11 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.TrxRunnable;
-import org.zkoss.zk.au.out.AuFocus;
 import org.zkoss.zk.ui.AbstractComponent;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
-import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Auxheader;
 import org.zkoss.zul.Borderlayout;
@@ -197,8 +191,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private JPMatrixGridRowRenderer renderer;
 
-	private String columnOnClick;
-
 
 	/**********************************************************************
 	 * Parameter of Application Dictionary(System Client)
@@ -211,6 +203,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	MField[]		m_contentFields;
 	MColumn[]		m_contentColumns;
 	MMatrixSearch[] m_matrixSearches ;
+
+	public static final String EDITMODE_EDIT ="edit";
+	public static final String EDITMODE_TEST ="test";
+	public static final String EDITMODE_READ ="read";
+	private String editMode = EDITMODE_EDIT ;
+
 
 	//Search Field Editor Map
 	HashMap<String,WEditor> searchEditorMap = new HashMap<String,WEditor> ();
@@ -331,6 +329,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		gridTab = adTabpanel.getGridTab();
 		gridView = adTabpanel.getGridView();
 		gridFields = gridTab.getFields();
+
+		//Set Edit Mode.
+		String discription = m_matrixWindow.getDescription();
+		if(gridTab.isReadOnly())
+		{
+			editMode = EDITMODE_READ;
+		}else if(discription != null && !discription.isEmpty() && discription.contains("test")){
+			editMode = EDITMODE_TEST;
+		}else{
+			editMode = EDITMODE_EDIT;
+		}
+
 	}
 
 
@@ -529,6 +539,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			po.set_ValueNoCheck(columnName, value);
 			dirtyModel.put(po.get_ID(), po);
 
+			if (renderer != null && renderer.isEditing())
+				renderer.stopEditing();
 
 			m_calculating = true;
 			return;
@@ -572,79 +584,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			Object data = e.getData();
 			org.zkoss.zul.Row row = null;
-			String columnName = null;
 			if (data != null && data instanceof Component)
 			{
-				if (data instanceof org.zkoss.zul.Row)
-					row = (org.zkoss.zul.Row) data;
-				else
+				AbstractComponent cmp = (AbstractComponent) data;
+				if (cmp.getParent() instanceof org.zkoss.zul.Row)
 				{
-					AbstractComponent cmp = (AbstractComponent) data;
-					if (cmp.getParent() instanceof org.zkoss.zul.Row)
-					{
-						row = (Row) cmp.getParent();
-						columnName = (String) cmp.getAttribute("columnName");
-					}
+					row = (org.zkoss.zul.Row) cmp.getParent();
 				}
 			}
+
 			if (row != null)
 			{
-				//click on selected row to enter edit mode
-				if (row == renderer.getCurrentRow())
-				{
-					if (!renderer.isEditing())
-					{
-						renderer.editCurrentRow();
-						if (columnName != null && columnName.trim().length() > 0)
-							setFocusToField(columnName);
-						else
-							renderer.focusToFirstEditor();
-					}
-				}
-				else
-				{
-					int index = matrixGrid.getRows().getChildren().indexOf(row);
-					if (index >= 0 ) {
-						columnOnClick = columnName;
-						onSelectedRowChange(index);
-					}
-				}
+				renderer.setCurrentRow(renderer.getCurrentRow());
+				renderer.editCurrentRow();
 			}
 			e.stopPropagation();
-        }
-//		else if (e.getTarget() == paging)
-//		{
-//			int pgNo = paging.getActivePage();
-//			if (pgNo != listModel.getPage())
-//			{
-//				listModel.setPage(pgNo);
-//				onSelectedRowChange(0);
-//				gridTab.clearSelection();
-//				Clients.resize(listbox);
-//			}
-//		}
-//		else if (e.getTarget() == selectAll)
-//		{
-//			toggleSelectionForAll(selectAll.isChecked());
-//		}
-		else if (e.getName().equals("onSelectRow"))
-		{
-			Checkbox checkbox = (Checkbox) e.getData();
-			int rowIndex = (Integer) checkbox.getAttribute(GridTabRowRenderer.GRID_ROW_INDEX_ATTR);
-			if (checkbox.isChecked())
-			{
-//				gridTab.addToSelection(rowIndex);
-//				if (!selectAll.isChecked() && isAllSelected())
-//				{
-//					selectAll.setChecked(true);
-//				}
-			}
-			else
-			{
-//				gridTab.removeFromSelection(rowIndex);
-//				if (selectAll.isChecked())
-//					selectAll.setChecked(false);
-			}
 
 		/*JPiereMatrixWindowQuickEntry#ConfirmPanel*/
 		}else if(e.getName().equals(ConfirmPanel.A_CANCEL)){
@@ -777,7 +731,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			AEnv.showWindow(quickEntry);
 		}
 
-	}
+	}//onEvent()
 
 	Auxhead auxhead ;
 
@@ -853,13 +807,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 
 
-		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form.getWindowNo(),form,this);
+		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form,this);
 		renderer.setcColumnsSize(columnNameMap.size());
-		renderer.gridView = gridView;									//TODO:Create Setter method
-		renderer.gridTab = gridTab;										//TODO:Create Setter method
-		renderer.columnGridFieldMap = columnGridFieldMap;				//TODO:Create Setter method
-		matrixGrid.setRowRenderer(renderer);
+		renderer.setGridView(gridView);
+		renderer.setGridTab(gridTab);
+		renderer.setColumnGridFieldMap(columnGridFieldMap);
 		renderer.setADWindowPanel(adWindowContent,adTabpanel);
+
+		matrixGrid.setRowRenderer(renderer);
+		matrixGrid.addEventListener(Events.ON_CLICK, this);
 
 		return true;
 
@@ -1239,6 +1195,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		int c = 0;	//	Column counter
 		columnNameMap.clear();
 		columnLengthMap.clear();
+		columnGridFieldMap.clear();
 
 		//Fix Column
 		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
@@ -1275,20 +1232,20 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	/**
 	 * @param columnName
 	 */
-	public void setFocusToField(String columnName) {
-		for (WEditor editor : renderer.getEditors()) {
-			if (columnName.equals(editor.getColumnName())) {
-				Component c = editor.getComponent();
-				if (c instanceof EditorBox) {
-					c = ((EditorBox)c).getTextbox();
-				} else if (c instanceof NumberBox) {
-					c = ((NumberBox)c).getDecimalbox();
-				}
-				Clients.response(new AuFocus(c));
-				break;
-			}
-		}
-	}
+//	public void setFocusToField(String columnName) {
+//		for (WEditor editor : renderer.getEditors()) {
+//			if (columnName.equals(editor.getColumnName())) {
+//				Component c = editor.getComponent();
+//				if (c instanceof EditorBox) {
+//					c = ((EditorBox)c).getTextbox();
+//				} else if (c instanceof NumberBox) {
+//					c = ((NumberBox)c).getDecimalbox();
+//				}
+//				Clients.response(new AuFocus(c));
+//				break;
+//			}
+//		}
+//	}
 
 	private void onSelectedRowChange(int index) {
 		if (updateModelIndex(index)) {
@@ -1408,5 +1365,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			;
 		}
 	}   //  saveData
+
+	public String getEditMode()
+	{
+		return editMode;
+
+	}
 
 }
