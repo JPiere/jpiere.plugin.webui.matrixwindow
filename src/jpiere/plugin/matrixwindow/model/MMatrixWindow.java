@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.compiere.model.MColumn;
 import org.compiere.model.MField;
 import org.compiere.model.MIndexColumn;
 import org.compiere.model.MTab;
@@ -26,6 +27,7 @@ import org.compiere.model.MTable;
 import org.compiere.model.MTableIndex;
 import org.compiere.model.MWindow;
 import org.compiere.model.Query;
+import org.compiere.model.SystemIDs;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
@@ -179,6 +181,31 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	@Override
 	protected boolean beforeSave(boolean newRecord)
 	{
+		if(newRecord || is_ValueChanged("AD_Tab_ID"))
+		{
+			//Table that is setting a tab must have "'Table name' + '_ID'" Column
+			// And the reference(Display Type) of the column need to "ID"
+			MTable tableModle = MTable.get(getCtx(), getAD_Tab().getAD_Table_ID());
+			String tableName = tableModle.getTableName();
+			MColumn columnModle = tableModle.getColumn(tableName+"_ID");
+			if(columnModle==null)
+			{
+				//TODO:エラー
+				log.saveError("Error", "主キーとなる'テーブル名+_IDのカラム'が必要です");
+				return false;
+			}else{
+
+				if(columnModle.getAD_Reference_ID()!=SystemIDs.REFERENCE_DATATYPE_ID)
+				{
+					//TODO:エラー
+					log.saveError("Error", "主キーとなるカラムのリファレンスをIDにして下さい");
+					return false;
+				}
+
+			}
+
+		}
+
 
 		if(newRecord
 				|| is_ValueChanged("JP_MatrixColumnKey_ID")

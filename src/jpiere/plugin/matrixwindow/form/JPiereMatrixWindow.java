@@ -107,7 +107,7 @@ import org.zkoss.zul.impl.XulElement;
 public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements EventListener<Event>, ValueChangeListener,WTableModelListener{
 
 	/**	Logger			*/
-	public static CLogger log = CLogger.getCLogger(JPiereMatrixWindow.class);
+	private  static CLogger log = CLogger.getCLogger(JPiereMatrixWindow.class);
 
 	private CustomForm form = new CustomForm();
 
@@ -125,7 +125,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private Panel displayDataPanel = new Panel();
 	private Borderlayout displayDataLayout = new Borderlayout();
 
-	Grid matrixGrid  = new Grid();			//main component
+	private Grid matrixGrid  = new Grid();			//main component
 
 	private Button SearchButton;
 
@@ -140,51 +140,54 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private boolean     m_calculating = false;
 
-	PO[] m_POs;
+	private PO[] m_POs;
 
-	StringBuilder message = new StringBuilder();
+	private StringBuilder message = new StringBuilder();
 
 
 	//View Model:Map of Data Model for Display<Identifier of Row.<Column Number,data>>
-	TreeMap<Object,TreeMap<Integer,Object>> viewModel = new TreeMap<Object,TreeMap<Integer,Object>>() ;
+	private TreeMap<Object,TreeMap<Integer,Object>> viewModel = new TreeMap<Object,TreeMap<Integer,Object>>() ;
 
-	//Convetion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
-	TreeMap<Object,TreeMap<Integer,Object>> conversionTable = new TreeMap<Object,TreeMap<Integer,Object>> ();
+	//Convertion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
+	private TreeMap<Object,TreeMap<Integer,Object>> conversionTable = new TreeMap<Object,TreeMap<Integer,Object>> ();
 
-	//Map of PO Instance that corresponding to Table.<ID,PO>
-	HashMap<Integer,PO> 				tableModel = new HashMap<Integer,PO>();
+	//Map of PO Instance that corresponding to Table.<ID of PO,PO>
+	private HashMap<Integer,PO> 				tableModel = new HashMap<Integer,PO>();
 
-	//Map of PO Instance that have to save.<POのID,PO>
-	HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
+	//Map of PO Instance that have to save.<ID of PO,PO>
+	private HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
+
+
 
 	//画面表示のためにキーカラム毎にモデルクラスのインスタンスを区分管理しているMAP
 	//TreeMap<縦軸となるカラムの識別子,<横軸となるrowの識別子,PO>>
-	TreeMap<Object,TreeMap<Object,PO>> keyColumnModel = new TreeMap<Object,TreeMap<Object,PO>>();
+	private TreeMap<Object,TreeMap<Object,PO>> keyColumnModel = new TreeMap<Object,TreeMap<Object,PO>>();
 
 
-	/*Information of key of Vertical axis and key of horizontal axis*/
-	//リンクカラムと縦軸のキーと横軸のキーの３つでユニーク制約をつけておく前提です。
-	//Columnキー(Columnの軸となるキー情報)のリスト
-	ArrayList<Object> columnKeys = new ArrayList<Object>();
-	 //Columnキーと名称のマップ
-	HashMap<Object,String> columnKeyNameMap = new HashMap<Object,String>();
+	/*Information of key of Vertical axis and key of Horizontal axis*/
+	/*You need to unique constraint that contains key of vertical axis and key of horizontal axis */
 
-	//Rowキー(Rowの軸となるキー情報)のリスト
-	ArrayList<Object> rowKeys = new ArrayList<Object>();
+	//List of Column Key(Key of Column info)
+	private ArrayList<Object> columnKeys = new ArrayList<Object>();
+	 //Map of Column key and Column name <key column, column name>
+	private HashMap<Object,String> columnKeyNameMap = new HashMap<Object,String>();
+
+	//List of Row Key(Key of Row info)
+	private ArrayList<Object> rowKeys = new ArrayList<Object>();
 
 
 	//全部(固定カラム+変動カラム)のカラムの名称のマップ<カラム順番,カラム名称>
-	HashMap<Integer,String> columnNameMap = new HashMap<Integer,String> ();
+	private HashMap<Integer,String> columnNameMap = new HashMap<Integer,String> ();
 	//全部(固定カラム+変動カラム)のカラムの表示長さのマップ<カラム順番,長さ>
-	HashMap<Integer,Integer> columnLengthMap = new HashMap<Integer,Integer> ();
+	private HashMap<Integer,Integer> columnLengthMap = new HashMap<Integer,Integer> ();
 	//全部(固定カラム+変動カラム)のカラムのGridFieldのインスタンスのマップ<カラム順番,GridField>
-	HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
+	private HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
 
 	//表領域に表示する固定項目のMAP<表示順番,項目(カラム)名> ※現在の仕様として、Rowの識別子となるカラムは1行に固定。
-	TreeMap<Integer, String> fixItem = new TreeMap<Integer, String>();//TODO：SQLでパラメータ取得できるようにする。
+	private TreeMap<Integer, String> fixItem = new TreeMap<Integer, String>();
 
 	//固定項目(カラム)のAD_Field_IDのマップ<表示順番,AD_Field_ID>
-	TreeMap<Integer,Integer> fixItemFieldIDMap = new TreeMap<Integer,Integer>();
+	private TreeMap<Integer,Integer> fixItemFieldIDMap = new TreeMap<Integer,Integer>();
 
 
 	private String whereClause ;
@@ -197,29 +200,30 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	 **********************************************************************/
 
 	//Model
-	MMatrixWindow 	m_matrixWindow;
-	MTab			m_Tab;
-	MMatrixField[]  m_matrixFields ;
-	MField[]		m_contentFields;
-	MColumn[]		m_contentColumns;
-	MMatrixSearch[] m_matrixSearches ;
+	private MMatrixWindow 	m_matrixWindow;
+	private MTab			m_Tab;
+	private MMatrixField[]  m_matrixFields ;
+	private MField[]		m_contentFields;
+	private MColumn[]		m_contentColumns;
+	private MMatrixSearch[] m_matrixSearches ;
 
-	JPiereMatrixWindowQuickEntry quickEntry = null;
+	private JPiereMatrixWindowQuickEntry quickEntry = null;
+
 
 	public static final String EDITMODE_EDIT ="edit";
 	public static final String EDITMODE_TEST ="test";
 	public static final String EDITMODE_READ ="read";
+
 	private String editMode = EDITMODE_EDIT ;
 
-
 	//Search Field Editor Map
-	HashMap<String,WEditor> searchEditorMap = new HashMap<String,WEditor> ();
+	private HashMap<String,WEditor> searchEditorMap = new HashMap<String,WEditor> ();
 
 	//Column Key Column
-	I_AD_Column m_columnKeyColumn;
+	private I_AD_Column m_columnKeyColumn;
 
 	//Row Key Column
-	I_AD_Column m_rowKeyColumn ;
+	private I_AD_Column m_rowKeyColumn ;
 
 	//AD_Window_ID
 	private int AD_WINDOW_ID = 0;
@@ -326,7 +330,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		if(adTabpanel == null)
 		{
-			//Error
+			;//Error
 		}
 		gridTab = adTabpanel.getGridTab();
 		gridView = adTabpanel.getGridView();
@@ -377,7 +381,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				searchGB.appendChild(searchGrid);
 				Rows rows = searchGrid.newRows();
 
-			//Search Fields
+			//Create Search Fields
 			for(int i = 0; i < m_matrixSearches.length; i++)
 			{
 				if(i%2 == 0)
@@ -432,7 +436,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			}//for i
 		}//if
 
-		//Button
+
+		//Create Button
 		row = parameterLayoutRows.newRow();
 				SearchButton = new Button(Msg.getMsg(Env.getCtx(), "search"));
 				SearchButton.setId("SearchButton");
@@ -468,6 +473,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		row = parameterLayoutRows.newRow();
 				row.appendCellChild(new Space(),1);
 
+		//Edit Area
 		Center center = new Center();
 		mainLayout.appendChild(center);
 		center.appendChild(displayDataPanel);
@@ -493,7 +499,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
-	static class ZoomListener implements EventListener<Event> {
+	static class ZoomListener implements EventListener<Event>
+	{
 
 		private IZoomableEditor searchEditor;
 
@@ -511,7 +518,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 	@Override
-	public void tableChanged(WTableModelEvent e) {
+	public void tableChanged(WTableModelEvent e)
+	{
 		int row = e.getFirstRow();
 		int col = e.getColumn();
 		ListModel<?> listModel = e.getModel();
@@ -668,6 +676,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			Object old_rowKeyColumn_Value = null;
 			Object old_columnKeyColumn_Value = null;
+
 			if(quickEntry == null){
 
 				saveData();
@@ -739,16 +748,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}//onEvent()
 
+
 	Auxhead auxhead ;
 
 	private boolean createView () throws Exception {
 
 		matrixGrid.setVisible(true);
 
+		//Create String where clause
 		whereClause = createWhere();
 		if(message.length() > 0)
 			return false;
 
+		//Create Column key info from where clause
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
@@ -756,6 +768,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return false;
 		}
 
+		//Create Row key info from where clause
 		rowKeys = createRowKeys(whereClause);
 		if(rowKeys.size()==0)
 		{
@@ -763,6 +776,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return false;
 		}
 
+		//Create array of PO from where clause
 		m_POs = getPOs(whereClause,true);
 		if(m_POs.length==0)
 		{
@@ -1106,8 +1120,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				/*変動カラムの処理*/
 				for(int k = 0; k < m_contentFields.length; k++)
 				{
-					vmRow.put(fixItemFieldIDMap.size()+i*m_contentFields.length+k, POs.get(rowKey).get_Value(m_contentColumns[k].getColumnName()));
-					ctRow.put(fixItemFieldIDMap.size()+i*m_contentFields.length+k, POs.get(rowKey).get_ID());
+					int aaa = POs.get(rowKey).get_ID();
+					vmRow.put(fixItemFieldIDMap.size()+(i*m_contentFields.length)+k,  POs.get(rowKey).get_Value(m_contentColumns[k].getColumnName()));
+					ctRow.put(fixItemFieldIDMap.size()+(i*m_contentFields.length)+k,  POs.get(rowKey).get_ID());
 				}
 
 			}//for(Object rowKey : rowKeys)
