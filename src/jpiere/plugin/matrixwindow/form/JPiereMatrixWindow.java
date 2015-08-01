@@ -494,7 +494,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setWidth("100%");
 				matrixGrid.setHeight("100%");
 				matrixGrid.setVflex(true);
-
+				matrixGrid.setVisible(false);
 				matrixGrid.setMold("paging");
 				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
@@ -655,7 +655,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		}else if(e.getTarget().equals(SaveButton)){
 
-			matrixGrid.focus();
 			boolean isOK = saveData();
 
 			if(isOK)
@@ -1195,6 +1194,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			col = new Column(columnNameMap.get(i));
 			col.setWidth(columnLengthMap.get(i)+"px");
 			col.setDraggable("false");
+			col.setHflex("min");
 			clms.appendChild(col);
 		}
 
