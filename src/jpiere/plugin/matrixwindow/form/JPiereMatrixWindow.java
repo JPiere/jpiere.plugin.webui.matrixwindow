@@ -661,11 +661,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				dirtyModel.clear();
 
-				if(!createView ())
-				{
-					matrixGrid.setVisible(false);
-					throw new Exception(message.toString());
-				}
+//				if(!createView ())
+//				{
+//					matrixGrid.setVisible(false);
+//					throw new Exception(message.toString());
+//				}
 
 			}else{
 				;//Nothing to do
@@ -1194,7 +1194,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			col = new Column(columnNameMap.get(i));
 			col.setWidth(columnLengthMap.get(i)+"px");
 			col.setDraggable("false");
-			col.setHflex("min");
+			if(i != 0)
+				col.setHflex("min");
+
 			clms.appendChild(col);
 		}
 

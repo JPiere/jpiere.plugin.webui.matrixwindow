@@ -357,7 +357,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					}
 
 					div.setStyle(divStyle);
-					div.setWidth("100%");
+//					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
 					div.addEventListener(Events.ON_CLICK, rowListener);
 //					div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
@@ -369,7 +369,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.appendChild(component);
 					div.setAttribute("display.component", component);
 					div.setStyle(divStyle);
-					div.setWidth("100%");
+//					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
 					div.addEventListener(Events.ON_OK, this);//OnEvent()
 					row.appendChild(div);
@@ -418,7 +418,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					}
 
 					div.setStyle(divStyle);
-					div.setWidth("100%");
+//					div.setWidth("100%");
 					row.appendChild(div);
 
 				}else{//when there are not data
@@ -427,7 +427,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.appendChild(component);
 					div.setAttribute("display.component", component);
 					div.setStyle(divStyle);
-					div.setWidth("100%");
+//					div.setWidth("100%");
 					row.appendChild(div);
 
 				}//if
@@ -475,9 +475,9 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 						editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
 
 						div.setStyle(divStyle);
-						div.setWidth("100%");
+//						div.setWidth("100%");
 						div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
-						((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
+//						((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
 
 					}
 
@@ -489,7 +489,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.appendChild(component);
 					div.setAttribute("display.component", component);
 					div.setStyle(divStyle);
-					div.setWidth("100%");
+//					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
 					row.appendChild(div);
 
@@ -827,7 +827,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				if(i == x)
 				{
-					List<Component> cmpList = div.getChildren();
 
 					if(div.getChildren().get(0) instanceof NumberBox)
 					{
