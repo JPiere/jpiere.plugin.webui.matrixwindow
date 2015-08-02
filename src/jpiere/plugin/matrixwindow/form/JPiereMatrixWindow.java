@@ -1194,8 +1194,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			col = new Column(columnNameMap.get(i));
 			col.setWidth(columnLengthMap.get(i)+"px");
 			col.setDraggable("false");
-			if(i != 0)
-				col.setHflex("min");
+//			if(i != 0)
+//				col.setHflex("min");
 
 			clms.appendChild(col);
 		}
