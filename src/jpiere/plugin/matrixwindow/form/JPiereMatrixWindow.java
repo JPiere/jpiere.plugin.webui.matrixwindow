@@ -921,27 +921,29 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		final String sql = "SELECT DISTINCT " + m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
 							+ " ORDER BY " + m_rowKeyColumn.getColumnName();
 
+		I_AD_Field keyField = m_matrixWindow.getJP_MatrixRowKey();
+		I_AD_Column keyColumn = keyField.getAD_Column();
+
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		I_AD_Column keyRow = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 		try
 		{
 			pstmt = DB.prepareStatement(sql, null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
-				if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
-						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
-						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
+				if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
 				{
 					list.add(rs.getInt(1));
-				}else if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
+				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
 					list.add(rs.getInt(1));
-				}else if(keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
+				}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
 					list.add(rs.getString(1));
-				}else if( keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
-						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
-						|| keyRow.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
+				}else if( keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATE
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_DATETIME
+						|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TIME ){
 					list.add(rs.getTimestamp(1));
 				}else{
 					list.add(rs.getObject(1));
@@ -960,10 +962,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 
 
-		ArrayList<Object> sortedList = new ArrayList<Object>();
-		StringBuilder sortSQL = new StringBuilder("SELECT ");
-		I_AD_Field keyField = m_matrixWindow.getJP_MatrixRowKey();
-		I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
 
 
 		//Sort List
@@ -971,8 +969,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
 				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
 		{
-
+			ArrayList<Object> sortedList = new ArrayList<Object>();
+			StringBuilder sortSQL = new StringBuilder("SELECT ");
 			int AD_Reference_Value_ID = 0;
+
 			if(keyField.getAD_Reference_Value_ID()!=0)
 			{
 				AD_Reference_Value_ID = keyField.getAD_Reference_Value_ID();
@@ -1028,8 +1028,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return list;
 
 		}
+	}//createRowKeys
 
-	}
 
 	public PO[] getPOs (String whereClause,boolean reload)
 	{
@@ -1131,10 +1131,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	/*
 	 * This Method creates "View Model" and "Convetion Table".
-	 * "View Model" and "Convetion Table" is same TreeMap structure.
+	 * "View Model" and "Convetion Table" is same Map structure.
 	 * Set Row Key(Y-axis),and Secure number of column required.
 	 *
-	 * @return TreeMap<y,TreeMap<x,object>>
+	 * @return LinkedHashMap<y,TreeMap<x,object>>
 	 */
 	private LinkedHashMap<Object,TreeMap<Integer,Object>> createViewModelConvetionTable()
 	{
