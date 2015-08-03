@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,10 +65,12 @@ import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_AD_Column;
+import org.compiere.model.I_AD_Field;
 import org.compiere.model.MColumn;
 import org.compiere.model.MField;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
+import org.compiere.model.MRefTable;
 import org.compiere.model.MTab;
 import org.compiere.model.MTable;
 import org.compiere.model.PO;
@@ -146,10 +149,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	//View Model:Map of Data Model for Display<Identifier of Row.<Column Number,data>>
-	private TreeMap<Object,TreeMap<Integer,Object>> viewModel = new TreeMap<Object,TreeMap<Integer,Object>>() ;
+	private LinkedHashMap<Object,TreeMap<Integer,Object>> viewModel = new LinkedHashMap<Object,TreeMap<Integer,Object>>() ;
 
 	//Convertion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
-	private TreeMap<Object,TreeMap<Integer,Object>> conversionTable = new TreeMap<Object,TreeMap<Integer,Object>> ();
+	private LinkedHashMap<Object,TreeMap<Integer,Object>> conversionTable = new LinkedHashMap<Object,TreeMap<Integer,Object>> ();
 
 	//Map of PO Instance that corresponding to Table.<ID of PO,PO>
 	private HashMap<Integer,PO> 				tableModel = new HashMap<Integer,PO>();
@@ -956,7 +959,76 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			rs = null; pstmt = null;
 		}
 
-		return list;
+
+		ArrayList<Object> sortedList = new ArrayList<Object>();
+		StringBuilder sortSQL = new StringBuilder("SELECT ");
+		I_AD_Field keyField = m_matrixWindow.getJP_MatrixRowKey();
+		I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixRowKey().getAD_Column();
+
+
+		//Sort List
+		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
+		{
+
+			int AD_Reference_Value_ID = 0;
+			if(keyField.getAD_Reference_Value_ID()!=0)
+			{
+				AD_Reference_Value_ID = keyField.getAD_Reference_Value_ID();
+
+			}else if(keyColumn.getAD_Reference_Value_ID()!=0){
+
+				AD_Reference_Value_ID = keyColumn.getAD_Reference_Value_ID();
+			}
+
+			if(AD_Reference_Value_ID == 0)
+			{
+				return list;
+			}else{
+				MRefTable ref = new MRefTable(Env.getCtx(), AD_Reference_Value_ID, null);
+				sortSQL.append(MColumn.getColumnName(Env.getCtx(), ref.getAD_Key()));
+				sortSQL.append(" FROM ").append(ref.getAD_Table().getTableName());
+				sortSQL.append(" WHERE ").append(MColumn.getColumnName(Env.getCtx(), ref.getAD_Key()));
+				sortSQL.append(" IN (");
+				for(int i = 0; i < list.size(); i++)
+				{
+					if(i == 0)
+						sortSQL.append(list.get(i));
+					else
+						sortSQL.append(","+list.get(i));
+				}
+				sortSQL.append(" )");
+				sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
+			}
+
+			try
+			{
+				pstmt = DB.prepareStatement(sortSQL.toString(), null);
+				rs = pstmt.executeQuery();
+				while (rs.next())
+				{
+					sortedList.add(rs.getInt(1));
+				}
+			}
+			catch (Exception e)
+			{
+				log.log(Level.SEVERE, sortSQL.toString(), e);
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+				rs = null; pstmt = null;
+			}
+
+			return sortedList;
+
+		}else{
+
+			return list;
+
+		}
+
 	}
 
 	public PO[] getPOs (String whereClause,boolean reload)
@@ -1064,10 +1136,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	 *
 	 * @return TreeMap<y,TreeMap<x,object>>
 	 */
-	private TreeMap<Object,TreeMap<Integer,Object>> createViewModelConvetionTable()
+	private LinkedHashMap<Object,TreeMap<Integer,Object>> createViewModelConvetionTable()
 	{
 
-		TreeMap<Object,TreeMap<Integer,Object>> y = new TreeMap<Object,TreeMap<Integer,Object>>();
+		LinkedHashMap<Object,TreeMap<Integer,Object>> y = new LinkedHashMap<Object,TreeMap<Integer,Object>>();
 
 		for(int i = 0; i < rowKeys.size(); i++)
 		{
