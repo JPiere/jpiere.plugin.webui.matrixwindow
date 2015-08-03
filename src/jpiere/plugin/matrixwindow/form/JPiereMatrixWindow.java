@@ -753,6 +753,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private boolean createView () throws Exception {
 
 		matrixGrid.setVisible(true);
+//		matrixGrid.setSizedByContent(true);
 
 		//Create String where clause
 		whereClause = createWhere();

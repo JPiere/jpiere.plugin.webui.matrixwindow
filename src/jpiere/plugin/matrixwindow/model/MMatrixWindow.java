@@ -190,15 +190,13 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 			MColumn columnModle = tableModle.getColumn(tableName+"_ID");
 			if(columnModle==null)
 			{
-				//TODO:エラー
-				log.saveError("Error", "主キーとなる'テーブル名+_IDのカラム'が必要です");
+				log.saveError("Error", "JP_TableName_ID");//Table must have 'TableName+_ID' Column
 				return false;
 			}else{
 
 				if(columnModle.getAD_Reference_ID()!=SystemIDs.REFERENCE_DATATYPE_ID)
 				{
-					//TODO:エラー
-					log.saveError("Error", "主キーとなるカラムのリファレンスをIDにして下さい");
+					log.saveError("Error", "JP_TableName_ID_Reference");//Reference of 'TableName+_ID' Column must be 'ID'.
 					return false;
 				}
 
