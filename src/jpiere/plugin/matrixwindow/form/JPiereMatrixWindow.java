@@ -753,7 +753,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	Auxhead auxhead ;
 
-	private boolean createView () throws Exception {
+	private boolean createView () throws Exception {//TODO
 
 		matrixGrid.setVisible(true);
 //		matrixGrid.setSizedByContent(true);
@@ -847,13 +847,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private String createWhere()
 	{
-		StringBuilder whereClause = new StringBuilder(" WHERE AD_Client_ID = "+ Env.getAD_Client_ID(Env.getCtx()));
+		StringBuilder whereClause = new StringBuilder(" WHERE "+ TABLE_NAME+".AD_Client_ID = "+ Env.getAD_Client_ID(Env.getCtx()));
 
 		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 		{
 			if(entry.getValue().getValue()!=null)
 			{
-				whereClause.append(" AND "+ entry.getKey() + " = " + entry.getValue().getValue());
+				whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + entry.getValue().getValue());
 			}else{
 
 				if(entry.getValue().isMandatory())
@@ -960,8 +960,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			DB.close(rs, pstmt);
 			rs = null; pstmt = null;
 		}
-
-
 
 
 		//Sort List
