@@ -119,7 +119,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		this.windowNo = form.getWindowNo();//Need to create process dialog.
 		this.form = form;
 		this.matrixWindow = matrixWindow;
-		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel);
+		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel,form);
 	}
 
 

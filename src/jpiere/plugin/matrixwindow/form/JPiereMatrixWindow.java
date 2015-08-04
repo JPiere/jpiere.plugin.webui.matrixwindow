@@ -357,7 +357,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		form.appendChild(mainLayout);
 
 		/*Main Layout(Borderlayout)*/
-		mainLayout.setWidth("99%");
+		mainLayout.setWidth("100%");
 		mainLayout.setHeight("100%");
 
 		//Main Layout(Borderlayout)-North
@@ -368,7 +368,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		north.appendChild(parameterPanel);
 		north.setStyle("border: none");
 		parameterPanel.appendChild(parameterLayout); 		//parameterLayout = Grid
-		parameterLayout.setWidth("90%");
+		parameterLayout.setWidth("100%");
 		Rows parameterLayoutRows = parameterLayout.newRows();
 		Row row = null;
 		if(m_matrixSearches.length > 0)
@@ -383,16 +383,28 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				searchGB.appendChild(searchGrid);
 				Rows rows = searchGrid.newRows();
 
+
+			int actualxpos = 0;
 			//Create Search Fields
 			for(int i = 0; i < m_matrixSearches.length; i++)
 			{
 
 
-				if(i%2 == 0)
+				MMatrixSearch field = m_matrixSearches[i];
+
+
+				if(i == 0 || actualxpos > field.getXPosition())
 				{
+					actualxpos = 0;
 					row = rows.newRow();
 					row.setStyle("background-color: #ffffff");
 				}
+
+//				if(i%2 == 0)
+//				{
+//					row = rows.newRow();
+//					row.setStyle("background-color: #ffffff");
+//				}
 
 				for(int j = 0; j < gridFields.length; j++)
 				{
@@ -436,8 +448,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 						editor.setMandatory(m_matrixSearches[i].isMandatory());
 
-						row.appendCellChild(editor.getLabel().rightAlign());
-						row.appendCellChild(editor.getComponent(),2);
+						//positioning
+						row.appendCellChild(editor.getLabel().rightAlign(),1);
+						actualxpos = actualxpos + 1;
+						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
+						actualxpos = actualxpos + field.getColumnSpan();
 
 						WEditorPopupMenu popupMenu = editor.getPopupMenu();
 			            if (popupMenu != null)
@@ -519,6 +534,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
+
+	private Component createSpacer() {
+		return new Space();
+	}
 
 	static class ZoomListener implements EventListener<Event>
 	{

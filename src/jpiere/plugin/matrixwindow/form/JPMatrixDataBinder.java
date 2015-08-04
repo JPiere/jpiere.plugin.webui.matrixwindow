@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
+import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
@@ -45,17 +46,20 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
 	private HashMap<Integer,PO> 	dirtyModel;
 
+	private CustomForm form;
+
 	/**
 	 *
 	 * @param gridTab
 	 */
 	public JPMatrixDataBinder(ListModelMap<Object, Object> listModel
-			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel,HashMap<Integer,PO> dirtyModel)
+			,ListModelMap<Object, Object>  convetionTable ,HashMap<Integer,PO> tableModel,HashMap<Integer,PO> dirtyModel,CustomForm form)
 	{
 		this.viewModel = listModel;
 		this.convetionTable = convetionTable;
 		this.tableModel = tableModel;
 		this.dirtyModel = dirtyModel;
+		this.form = form;
 	}
 
 	/**
