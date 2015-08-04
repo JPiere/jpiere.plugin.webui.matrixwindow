@@ -52,6 +52,7 @@ import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
+import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.event.ValueChangeEvent;
@@ -850,7 +851,20 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(entry.getValue().getValue()!=null)
 			{
-				whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + entry.getValue().getValue());
+//				WEditor editor = entry.getValue();
+				if(entry.getValue() instanceof WYesNoEditor)
+				{
+					if(entry.getValue().getValue().equals(true))
+						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'Y'");
+					else
+						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'N'");
+
+				}else{
+
+					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + entry.getValue().getValue());
+
+				}
+
 			}else{
 
 				if(entry.getValue().isMandatory())
@@ -858,7 +872,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "FillMandatory") + entry.getValue().getLabel().getValue() );
 				}
 			}
-		}
+		}//for
 
 		return whereClause.toString();
 	}
