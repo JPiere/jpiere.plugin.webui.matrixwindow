@@ -177,11 +177,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> rowKeys = new ArrayList<Object>();
 
 
-	//全部(固定カラム+変動カラム)のカラムの名称のマップ<カラム順番,カラム名称>
+	//Map of All Column Name <Column order num, Column name>
 	private HashMap<Integer,String> columnNameMap = new HashMap<Integer,String> ();
-	//全部(固定カラム+変動カラム)のカラムの表示長さのマップ<カラム順番,長さ>
+	//Map of All Column length <Column order num,  Column length>
 	private HashMap<Integer,Integer> columnLengthMap = new HashMap<Integer,Integer> ();
-	//全部(固定カラム+変動カラム)のカラムのGridFieldのインスタンスのマップ<カラム順番,GridField>
+	//Map of All Column GridField <Column order num,,GridField>
 	private HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
 
 	//表領域に表示する固定項目のMAP<表示順番,項目(カラム)名> ※現在の仕様として、Rowの識別子となるカラムは1行に固定。
@@ -754,7 +754,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private boolean createView () throws Exception {
 
 		matrixGrid.setVisible(true);
-//		matrixGrid.setSizedByContent(true);
 
 		//Create String where clause
 		whereClause = createWhere();
@@ -1147,7 +1146,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 	/*
-	 * POのIDをキーとしたPOインスタンスのマップ
+	 * Map of PO Instance <ID of PO,PO>
 	 *
 	 *
 	 */
@@ -1261,14 +1260,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				/*変動カラムの処理*/
 				for(int k = 0; k < m_contentFields.length; k++)
 				{
-					int aaa = POs.get(rowKey).get_ID();
 					vmRow.put(fixItemFieldIDMap.size()+(i*m_contentFields.length)+k,  POs.get(rowKey).get_Value(m_contentColumns[k].getColumnName()));
 					ctRow.put(fixItemFieldIDMap.size()+(i*m_contentFields.length)+k,  POs.get(rowKey).get_ID());
 				}
 
 			}//for(Object rowKey : rowKeys)
 
-			i++;//縦軸となるキーカラムの処理カウンター
+			i++;//Column key counter
 
 		}//for(Object keyColumn :keyColumnModelKeySet)
 
