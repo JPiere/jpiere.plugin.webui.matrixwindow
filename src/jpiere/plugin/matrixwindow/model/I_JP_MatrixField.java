@@ -137,10 +137,10 @@ public interface I_JP_MatrixField
     /** Column name JP_MatrixField_ID */
     public static final String COLUMNNAME_JP_MatrixField_ID = "JP_MatrixField_ID";
 
-	/** Set JP_MatrixField	  */
+	/** Set JPiere Matrix Field	  */
 	public void setJP_MatrixField_ID (int JP_MatrixField_ID);
 
-	/** Get JP_MatrixField	  */
+	/** Get JPiere Matrix Field	  */
 	public int getJP_MatrixField_ID();
 
     /** Column name JP_MatrixField_UU */
@@ -155,10 +155,10 @@ public interface I_JP_MatrixField
     /** Column name JP_MatrixWindow_ID */
     public static final String COLUMNNAME_JP_MatrixWindow_ID = "JP_MatrixWindow_ID";
 
-	/** Set JP_MatrixWindow	  */
+	/** Set Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID);
 
-	/** Get JP_MatrixWindow	  */
+	/** Get Matrix Window	  */
 	public int getJP_MatrixWindow_ID();
 
 	public I_JP_MatrixWindow getJP_MatrixWindow() throws RuntimeException;

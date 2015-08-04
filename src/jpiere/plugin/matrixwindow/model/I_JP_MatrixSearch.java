@@ -32,7 +32,7 @@ public interface I_JP_MatrixSearch
     /** TableName=JP_MatrixSearch */
     public static final String Table_Name = "JP_MatrixSearch";
 
-    /** AD_Table_ID=1000030 */
+    /** AD_Table_ID=1000028 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -79,6 +79,19 @@ public interface I_JP_MatrixSearch
 	  */
 	public int getAD_Org_ID();
 
+    /** Column name ColumnSpan */
+    public static final String COLUMNNAME_ColumnSpan = "ColumnSpan";
+
+	/** Set Column Span.
+	  * Number of column for a box of field
+	  */
+	public void setColumnSpan (int ColumnSpan);
+
+	/** Get Column Span.
+	  * Number of column for a box of field
+	  */
+	public int getColumnSpan();
+
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
@@ -94,6 +107,21 @@ public interface I_JP_MatrixSearch
 	  * User who created this records
 	  */
 	public int getCreatedBy();
+
+    /** Column name DefaultValue */
+    public static final String COLUMNNAME_DefaultValue = "DefaultValue";
+
+	/** Set Default Logic.
+	  * Default value hierarchy, separated by ;
+
+	  */
+	public void setDefaultValue (String DefaultValue);
+
+	/** Get Default Logic.
+	  * Default value hierarchy, separated by ;
+
+	  */
+	public String getDefaultValue();
 
     /** Column name Description */
     public static final String COLUMNNAME_Description = "Description";
@@ -137,10 +165,10 @@ public interface I_JP_MatrixSearch
     /** Column name JP_MatrixSearch_ID */
     public static final String COLUMNNAME_JP_MatrixSearch_ID = "JP_MatrixSearch_ID";
 
-	/** Set JP_MatrixSearch	  */
+	/** Set JPiere Matrix Search	  */
 	public void setJP_MatrixSearch_ID (int JP_MatrixSearch_ID);
 
-	/** Get JP_MatrixSearch	  */
+	/** Get JPiere Matrix Search	  */
 	public int getJP_MatrixSearch_ID();
 
     /** Column name JP_MatrixSearch_UU */
@@ -155,10 +183,10 @@ public interface I_JP_MatrixSearch
     /** Column name JP_MatrixWindow_ID */
     public static final String COLUMNNAME_JP_MatrixWindow_ID = "JP_MatrixWindow_ID";
 
-	/** Set JP_MatrixWindow	  */
+	/** Set Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID);
 
-	/** Get JP_MatrixWindow	  */
+	/** Get Matrix Window	  */
 	public int getJP_MatrixWindow_ID();
 
 	public I_JP_MatrixWindow getJP_MatrixWindow() throws RuntimeException;
@@ -193,4 +221,17 @@ public interface I_JP_MatrixSearch
 	  * User who updated this records
 	  */
 	public int getUpdatedBy();
+
+    /** Column name XPosition */
+    public static final String COLUMNNAME_XPosition = "XPosition";
+
+	/** Set X Position.
+	  * Absolute X (horizontal) position in 1/72 of an inch
+	  */
+	public void setXPosition (int XPosition);
+
+	/** Get X Position.
+	  * Absolute X (horizontal) position in 1/72 of an inch
+	  */
+	public int getXPosition();
 }

@@ -30,7 +30,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150703L;
+	private static final long serialVersionUID = 20150804L;
 
     /** Standard Constructor */
     public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName)
@@ -42,7 +42,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 			setJP_MatrixField_ID (0);
 			setJP_MatrixWindow_ID (0);
 			setSeqNo (0);
-// 0
+// @SQL=SELECT COALESCE(MAX(SeqNo),0)+10 AS DefaultValue FROM JP_MatrixField WHERE JP_MatrixWindow_ID=@JP_MatrixWindow_ID@
         } */
     }
 
@@ -86,9 +86,9 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	public void setAD_Field_ID (int AD_Field_ID)
 	{
 		if (AD_Field_ID < 1) 
-			set_Value (COLUMNNAME_AD_Field_ID, null);
+			set_ValueNoCheck (COLUMNNAME_AD_Field_ID, null);
 		else 
-			set_Value (COLUMNNAME_AD_Field_ID, Integer.valueOf(AD_Field_ID));
+			set_ValueNoCheck (COLUMNNAME_AD_Field_ID, Integer.valueOf(AD_Field_ID));
 	}
 
 	/** Get Field.
@@ -139,8 +139,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 		return ii.intValue();
 	}
 
-	/** Set JP_MatrixField.
-		@param JP_MatrixField_ID JP_MatrixField	  */
+	/** Set JPiere Matrix Field.
+		@param JP_MatrixField_ID JPiere Matrix Field	  */
 	public void setJP_MatrixField_ID (int JP_MatrixField_ID)
 	{
 		if (JP_MatrixField_ID < 1) 
@@ -149,8 +149,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixField_ID, Integer.valueOf(JP_MatrixField_ID));
 	}
 
-	/** Get JP_MatrixField.
-		@return JP_MatrixField	  */
+	/** Get JPiere Matrix Field.
+		@return JPiere Matrix Field	  */
 	public int getJP_MatrixField_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixField_ID);
@@ -178,8 +178,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 		return (I_JP_MatrixWindow)MTable.get(getCtx(), I_JP_MatrixWindow.Table_Name)
 			.getPO(getJP_MatrixWindow_ID(), get_TrxName());	}
 
-	/** Set JP_MatrixWindow.
-		@param JP_MatrixWindow_ID JP_MatrixWindow	  */
+	/** Set Matrix Window.
+		@param JP_MatrixWindow_ID Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID)
 	{
 		if (JP_MatrixWindow_ID < 1) 
@@ -188,8 +188,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, Integer.valueOf(JP_MatrixWindow_ID));
 	}
 
-	/** Get JP_MatrixWindow.
-		@return JP_MatrixWindow	  */
+	/** Get Matrix Window.
+		@return Matrix Window	  */
 	public int getJP_MatrixWindow_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixWindow_ID);

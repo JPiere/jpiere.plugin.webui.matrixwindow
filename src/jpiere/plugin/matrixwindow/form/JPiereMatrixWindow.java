@@ -386,6 +386,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			//Create Search Fields
 			for(int i = 0; i < m_matrixSearches.length; i++)
 			{
+
+
 				if(i%2 == 0)
 				{
 					row = rows.newRow();
@@ -397,6 +399,22 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
 					{
 						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
+						String DefaultValue = m_matrixSearches[i].getDefaultValue();
+						if(DefaultValue == null || DefaultValue.isEmpty())
+						{
+							;
+						}else{
+
+							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
+
+							if(editor instanceof WTableDirEditor)
+							{
+								((WTableDirEditor) editor).actionRefresh();
+								((WTableDirEditor) editor).getLookup().setSelectedItem("");
+							}
+
+						}
+
 						if(!editor.isReadWrite())
 						{
 							editor.setReadWrite(true);
@@ -410,7 +428,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 								|| editor instanceof WTableDirEditor)
 						{
 							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
-							if(m_matrixSearches[i].isMandatory())
+							if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
 								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
 							else
 								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
@@ -500,6 +518,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setMold("paging");
 				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
+
 
 	static class ZoomListener implements EventListener<Event>
 	{

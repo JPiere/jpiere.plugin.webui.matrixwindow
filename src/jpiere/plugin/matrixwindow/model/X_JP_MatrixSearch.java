@@ -30,7 +30,7 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150703L;
+	private static final long serialVersionUID = 20150804L;
 
     /** Standard Constructor */
     public X_JP_MatrixSearch (Properties ctx, int JP_MatrixSearch_ID, String trxName)
@@ -39,11 +39,16 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
       /** if (JP_MatrixSearch_ID == 0)
         {
 			setAD_Field_ID (0);
-			setIsMandatory (false);
-// N
+			setColumnSpan (0);
+// 1
+			setIsMandatory (true);
+// Y
 			setJP_MatrixSearch_ID (0);
 			setJP_MatrixWindow_ID (0);
 			setSeqNo (0);
+// @SQL=SELECT COALESCE(MAX(SeqNo),0)+10 AS DefaultValue FROM JP_MatrixSearch WHERE JP_MatrixWindow_ID=@JP_MatrixWindow_ID@
+			setXPosition (0);
+// 1
         } */
     }
 
@@ -103,6 +108,43 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 		return ii.intValue();
 	}
 
+	/** Set Column Span.
+		@param ColumnSpan 
+		Number of column for a box of field
+	  */
+	public void setColumnSpan (int ColumnSpan)
+	{
+		set_Value (COLUMNNAME_ColumnSpan, Integer.valueOf(ColumnSpan));
+	}
+
+	/** Get Column Span.
+		@return Number of column for a box of field
+	  */
+	public int getColumnSpan () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_ColumnSpan);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Default Logic.
+		@param DefaultValue 
+		Default value hierarchy, separated by ;
+	  */
+	public void setDefaultValue (String DefaultValue)
+	{
+		set_Value (COLUMNNAME_DefaultValue, DefaultValue);
+	}
+
+	/** Get Default Logic.
+		@return Default value hierarchy, separated by ;
+	  */
+	public String getDefaultValue () 
+	{
+		return (String)get_Value(COLUMNNAME_DefaultValue);
+	}
+
 	/** Set Description.
 		@param Description 
 		Optional short description of the record
@@ -144,8 +186,8 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 		return false;
 	}
 
-	/** Set JP_MatrixSearch.
-		@param JP_MatrixSearch_ID JP_MatrixSearch	  */
+	/** Set JPiere Matrix Search.
+		@param JP_MatrixSearch_ID JPiere Matrix Search	  */
 	public void setJP_MatrixSearch_ID (int JP_MatrixSearch_ID)
 	{
 		if (JP_MatrixSearch_ID < 1) 
@@ -154,8 +196,8 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixSearch_ID, Integer.valueOf(JP_MatrixSearch_ID));
 	}
 
-	/** Get JP_MatrixSearch.
-		@return JP_MatrixSearch	  */
+	/** Get JPiere Matrix Search.
+		@return JPiere Matrix Search	  */
 	public int getJP_MatrixSearch_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixSearch_ID);
@@ -183,18 +225,18 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 		return (I_JP_MatrixWindow)MTable.get(getCtx(), I_JP_MatrixWindow.Table_Name)
 			.getPO(getJP_MatrixWindow_ID(), get_TrxName());	}
 
-	/** Set JP_MatrixWindow.
-		@param JP_MatrixWindow_ID JP_MatrixWindow	  */
+	/** Set Matrix Window.
+		@param JP_MatrixWindow_ID Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID)
 	{
 		if (JP_MatrixWindow_ID < 1) 
-			set_Value (COLUMNNAME_JP_MatrixWindow_ID, null);
+			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, null);
 		else 
-			set_Value (COLUMNNAME_JP_MatrixWindow_ID, Integer.valueOf(JP_MatrixWindow_ID));
+			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, Integer.valueOf(JP_MatrixWindow_ID));
 	}
 
-	/** Get JP_MatrixWindow.
-		@return JP_MatrixWindow	  */
+	/** Get Matrix Window.
+		@return Matrix Window	  */
 	public int getJP_MatrixWindow_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixWindow_ID);
@@ -218,6 +260,26 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 	public int getSeqNo () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_SeqNo);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set X Position.
+		@param XPosition 
+		Absolute X (horizontal) position in 1/72 of an inch
+	  */
+	public void setXPosition (int XPosition)
+	{
+		set_Value (COLUMNNAME_XPosition, Integer.valueOf(XPosition));
+	}
+
+	/** Get X Position.
+		@return Absolute X (horizontal) position in 1/72 of an inch
+	  */
+	public int getXPosition () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_XPosition);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

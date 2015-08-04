@@ -152,10 +152,10 @@ public interface I_JP_MatrixWindow
     /** Column name JP_MatrixColumnKey_ID */
     public static final String COLUMNNAME_JP_MatrixColumnKey_ID = "JP_MatrixColumnKey_ID";
 
-	/** Set JP_MatrixColumnKey_ID	  */
+	/** Set Column Key Field	  */
 	public void setJP_MatrixColumnKey_ID (int JP_MatrixColumnKey_ID);
 
-	/** Get JP_MatrixColumnKey_ID	  */
+	/** Get Column Key Field	  */
 	public int getJP_MatrixColumnKey_ID();
 
 	public org.compiere.model.I_AD_Field getJP_MatrixColumnKey() throws RuntimeException;
@@ -163,10 +163,10 @@ public interface I_JP_MatrixWindow
     /** Column name JP_MatrixRowKey_ID */
     public static final String COLUMNNAME_JP_MatrixRowKey_ID = "JP_MatrixRowKey_ID";
 
-	/** Set JP_MatrixRowKey_ID	  */
+	/** Set Row Key Field	  */
 	public void setJP_MatrixRowKey_ID (int JP_MatrixRowKey_ID);
 
-	/** Get JP_MatrixRowKey_ID	  */
+	/** Get Row Key Field	  */
 	public int getJP_MatrixRowKey_ID();
 
 	public org.compiere.model.I_AD_Field getJP_MatrixRowKey() throws RuntimeException;
@@ -174,19 +174,19 @@ public interface I_JP_MatrixWindow
     /** Column name JP_MatrixWindow_ID */
     public static final String COLUMNNAME_JP_MatrixWindow_ID = "JP_MatrixWindow_ID";
 
-	/** Set JP_MatrixWindow	  */
+	/** Set Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID);
 
-	/** Get JP_MatrixWindow	  */
+	/** Get Matrix Window	  */
 	public int getJP_MatrixWindow_ID();
 
     /** Column name JP_MatrixWindow_UU */
     public static final String COLUMNNAME_JP_MatrixWindow_UU = "JP_MatrixWindow_UU";
 
-	/** Set JP_MatrixWindow_UU	  */
+	/** Set JPiere Matrix Window UU	  */
 	public void setJP_MatrixWindow_UU (String JP_MatrixWindow_UU);
 
-	/** Get JP_MatrixWindow_UU	  */
+	/** Get JPiere Matrix Window UU	  */
 	public String getJP_MatrixWindow_UU();
 
     /** Column name JP_PageSize */
@@ -210,10 +210,10 @@ public interface I_JP_MatrixWindow
     /** Column name JP_QuickEntryWindow_ID */
     public static final String COLUMNNAME_JP_QuickEntryWindow_ID = "JP_QuickEntryWindow_ID";
 
-	/** Set JP_QuickEntryWindow_ID	  */
+	/** Set Quick Entry Window	  */
 	public void setJP_QuickEntryWindow_ID (int JP_QuickEntryWindow_ID);
 
-	/** Get JP_QuickEntryWindow_ID	  */
+	/** Get Quick Entry Window	  */
 	public int getJP_QuickEntryWindow_ID();
 
 	public org.compiere.model.I_AD_Window getJP_QuickEntryWindow() throws RuntimeException;

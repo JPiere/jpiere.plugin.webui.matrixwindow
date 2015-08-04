@@ -20,6 +20,7 @@ package jpiere.plugin.matrixwindow.model;
 import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.KeyNamePair;
 
 /** Generated Model for JP_MatrixWindow
  *  @author iDempiere (generated) 
@@ -30,7 +31,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150728L;
+	private static final long serialVersionUID = 20150804L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)
@@ -40,6 +41,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
         {
 			setAD_Tab_ID (0);
 			setAD_Window_ID (0);
+			setFieldLength (0);
+// 100
 			setJP_MatrixColumnKey_ID (0);
 			setJP_MatrixRowKey_ID (0);
 			setJP_MatrixWindow_ID (0);
@@ -176,8 +179,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return (org.compiere.model.I_AD_Field)MTable.get(getCtx(), org.compiere.model.I_AD_Field.Table_Name)
 			.getPO(getJP_MatrixColumnKey_ID(), get_TrxName());	}
 
-	/** Set JP_MatrixColumnKey_ID.
-		@param JP_MatrixColumnKey_ID JP_MatrixColumnKey_ID	  */
+	/** Set Column Key Field.
+		@param JP_MatrixColumnKey_ID Column Key Field	  */
 	public void setJP_MatrixColumnKey_ID (int JP_MatrixColumnKey_ID)
 	{
 		if (JP_MatrixColumnKey_ID < 1) 
@@ -186,8 +189,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			set_Value (COLUMNNAME_JP_MatrixColumnKey_ID, Integer.valueOf(JP_MatrixColumnKey_ID));
 	}
 
-	/** Get JP_MatrixColumnKey_ID.
-		@return JP_MatrixColumnKey_ID	  */
+	/** Get Column Key Field.
+		@return Column Key Field	  */
 	public int getJP_MatrixColumnKey_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixColumnKey_ID);
@@ -201,8 +204,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return (org.compiere.model.I_AD_Field)MTable.get(getCtx(), org.compiere.model.I_AD_Field.Table_Name)
 			.getPO(getJP_MatrixRowKey_ID(), get_TrxName());	}
 
-	/** Set JP_MatrixRowKey_ID.
-		@param JP_MatrixRowKey_ID JP_MatrixRowKey_ID	  */
+	/** Set Row Key Field.
+		@param JP_MatrixRowKey_ID Row Key Field	  */
 	public void setJP_MatrixRowKey_ID (int JP_MatrixRowKey_ID)
 	{
 		if (JP_MatrixRowKey_ID < 1) 
@@ -211,8 +214,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			set_Value (COLUMNNAME_JP_MatrixRowKey_ID, Integer.valueOf(JP_MatrixRowKey_ID));
 	}
 
-	/** Get JP_MatrixRowKey_ID.
-		@return JP_MatrixRowKey_ID	  */
+	/** Get Row Key Field.
+		@return Row Key Field	  */
 	public int getJP_MatrixRowKey_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixRowKey_ID);
@@ -221,8 +224,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return ii.intValue();
 	}
 
-	/** Set JP_MatrixWindow.
-		@param JP_MatrixWindow_ID JP_MatrixWindow	  */
+	/** Set Matrix Window.
+		@param JP_MatrixWindow_ID Matrix Window	  */
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID)
 	{
 		if (JP_MatrixWindow_ID < 1) 
@@ -231,8 +234,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, Integer.valueOf(JP_MatrixWindow_ID));
 	}
 
-	/** Get JP_MatrixWindow.
-		@return JP_MatrixWindow	  */
+	/** Get Matrix Window.
+		@return Matrix Window	  */
 	public int getJP_MatrixWindow_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixWindow_ID);
@@ -241,15 +244,15 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return ii.intValue();
 	}
 
-	/** Set JP_MatrixWindow_UU.
-		@param JP_MatrixWindow_UU JP_MatrixWindow_UU	  */
+	/** Set JPiere Matrix Window UU.
+		@param JP_MatrixWindow_UU JPiere Matrix Window UU	  */
 	public void setJP_MatrixWindow_UU (String JP_MatrixWindow_UU)
 	{
 		set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_UU, JP_MatrixWindow_UU);
 	}
 
-	/** Get JP_MatrixWindow_UU.
-		@return JP_MatrixWindow_UU	  */
+	/** Get JPiere Matrix Window UU.
+		@return JPiere Matrix Window UU	  */
 	public String getJP_MatrixWindow_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_JP_MatrixWindow_UU);
@@ -298,8 +301,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		return (org.compiere.model.I_AD_Window)MTable.get(getCtx(), org.compiere.model.I_AD_Window.Table_Name)
 			.getPO(getJP_QuickEntryWindow_ID(), get_TrxName());	}
 
-	/** Set JP_QuickEntryWindow_ID.
-		@param JP_QuickEntryWindow_ID JP_QuickEntryWindow_ID	  */
+	/** Set Quick Entry Window.
+		@param JP_QuickEntryWindow_ID Quick Entry Window	  */
 	public void setJP_QuickEntryWindow_ID (int JP_QuickEntryWindow_ID)
 	{
 		if (JP_QuickEntryWindow_ID < 1) 
@@ -308,8 +311,8 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 			set_Value (COLUMNNAME_JP_QuickEntryWindow_ID, Integer.valueOf(JP_QuickEntryWindow_ID));
 	}
 
-	/** Get JP_QuickEntryWindow_ID.
-		@return JP_QuickEntryWindow_ID	  */
+	/** Get Quick Entry Window.
+		@return Quick Entry Window	  */
 	public int getJP_QuickEntryWindow_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_QuickEntryWindow_ID);
@@ -351,4 +354,12 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	{
 		return (String)get_Value(COLUMNNAME_Value);
 	}
+
+    /** Get Record ID/ColumnName
+        @return ID/ColumnName pair
+      */
+    public KeyNamePair getKeyNamePair() 
+    {
+        return new KeyNamePair(get_ID(), getValue());
+    }
 }
