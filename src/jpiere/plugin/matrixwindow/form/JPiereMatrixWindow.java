@@ -161,10 +161,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
 
 
-
-	//画面表示のためにキーカラム毎にモデルクラスのインスタンスを区分管理しているMAP
-	//TreeMap<縦軸となるカラムの識別子,<横軸となるrowの識別子,PO>>
-	private TreeMap<Object,TreeMap<Object,PO>> keyColumnModel = new TreeMap<Object,TreeMap<Object,PO>>();
+	//Create Map of PO per column of x-axis:LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
+	private LinkedHashMap<Object,LinkedHashMap<Object,PO>> keyColumnModel = new LinkedHashMap<Object,LinkedHashMap<Object,PO>>();
 
 
 	/*Information of key of Vertical axis and key of Horizontal axis*/
@@ -753,7 +751,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	Auxhead auxhead ;
 
-	private boolean createView () throws Exception {//TODO
+	private boolean createView () throws Exception {
 
 		matrixGrid.setVisible(true);
 //		matrixGrid.setSizedByContent(true);
@@ -873,6 +871,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		final String sql = "SELECT DISTINCT " + m_columnKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
 							+ " ORDER BY " + m_columnKeyColumn.getColumnName();
 
+		I_AD_Field keyField = m_matrixWindow.getJP_MatrixColumnKey();
+		I_AD_Column keyColumn = keyField.getAD_Column();
+
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		columnKeyNameMap.clear();
@@ -880,7 +881,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			pstmt = DB.prepareStatement(sql, null);
 			rs = pstmt.executeQuery();
-			I_AD_Column keyColumn = m_matrixWindow.getJP_MatrixColumnKey().getAD_Column();
 			while (rs.next())
 			{
 				if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
@@ -912,7 +912,70 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			rs = null; pstmt = null;
 		}
 
-		return list;
+		//Sort List
+		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
+				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_SEARCH )
+		{
+			ArrayList<Object> sortedList = new ArrayList<Object>();
+			StringBuilder sortSQL = new StringBuilder("SELECT ");
+			int AD_Reference_Value_ID = 0;
+
+			if(keyField.getAD_Reference_Value_ID()!=0)
+			{
+				AD_Reference_Value_ID = keyField.getAD_Reference_Value_ID();
+
+			}else if(keyColumn.getAD_Reference_Value_ID()!=0){
+
+				AD_Reference_Value_ID = keyColumn.getAD_Reference_Value_ID();
+			}
+
+			if(AD_Reference_Value_ID == 0)
+			{
+				return list;
+			}else{
+				MRefTable ref = new MRefTable(Env.getCtx(), AD_Reference_Value_ID, null);
+				sortSQL.append(MColumn.getColumnName(Env.getCtx(), ref.getAD_Key()));
+				sortSQL.append(" FROM ").append(ref.getAD_Table().getTableName());
+				sortSQL.append(" WHERE ").append(MColumn.getColumnName(Env.getCtx(), ref.getAD_Key()));
+				sortSQL.append(" IN (");
+				for(int i = 0; i < list.size(); i++)
+				{
+					if(i == 0)
+						sortSQL.append(list.get(i));
+					else
+						sortSQL.append(","+list.get(i));
+				}
+				sortSQL.append(" )");
+				sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
+			}
+
+			try
+			{
+				pstmt = DB.prepareStatement(sortSQL.toString(), null);
+				rs = pstmt.executeQuery();
+				while (rs.next())
+				{
+					sortedList.add(rs.getInt(1));
+				}
+			}
+			catch (Exception e)
+			{
+				log.log(Level.SEVERE, sortSQL.toString(), e);
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+				rs = null; pstmt = null;
+			}
+
+			return sortedList;
+
+		}else{
+
+			return list;
+
+		}
 	}
 
 	private ArrayList<Object> createRowKeys(String whereClause)
@@ -1100,29 +1163,37 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 	/*
-	 * 縦軸となるKey Column毎のPOのMAPを作成しいます。
-	 * 作成もとの情報となるPOの配列は、縦軸となるKey Columnと
-	 * 横軸となるKey Rowで、ソートされているのが前提の処理です。
+	 * Create Map of PO per column of x-axis
+	 * (縦軸となるKey Column毎のPOのMAPを作成しいます。)
 	 *
-	 * @return TreeMap<Key Column,TreeMap<Key Row,PO>>
+	 * @return LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
 	 */
-	private TreeMap<Object,TreeMap<Object, PO>> createKeyColumnModel(PO[] POs)
+	private LinkedHashMap<Object,LinkedHashMap<Object, PO>> createKeyColumnModel(PO[] POs)
 	{
-		Object columnKey = "";
-		TreeMap<Object, PO> obj = null;	//<Rowの識別子,PO>
 		keyColumnModel.clear();
-		for(int i = 0; i < POs.length; i++)
+		Object columnKey = null;
+		LinkedHashMap<Object, PO>  mapObj = null; //LinkedHashMap<Key of Row info,PO>
+		for(int i = 0; i < columnKeys.size(); i++)
 		{
-			if(columnKey.equals(POs[i].get_Value(m_columnKeyColumn.getColumnName())))
+			columnKey = columnKeys.get(i);
+			mapObj = null;
+			for(int j = 0; j < POs.length; j++)
 			{
-				obj.put(POs[i].get_Value(m_rowKeyColumn.getColumnName()), POs[i]);
-			}else{
-				obj = new TreeMap<Object, PO> ();
-				obj.put(POs[i].get_Value(m_rowKeyColumn.getColumnName()), POs[i]);
-				columnKey = POs[i].get_Value(m_columnKeyColumn.getColumnName());
-				keyColumnModel.put(columnKey, obj);
-			}
-		}
+				if(columnKey.equals(POs[j].get_Value(m_columnKeyColumn.getColumnName())))
+				{
+					mapObj = keyColumnModel.get(columnKey);
+					if(mapObj == null)
+					{
+						mapObj = new LinkedHashMap<Object,PO>();
+						mapObj.put(POs[j].get_Value(m_rowKeyColumn.getColumnName()), POs[j]);
+						keyColumnModel.put(columnKey, mapObj);
+					}else{
+						mapObj.put(POs[j].get_Value(m_rowKeyColumn.getColumnName()), POs[j]);
+					}
+				}
+
+			}//for j
+		}//for i
 
 		return keyColumnModel;
 	}
@@ -1167,7 +1238,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(Object keyColumn :keyColumnModelKeySet)
 		{
 			//TreeMap<rowの識別子,PO>
-			TreeMap<Object,PO> POs = keyColumnModel.get(keyColumn);
+			LinkedHashMap<Object,PO> POs = keyColumnModel.get(keyColumn);
 			Set<Object>  rowKeys = POs.keySet();
 			for(Object rowKey : rowKeys)
 			{
@@ -1204,7 +1275,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		return ;
 	}
 
-	private Auxhead createAuxhead() throws ClassNotFoundException{//TODO
+	private Auxhead createAuxhead() throws ClassNotFoundException{
 
 		Auxhead auxhead = new Auxhead();
 
