@@ -185,10 +185,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	//Map of All Column GridField <Column order num,,GridField>
 	private HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
 
-	//表領域に表示する固定項目のMAP<表示順番,項目(カラム)名> ※現在の仕様として、Rowの識別子となるカラムは1行に固定。
+
+	//Map of All Fix Column(Item)  <Fix Column order num, Column name>. Specification:Fix column that is identifier of row is one column only
 	private TreeMap<Integer, String> fixItem = new TreeMap<Integer, String>();
 
-	//固定項目(カラム)のAD_Field_IDのマップ<表示順番,AD_Field_ID>
+	//Map of AD_Field_ID that is Fix Column(Item)  <Fix Column order num, AD_Field_ID>.
 	private TreeMap<Integer,Integer> fixItemFieldIDMap = new TreeMap<Integer,Integer>();
 
 
@@ -400,12 +401,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					row.setStyle("background-color: #ffffff");
 				}
 
-//				if(i%2 == 0)
-//				{
-//					row = rows.newRow();
-//					row.setStyle("background-color: #ffffff");
-//				}
-
 				for(int j = 0; j < gridFields.length; j++)
 				{
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
@@ -534,10 +529,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
-
-	private Component createSpacer() {
-		return new Space();
-	}
 
 	static class ZoomListener implements EventListener<Event>
 	{
