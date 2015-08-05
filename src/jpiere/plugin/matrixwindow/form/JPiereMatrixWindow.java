@@ -34,11 +34,15 @@ import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
+import org.adempiere.webui.AdempiereWebUI;
+import org.adempiere.webui.LayoutUtils;
+import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowContent;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabbox;
-import org.adempiere.webui.adwindow.IADTabpanel;
+import org.adempiere.webui.adwindow.ProcessButtonPopup;
+import org.adempiere.webui.adwindow.ToolbarProcessButton;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Column;
@@ -56,6 +60,8 @@ import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
+import org.adempiere.webui.event.ActionEvent;
+import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
@@ -74,10 +80,14 @@ import org.compiere.model.MField;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
 import org.compiere.model.MRefTable;
+import org.compiere.model.MRole;
 import org.compiere.model.MTab;
 import org.compiere.model.MTable;
+import org.compiere.model.MToolBarButton;
+import org.compiere.model.MToolBarButtonRestrict;
 import org.compiere.model.PO;
 import org.compiere.model.SystemIDs;
+import org.compiere.model.X_AD_ToolBarButton;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -110,7 +120,7 @@ import org.zkoss.zul.impl.XulElement;
  * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
  *
  */
-public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements EventListener<Event>, ValueChangeListener,WTableModelListener{
+public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements EventListener<Event>, ValueChangeListener,WTableModelListener,ActionListener{
 
 	/**	Logger			*/
 	private  static CLogger log = CLogger.getCLogger(JPiereMatrixWindow.class);
@@ -138,6 +148,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private Button SaveButton;
 
 	private Button CreateButton;
+
+	private Button ProcessButton;
 
 
 	/**********************************************************************
@@ -213,6 +225,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private MField[]		m_contentFields;
 	private MColumn[]		m_contentColumns;
 	private MMatrixSearch[] m_matrixSearches ;
+	 private ArrayList<ToolbarProcessButton> toolbarProcessButtons = new ArrayList<ToolbarProcessButton>();
 
 	private JPiereMatrixWindowQuickEntry quickEntry = null;
 
@@ -249,7 +262,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private CustomForm window = new CustomForm();
 	private ADWindow adWindow;
 	private ADWindowContent adWindowContent;
-	private IADTabpanel adTabpanel;
+	private ADTabpanel adTabpanel;
 	private GridTab gridTab ;
 	private GridView gridView ;
 	private GridField[] gridFields ;
@@ -332,7 +345,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
 			{
-				adTabpanel =adTabbox.getADTabpanel(i);
+				adTabpanel =(ADTabpanel)adTabbox.getADTabpanel(i);
 			}
 		}
 		if(adTabpanel == null)
@@ -416,6 +429,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 							;
 						}else{
 
+							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
+							int aa = form.getWindowNo();
+							String bbb = editor.getColumnName();
+							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
 							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
 
 							if(editor instanceof WTableDirEditor)
@@ -501,6 +518,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					if(!editMode.equals(EDITMODE_READ))
 						row.appendCellChild(CreateButton);
 				}
+
+				loadToolbarButtons();
+				ProcessButton = new Button(Msg.getMsg(Env.getCtx(), "Process"));
+				ProcessButton.setId("ProcessButton");
+				ProcessButton.addActionListener(this);
+				ProcessButton.setEnabled(false);
+				ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
+				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
+					row.appendCellChild(ProcessButton);
 
 
 		//for space under Button
@@ -602,9 +628,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	{
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 
+		if(searchEditorMap.get(e.getPropertyName()) instanceof WYesNoEditor)
+		{
+			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue().equals("true") ? "Y" : "N");
+		}else{
+			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue()==null ? null : e.getNewValue().toString());
+		}
+
 		SearchButton.setEnabled(true);
 		SaveButton.setEnabled(false);
 		CreateButton.setEnabled(false);
+		ProcessButton.setEnabled(false);
 
 		quickEntry = null;
 
@@ -657,6 +691,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton.setEnabled(true);
 				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(false);
+				ProcessButton.setEnabled(false);
 				matrixGrid.setVisible(false);
 				throw new Exception(message.toString());
 			}
@@ -664,6 +699,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SearchButton.setEnabled(false);
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
+			ProcessButton.setEnabled(true);
 
 			quickEntry = null;
 
@@ -672,21 +708,26 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			Events.sendEvent(Events.ON_CLICK, CreateButton, null);
 
-		}else if (e.getTarget().equals(SearchButton) || e.getName().equals("onComplete")){
+		}else if (e.getTarget().equals(SearchButton) || e.getName().equals("onComplete")){//onCompolete from process dialog
 
 			if(!createView ())
 			{
 				SearchButton.setEnabled(true);
 				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(true);
+				ProcessButton.setEnabled(true);
 				matrixGrid.setVisible(false);
-				throw new Exception(message.toString());
+				if(e.getTarget().equals(SearchButton))
+					throw new Exception(Msg.getMsg(Env.getCtx(), "NotFound"));
+				else
+					return;
 			}
 
 
 			SearchButton.setEnabled(false);
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
+			ProcessButton.setEnabled(true);
 
 		}else if(e.getTarget().equals(SaveButton)){
 
@@ -778,10 +819,52 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			}//for
 
 			AEnv.showWindow(quickEntry);
+
+		}else if(e.getTarget().equals(ProcessButton)){//TODO
+
+			ProcessButtonPopup popup = new ProcessButtonPopup();
+			popup.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "processButtonPopup");
+
+			List<org.zkoss.zul.Button> buttonList = new ArrayList<org.zkoss.zul.Button>();
+			for(ToolbarProcessButton processButton : toolbarProcessButtons) {
+				if (processButton.getButton().isVisible()) {
+					buttonList.add(processButton.getButton());
+				}
+			}
+
+			popup.render(buttonList);
+
+			LayoutUtils.openPopupWindow(ProcessButton, popup, "after_start");
 		}
 
 	}//onEvent()
 
+	private void loadToolbarButtons() {
+		//get extra toolbar process buttons
+        MToolBarButton[] mToolbarButtons = MToolBarButton.getProcessButtonOfTab(gridTab.getAD_Tab_ID(), null);
+        for(MToolBarButton mToolbarButton : mToolbarButtons) {
+        	Boolean access = MRole.getDefault().getProcessAccess(mToolbarButton.getAD_Process_ID());
+        	if (access != null && access.booleanValue()) {
+        		ToolbarProcessButton toolbarProcessButton = new ToolbarProcessButton(mToolbarButton, adTabpanel, this, form.getWindowNo());
+        		toolbarProcessButtons.add(toolbarProcessButton);
+        	}
+        }
+
+        if (toolbarProcessButtons.size() > 0) {
+        	int ids[] = MToolBarButtonRestrict.getProcessButtonOfTab(Env.getCtx(), Env.getAD_Role_ID(Env.getCtx()), gridTab.getAD_Tab_ID(), null);
+        	if (ids != null && ids.length > 0) {
+        		for(int id : ids) {
+        			X_AD_ToolBarButton tbt = new X_AD_ToolBarButton(Env.getCtx(), id, null);
+        			for(ToolbarProcessButton btn : toolbarProcessButtons) {
+        				if (tbt.getComponentName().equals(btn.getColumnName())) {
+        					toolbarProcessButtons.remove(btn);
+        					break;
+        				}
+        			}
+        		}
+        	}
+        }
+	}
 
 	Auxhead auxhead ;
 
@@ -892,6 +975,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'Y'");
 					else
 						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'N'");
+
+				}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.List){
+
+					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
 
 				}else{
 
@@ -1447,7 +1534,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 	String sum = Msg.getMsg(Env.getCtx(), "Sum");
-	private void updateColumn()//TODO
+	private void updateColumn()
 	{
 		org.zkoss.zul.Columns columns = matrixGrid.getColumns();
 		List<Component>columnList =  columns.getChildren();
@@ -1560,5 +1647,43 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		return editMode;
 
 	}
+
+	public void actionPerformed(final ActionEvent event)
+	{
+		if(dirtyModel.size() > 0 )
+		{
+			boolean isOK = saveData();
+
+			if(isOK)
+			{
+				dirtyModel.clear();
+
+			}else{
+				;//Nothing to do
+			}
+		}
+
+		ToolbarProcessButton button = (ToolbarProcessButton)event.getSource();
+;
+
+		JPiereMatrixWindowProcessModelDialog dialog = new JPiereMatrixWindowProcessModelDialog(form.getWindowNo(),button.getProcess_ID(), 0, 0, false, this);
+
+		if (dialog.isValid())
+		{
+			//dialog.setWidth("500px");
+			dialog.setBorder("normal");
+			form.getParent().appendChild(dialog);
+			//showBusyMask(dialog);
+			LayoutUtils.openOverlappedWindow(form.getParent(), dialog, "middle_center");
+			dialog.focus();
+		}
+		else
+		{
+			//onRefresh(true, false);
+		}
+
+	}
+
+
 
 }
