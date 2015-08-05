@@ -30,7 +30,7 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150804L;
+	private static final long serialVersionUID = 20150805L;
 
     /** Standard Constructor */
     public X_JP_MatrixSearch (Properties ctx, int JP_MatrixSearch_ID, String trxName)
@@ -40,7 +40,7 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
         {
 			setAD_Field_ID (0);
 			setColumnSpan (0);
-// 1
+// 2
 			setIsMandatory (true);
 // Y
 			setJP_MatrixSearch_ID (0);

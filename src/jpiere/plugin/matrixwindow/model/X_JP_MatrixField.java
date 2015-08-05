@@ -30,7 +30,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150804L;
+	private static final long serialVersionUID = 20150805L;
 
     /** Standard Constructor */
     public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName)
@@ -39,6 +39,10 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
       /** if (JP_MatrixField_ID == 0)
         {
 			setAD_Field_ID (0);
+			setFieldLength (0);
+// 0
+			setIsSummarized (false);
+// N
 			setJP_MatrixField_ID (0);
 			setJP_MatrixWindow_ID (0);
 			setSeqNo (0);
@@ -137,6 +141,30 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set Calculate Sum (Σ).
+		@param IsSummarized 
+		Calculate the Sum of numeric content or length
+	  */
+	public void setIsSummarized (boolean IsSummarized)
+	{
+		set_Value (COLUMNNAME_IsSummarized, Boolean.valueOf(IsSummarized));
+	}
+
+	/** Get Calculate Sum (Σ).
+		@return Calculate the Sum of numeric content or length
+	  */
+	public boolean isSummarized () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsSummarized);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set JPiere Matrix Field.

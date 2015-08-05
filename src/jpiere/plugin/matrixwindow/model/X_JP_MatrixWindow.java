@@ -31,7 +31,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150804L;
+	private static final long serialVersionUID = 20150805L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)

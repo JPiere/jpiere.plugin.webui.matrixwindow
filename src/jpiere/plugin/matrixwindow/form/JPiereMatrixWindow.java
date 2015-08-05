@@ -14,8 +14,10 @@
 package jpiere.plugin.matrixwindow.form;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -184,6 +186,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private HashMap<Integer,Integer> columnLengthMap = new HashMap<Integer,Integer> ();
 	//Map of All Column GridField <Column order num,,GridField>
 	private HashMap<Integer,GridField> columnGridFieldMap = new HashMap<Integer,GridField> ();
+	//Map of All Column GridField <Column order num,,GridField>
+	private HashMap<Integer,Boolean> columnSummarizedMap = new HashMap<Integer,Boolean> ();
 
 
 	//Map of All Fix Column(Item)  <Fix Column order num, Column name>. Specification:Fix column that is identifier of row is one column only
@@ -856,6 +860,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			matrixGrid.appendChild(clms);
 		}
 
+		updateColumn();
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form,this);
 		renderer.setcColumnsSize(columnNameMap.size());
@@ -1375,11 +1380,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(int i = 0; i < columnNameMap.size(); i++)
 		{
 			col = new Column(columnNameMap.get(i));
-			col.setWidth(columnLengthMap.get(i)+"px");
-			col.setDraggable("false");
-//			if(i != 0)
-//				col.setHflex("min");
 
+			if(columnLengthMap.get(i)==0)
+			{
+				col.setHflex("min");
+			}else{
+				col.setWidth(columnLengthMap.get(i)+"px");
+			}
+			col.setDraggable("false");
 			clms.appendChild(col);
 		}
 
@@ -1402,12 +1410,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		columnNameMap.clear();
 		columnLengthMap.clear();
 		columnGridFieldMap.clear();
+		columnSummarizedMap.clear();
 
 		//Fix Column
 		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
 		{
 			columnNameMap.put(c, Msg.getElement(Env.getCtx(), fixItem.get(i)));
 			columnLengthMap.put(c,m_matrixWindow.getFieldLength());
+			columnSummarizedMap.put(c, false);
 			for(int j = 0; j < gridFields.length; j++)
 			{
 				if(fixItemFieldIDMap.get(i).intValue() == gridFields[j].getAD_Field_ID())
@@ -1423,6 +1433,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
 				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
+				columnSummarizedMap.put(c, m_matrixFields[j].isSummarized());
 				for(int k = 0; k < gridFields.length; k++)
 				{
 					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())
@@ -1433,6 +1444,81 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}//i
 
 		return;
+	}
+
+	String sum = Msg.getMsg(Env.getCtx(), "Sum");
+	private void updateColumn()//TODO
+	{
+		org.zkoss.zul.Columns columns = matrixGrid.getColumns();
+		List<Component>columnList =  columns.getChildren();
+
+		BigDecimal[] totalValues = new BigDecimal[columnList.size()];
+		for(int i = 0 ; i < totalValues.length; i++)
+			totalValues[i] = new BigDecimal(0);
+
+
+		TreeMap<Integer,Object> columnDataMap = null;
+		int columnDisplayType = 0;
+		Object valuObj = null;
+		for(Object rowKey :rowKeys)//get row
+		{
+			columnDataMap = viewModel.get(rowKey);
+			for(int i = 0; i < totalValues.length; i++)//get columns
+			{
+				if(i==0)//Fix Column
+				{
+					;//Nothing to do;
+				}else{
+
+					columnDisplayType = columnGridFieldMap.get(i).getDisplayType();
+
+					if(columnDisplayType == DisplayType.Number || columnDisplayType == DisplayType.Quantity
+							|| columnDisplayType == DisplayType.Amount || columnDisplayType == DisplayType.CostPrice)
+					{
+						valuObj = columnDataMap.get(i);
+						if(valuObj!=null)
+							totalValues[i] = totalValues[i].add((BigDecimal)valuObj);
+					}else if(columnDisplayType == DisplayType.Integer){
+						valuObj = columnDataMap.get(i);
+						if(valuObj!=null)
+							totalValues[i] = totalValues[i].add(new BigDecimal(valuObj.toString()));
+					}
+					valuObj=null;
+				}//if
+			}//for
+		}//for
+
+
+
+		int c = 0;//Column counter
+		columnDisplayType = 0;
+		for(Component column : columnList)
+		{
+			if(c == 0)//Fix Column
+			{
+				c++;
+				continue;
+			}
+
+			columnDisplayType = columnGridFieldMap.get(c).getDisplayType();
+
+			Column col= (Column)column;
+			if(columnDisplayType == DisplayType.Number || columnDisplayType == DisplayType.Quantity
+					|| columnDisplayType == DisplayType.Amount || columnDisplayType == DisplayType.Integer
+					|| columnDisplayType == DisplayType.CostPrice)
+			{
+				if(columnSummarizedMap.get(c).booleanValue())
+				{
+					DecimalFormat format = DisplayType.getNumberFormat(columnDisplayType);
+					col.setLabel(columnNameMap.get(c) + "(" + sum + ":" + format.format(totalValues[c]) + ")");
+				}
+			}
+			c++;
+		}//for
+
+
+		return;
+
 	}
 
 
@@ -1451,6 +1537,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					{
 						po.saveEx(trxName);
 					}
+
+					updateColumn();
 
 				}
 			});
