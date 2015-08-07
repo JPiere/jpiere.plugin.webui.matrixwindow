@@ -430,8 +430,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						}else{
 
 							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
-							int aa = form.getWindowNo();
-							String bbb = editor.getColumnName();
 							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
 							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
 
@@ -820,7 +818,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			AEnv.showWindow(quickEntry);
 
-		}else if(e.getTarget().equals(ProcessButton)){//TODO
+		}else if(e.getTarget().equals(ProcessButton)){
 
 			ProcessButtonPopup popup = new ProcessButtonPopup();
 			popup.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "processButtonPopup");
