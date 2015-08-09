@@ -108,6 +108,7 @@ import org.zkoss.zul.Center;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Groupbox;
 import org.zkoss.zul.ListModel;
+import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.North;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.impl.XulElement;
@@ -468,7 +469,27 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
 						actualxpos = actualxpos + field.getColumnSpan();
 
-						WEditorPopupMenu popupMenu = editor.getPopupMenu();
+						//Popup Menu
+						WEditorPopupMenu  popupMenu = editor.getPopupMenu();
+						List<Component> listcomp = popupMenu.getChildren();
+						Menuitem menuItem = null;
+						String image = null;
+						for(Component comp : listcomp)
+						{
+							if(comp instanceof Menuitem)
+							{
+								menuItem = (Menuitem)comp;
+								image = menuItem.getImage();
+								if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+										|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+								{
+									menuItem.setVisible(true);
+								}else{
+									menuItem.setVisible(false);
+								}
+							}
+						}//for
+
 			            if (popupMenu != null)
 			            {
 			            	popupMenu.addMenuListener((ContextMenuListener)editor);
