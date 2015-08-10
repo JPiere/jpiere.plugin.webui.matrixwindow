@@ -31,6 +31,7 @@ import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
+import org.adempiere.webui.editor.WPaymentEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
@@ -678,7 +679,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			{
             	continue;
 
-			}else if(editor instanceof WSearchEditor || editor instanceof WTableDirEditor){
+			}else if(editor instanceof WSearchEditor || editor instanceof WTableDirEditor || editor instanceof WPaymentEditor){
 
             	string =getDisplayText(editor.getValue(), editor.getGridField(), -1, false);
 

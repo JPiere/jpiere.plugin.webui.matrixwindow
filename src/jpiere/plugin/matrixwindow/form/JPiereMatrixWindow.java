@@ -756,11 +756,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 				dirtyModel.clear();
 
-//				if(!createView ())
-//				{
-//					matrixGrid.setVisible(false);
-//					throw new Exception(message.toString());
-//				}
+				if(!createView ())
+				{
+					matrixGrid.setVisible(false);
+					throw new Exception(message.toString());
+				}
 
 			}else{
 				;//Nothing to do
