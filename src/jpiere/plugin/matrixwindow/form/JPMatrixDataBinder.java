@@ -17,12 +17,15 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 import org.adempiere.webui.editor.WEditor;
+import org.adempiere.webui.editor.WTableDirEditor;
+import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
+import org.compiere.util.Env;
 import org.zkoss.zul.ListModelMap;
 
 /**
@@ -104,6 +107,19 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
         	if(gridField != null)
         	{
+        		//set context
+        		if(newValue != null && editor instanceof WYesNoEditor)
+        			Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), newValue.equals("true") ? "Y" : "N");
+        		else
+        			Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), newValue == null? null :newValue.toString());
+
+        		gridField.setValue(newValue,true);
+
+        		//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
+        		if(editor instanceof WTableDirEditor)
+        			((WTableDirEditor)editor).getLookup().refresh();
+
+
         		if(!gridField.isEditable(true))
         		{
 //            		if (logger.isLoggable(Level.CONFIG)) logger.config("(" + gridTab.toString() + ") " + e.getPropertyName());

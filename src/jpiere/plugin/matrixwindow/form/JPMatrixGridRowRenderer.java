@@ -34,6 +34,7 @@ import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WPaymentEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
+import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
@@ -772,14 +773,14 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		//skip selection and indicator column
 		for (int i = 0; i < columnEditorMap.size(); i++) {
 
-			GridField gridFeld = columnGridFieldMap.get(i);
+			GridField gridField = columnGridFieldMap.get(i);
 
-			if ((!gridFeld.isDisplayedGrid()) || gridFeld.isToolbarOnlyButton()) {
+			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton()) {
 				continue;
 			}
 
-			if (fieldEditorMap.get(gridFeld) == null)
-				fieldEditorMap.put(gridFeld, WebEditorFactory.getEditor(gridFeld, true));
+			if (fieldEditorMap.get(gridField) == null)
+				fieldEditorMap.put(gridField, WebEditorFactory.getEditor(gridField, true));
 
 			org.zkoss.zul.Column column = (org.zkoss.zul.Column) columns.getChildren().get(i);
 			if (column.isVisible()) {
@@ -792,17 +793,31 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
 				editor.addValueChangeListener(dataBinder);
 
+				//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
+				if(editor instanceof WTableDirEditor)
+        			((WTableDirEditor)editor).getLookup().refresh();
+
+				//set context
+				if(rowValueMap.get(i)!=null)
+				{
+					if(editor instanceof WYesNoEditor)
+						Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), rowValueMap.get(i).equals("true") ? "Y" : "N");
+					else
+						Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), rowValueMap.get(i).toString());
+				}
+
+
 				if (div.getChildren().isEmpty() || !(div.getChildren().get(0) instanceof Button))
 					div.getChildren().clear();
 				else if (!div.getChildren().isEmpty()) {
 					div.getChildren().get(0).setVisible(true);//Button
 				}
 
-				Properties ctx = gridFeld.getVO().ctx;
+				Properties ctx = gridField.getVO().ctx;
 
 				if(getRawData(y,i) == null)
 	        	{
-	        		if (!gridFeld.isDisplayed(ctx, true)){
+	        		if (!gridField.isDisplayed(ctx, true)){
 						div.removeChild(editor.getComponent());
 					}
 	        		continue;
@@ -819,7 +834,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 
 	            //check context
-				if (!gridFeld.isDisplayed(ctx, true)){
+				if (!gridField.isDisplayed(ctx, true)){
 					div.removeChild(editor.getComponent());
 				}
 
