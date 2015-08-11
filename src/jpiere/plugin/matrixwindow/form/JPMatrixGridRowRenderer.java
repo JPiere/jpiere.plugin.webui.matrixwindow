@@ -13,6 +13,10 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +38,6 @@ import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WPaymentEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
-import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
@@ -793,23 +796,21 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
 				editor.addValueChangeListener(dataBinder);
 
+				updateContext(gridField, rowValueMap.get(i)) ;
+
 				//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
 				if(editor instanceof WTableDirEditor)
-        			((WTableDirEditor)editor).getLookup().refresh();
-
-				//set context
-				if(rowValueMap.get(i)!=null)
 				{
-					if(editor instanceof WYesNoEditor)
-						Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), rowValueMap.get(i).equals("true") ? "Y" : "N");
-					else
-						Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), rowValueMap.get(i).toString());
+        			((WTableDirEditor)editor).getLookup().refresh();
+				}else if(editor instanceof WSearchEditor){
+					gridField.setValue(rowValueMap.get(i),true);
 				}
 
 
 				if (div.getChildren().isEmpty() || !(div.getChildren().get(0) instanceof Button))
+				{
 					div.getChildren().clear();
-				else if (!div.getChildren().isEmpty()) {
+				}else if (!div.getChildren().isEmpty()) {
 					div.getChildren().get(0).setVisible(true);//Button
 				}
 
@@ -945,5 +946,52 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	public void setColumnGridFieldMap(HashMap<Integer,GridField> columnGridFieldMap)
 	{
 		this.columnGridFieldMap = columnGridFieldMap;
+	}
+
+	private void updateContext(GridField gridField,Object value) {
+
+
+		if (gridField.getDisplayType() == DisplayType.Text
+			|| gridField.getDisplayType() == DisplayType.Memo
+			|| gridField.getDisplayType() == DisplayType.TextLong
+			|| gridField.getDisplayType() == DisplayType.Binary
+			|| gridField.getDisplayType() == DisplayType.RowID
+			|| isEncrypted(gridField))
+			;	//	ignore
+		else if (value instanceof Boolean)
+		{
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(),
+					value==null ? null : (((Boolean)value) ? "Y" : "N"));
+		}
+		else if (value instanceof Timestamp)
+		{
+			String stringValue = null;
+			if (value != null && !value.toString().equals("")) {
+				Calendar c1 = Calendar.getInstance();
+				c1.setTime((Date) value);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				stringValue = sdf.format(c1.getTime());
+			}
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), stringValue);
+			// KTU - Fix Thai Date
+		}
+		else
+		{
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), value==null ? null : value.toString());
+		}
+	}
+
+	/**
+	 * 	Is Encrypted Field (display) or obscured
+	 *	@return encrypted field
+	 */
+	public boolean isEncrypted(GridField gridField)
+	{
+		if (gridField.isEncryptedField())
+			return true;
+		String ob = gridField.getObscureType();
+		if (ob != null && ob.length() > 0)
+			return true;
+		return gridField.getColumnName().equals("Password");
 	}
 }

@@ -13,18 +13,22 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.TreeMap;
 
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
-import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.zkoss.zul.ListModelMap;
 
@@ -107,11 +111,8 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
         	if(gridField != null)
         	{
-        		//set context
-        		if(newValue != null && editor instanceof WYesNoEditor)
-        			Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), newValue.equals("true") ? "Y" : "N");
-        		else
-        			Env.setContext(Env.getCtx(), gridField.getGridTab().getWindowNo(),gridField.getGridTab().getTabNo(), gridField.getColumnName(), newValue == null? null :newValue.toString());
+
+        		updateContext(gridField, newValue);
 
         		gridField.setValue(newValue,true);
 
@@ -141,5 +142,52 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
     } // ValueChange
 
+
+	private void updateContext(GridField gridField,Object value) {
+
+
+		if (gridField.getDisplayType() == DisplayType.Text
+			|| gridField.getDisplayType() == DisplayType.Memo
+			|| gridField.getDisplayType() == DisplayType.TextLong
+			|| gridField.getDisplayType() == DisplayType.Binary
+			|| gridField.getDisplayType() == DisplayType.RowID
+			|| isEncrypted(gridField))
+			;	//	ignore
+		else if (value instanceof Boolean)
+		{
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(),
+					value==null ? null : (((Boolean)value) ? "Y" : "N"));
+		}
+		else if (value instanceof Timestamp)
+		{
+			String stringValue = null;
+			if (value != null && !value.toString().equals("")) {
+				Calendar c1 = Calendar.getInstance();
+				c1.setTime((Date) value);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				stringValue = sdf.format(c1.getTime());
+			}
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), stringValue);
+			// KTU - Fix Thai Date
+		}
+		else
+		{
+			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), value==null ? null : value.toString());
+		}
+	}
+
+	/**
+	 * 	Is Encrypted Field (display) or obscured
+	 *	@return encrypted field
+	 */
+	public boolean isEncrypted(GridField gridField)
+	{
+		if (gridField.isEncryptedField())
+			return true;
+		String ob = gridField.getObscureType();
+		if (ob != null && ob.length() > 0)
+			return true;
+		return gridField.getColumnName().equals("Password");
+	}
 
 }
