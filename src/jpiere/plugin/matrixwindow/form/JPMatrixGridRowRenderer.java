@@ -13,10 +13,6 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,12 +31,14 @@ import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
+import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WPaymentEditor;
 import org.adempiere.webui.editor.WSearchEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
+import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
@@ -60,11 +58,13 @@ import org.zkoss.zul.Decimalbox;
 import org.zkoss.zul.Grid;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelMap;
+import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.RendererCtrl;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
 import org.zkoss.zul.Textbox;
+import org.zkoss.zul.impl.XulElement;
 
 
 /**
@@ -796,14 +796,15 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				editor.getComponent().addEventListener(Events.ON_OK, this);//OnEvent()
 				editor.addValueChangeListener(dataBinder);
 
-				updateContext(gridField, rowValueMap.get(i)) ;
+				gridField.setValue(rowValueMap.get(i),false);
 
 				//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
 				if(editor instanceof WTableDirEditor)
 				{
         			((WTableDirEditor)editor).getLookup().refresh();
 				}else if(editor instanceof WSearchEditor){
-					gridField.setValue(rowValueMap.get(i),true);
+//					((WSearchEditor)editor)
+					;
 				}
 
 
@@ -838,6 +839,36 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				if (!gridField.isDisplayed(ctx, true)){
 					div.removeChild(editor.getComponent());
 				}
+
+				//Pop up menu
+				WEditorPopupMenu popupMenu = editor.getPopupMenu();
+	            if (popupMenu != null)
+	            {
+	            	popupMenu.addMenuListener((ContextMenuListener)editor);
+	            	div.appendChild(popupMenu);
+	            	popupMenu.addContextElement((XulElement) editor.getComponent());
+
+
+					List<Component> listcomp = popupMenu.getChildren();
+					Menuitem menuItem = null;
+					String image = null;
+					for(Component comp : listcomp)
+					{
+						if(comp instanceof Menuitem)
+						{
+							menuItem = (Menuitem)comp;
+							image = menuItem.getImage();
+							if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+									|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+							{
+								menuItem.setVisible(true);
+							}else{
+								menuItem.setVisible(false);
+							}
+						}
+					}//for
+	            }
+
 
 //				editor.setReadWrite(gridFeld.isEditableGrid(true));
 				editor.setReadWrite(true);
@@ -948,50 +979,4 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		this.columnGridFieldMap = columnGridFieldMap;
 	}
 
-	private void updateContext(GridField gridField,Object value) {
-
-
-		if (gridField.getDisplayType() == DisplayType.Text
-			|| gridField.getDisplayType() == DisplayType.Memo
-			|| gridField.getDisplayType() == DisplayType.TextLong
-			|| gridField.getDisplayType() == DisplayType.Binary
-			|| gridField.getDisplayType() == DisplayType.RowID
-			|| isEncrypted(gridField))
-			;	//	ignore
-		else if (value instanceof Boolean)
-		{
-			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(),
-					value==null ? null : (((Boolean)value) ? "Y" : "N"));
-		}
-		else if (value instanceof Timestamp)
-		{
-			String stringValue = null;
-			if (value != null && !value.toString().equals("")) {
-				Calendar c1 = Calendar.getInstance();
-				c1.setTime((Date) value);
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				stringValue = sdf.format(c1.getTime());
-			}
-			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), stringValue);
-			// KTU - Fix Thai Date
-		}
-		else
-		{
-			Env.setContext(Env.getCtx(), gridField.getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getColumnName(), value==null ? null : value.toString());
-		}
-	}
-
-	/**
-	 * 	Is Encrypted Field (display) or obscured
-	 *	@return encrypted field
-	 */
-	public boolean isEncrypted(GridField gridField)
-	{
-		if (gridField.isEncryptedField())
-			return true;
-		String ob = gridField.getObscureType();
-		if (ob != null && ob.length() > 0)
-			return true;
-		return gridField.getColumnName().equals("Password");
-	}
 }
