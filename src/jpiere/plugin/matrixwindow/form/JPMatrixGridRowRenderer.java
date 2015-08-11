@@ -42,6 +42,7 @@ import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
+import org.compiere.model.MLookup;
 import org.compiere.model.PO;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -798,13 +799,29 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				gridField.setValue(rowValueMap.get(i),false);
 
-				//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
+
 				if(editor instanceof WTableDirEditor)
 				{
+					//Need refresh
         			((WTableDirEditor)editor).getLookup().refresh();
+
 				}else if(editor instanceof WSearchEditor){
-//					((WSearchEditor)editor)
-					;
+
+					//Dynamic validation of  WsearchEditor can not parse with TabnNo, Please check  WsearchEditor.getWhereClause() method.
+					//Matrix window need to parse with TabNo Info.
+					//So,set Dynamic validation  to VFormat for evacuation,and Lookupinfo modify directly.
+					if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
+					{
+						String validated = Env.parseContext(Env.getCtx(), gridField.getGridTab().getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+					}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
+
+						gridField.setVFormat(gridField.getLookup().getValidation());
+						String validated = Env.parseContext(Env.getCtx(), gridField.getGridTab().getWindowNo(), gridField.getGridTab().getTabNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+					}
 				}
 
 
