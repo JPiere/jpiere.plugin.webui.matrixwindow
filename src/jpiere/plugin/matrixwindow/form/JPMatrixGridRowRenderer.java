@@ -994,6 +994,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	public void setColumnGridFieldMap(HashMap<Integer,GridField> columnGridFieldMap)
 	{
 		this.columnGridFieldMap = columnGridFieldMap;
+		dataBinder.setColumnGridFieldMap(columnGridFieldMap);
+		dataBinder.setColumnEditorMap(columnEditorMap);
 	}
 
 }

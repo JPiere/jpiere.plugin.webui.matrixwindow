@@ -47,6 +47,10 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
 	private HashMap<Integer,PO> 	dirtyModel;
 
+	private HashMap<Integer,GridField> columnGridFieldMap;
+
+	private HashMap<Integer,WEditor>   columnEditorMap;
+
 	private CustomForm form;
 
 	/**
@@ -62,6 +66,18 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 		this.dirtyModel = dirtyModel;
 		this.form = form;
 	}
+
+	public void setColumnGridFieldMap(HashMap<Integer,GridField> columnGridFieldMap)
+	{
+		this.columnGridFieldMap = columnGridFieldMap;
+	}
+
+	public void setColumnEditorMap(HashMap<Integer,WEditor>  columnEditorMap)
+	{
+		this.columnEditorMap = columnEditorMap;
+	}
+
+
 
 	/**
 	 * @param e
@@ -102,6 +118,36 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
 
         	GridField gridField = editor.getGridField();
+
+
+        	/**Callout memo start
+
+        	int xTest = 1;
+        	Object valueTest = 9999;
+        	//for display(Editor):Editorに数値を正しく表示するために設定する
+        	WEditor editorTest = columnEditorMap.get(xTest);
+        	editorTest.setValue(valueTest);
+
+        	//for display(text):Editorが外れた時に正しく表示するために設定する
+        	viewModelRowData.put(xTest,new BigDecimal(valueTest.toString()));
+
+        	//for update context:Contextに正しく表示するためにGridGieldに値を設定する
+        	columnGridFieldMap.get(xTest).setValue(valueTest, false);
+
+        	int aaaa = columnGridFieldMap.get(1).getGridTab().getTabNo();
+        	int bbbb = columnGridFieldMap.get(5).getGridTab().getTabNo();
+        	int cccc = columnGridFieldMap.get(10).getGridTab().getTabNo();
+
+        	//for save：保存するためにdirtyModelに値を設定する
+        	Object poTest_ID = conversionTableRowData.get(xTest);
+        	PO poTest = tableModel.get(poTest_ID);
+        	poTest.set_ValueNoCheck(editorTest.getColumnName(), new BigDecimal(valueTest.toString()));
+        	dirtyModel.put((Integer)poTest_ID, poTest);
+
+        	//Matrix WindowのCalloutに必要な情報:x, columnEditorMap, columnGridFieldMap,viewModelRowData,conversionTableRowData,tableModel,dirtyModel
+
+        	Callout memo finish***/
+
 
         	if(gridField != null)
         	{
