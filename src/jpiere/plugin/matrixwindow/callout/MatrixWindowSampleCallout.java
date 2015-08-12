@@ -13,53 +13,79 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.callout;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.TreeMap;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
+import jpiere.plugin.matrixwindow.form.JPMatrixDataBinder;
 
-import org.adempiere.webui.editor.WEditor;
 import org.compiere.model.GridField;
-import org.compiere.model.PO;
+import org.compiere.util.DB;
 
 public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 
 	@Override
-	public String start(Properties ctx, int colNumX, HashMap<Integer, WEditor> columnEditorMap, HashMap<Integer, GridField> columnGridFieldMap,
-			TreeMap<Integer, Object> viewModelRowData, TreeMap<Integer, Object> conversionTableRowData, HashMap<Integer, PO> tableModel, HashMap<Integer, PO> dirtyModel)
+	public String start(JPMatrixDataBinder dataBinder, int x, int y , Object newValue, Object oldValue)
 	{
-    	int xTest = 1;
-    	Object valueTest = 777;
-    	//Step1:Update Editor Value for display data.
-    	WEditor editorTest = columnEditorMap.get(xTest);
-    	editorTest.setValue(valueTest);
 
-    	//Step2:Update ViewModel data for display data.
-    	viewModelRowData.put(xTest,new BigDecimal(valueTest.toString()));
+		GridField gridField = dataBinder.getColumnGridFieldMap().get(x);
+		int tabNo = gridField.getGridTab().getTabNo();
 
-    	//Step3:Update Context : GridField.setValue method can update context
-    	columnGridFieldMap.get(xTest).setValue(valueTest, false);
+		for(int i = 0; i < dataBinder.getColumnGridFieldMap().size(); i++)
+		{
+			gridField = dataBinder.getColumnGridFieldMap().get(i);
+			if(gridField.getGridTab().getTabNo() == tabNo && gridField.getColumnName().equals("C_BPartner_Location_ID"))
+			{
 
-    	//Step4:Update tableModel for consistency
-    	Object poTest_ID = conversionTableRowData.get(xTest);
-    	PO poTest = tableModel.get(poTest_ID);
-    	poTest.set_ValueNoCheck(editorTest.getColumnName(), new BigDecimal(valueTest.toString()));
+				Integer C_BPartner_ID = (Integer)newValue;
+				if (C_BPartner_ID == null || C_BPartner_ID.intValue() == 0)
+					return "";
+				String sql = "SELECT p.AD_Language,p.C_PaymentTerm_ID,"
+					+ " COALESCE(p.M_PriceList_ID,g.M_PriceList_ID) AS M_PriceList_ID, p.PaymentRule,p.POReference,"
+					+ " p.SO_Description,p.IsDiscountPrinted,"
+					+ " p.InvoiceRule,p.DeliveryRule,p.FreightCostRule,DeliveryViaRule,"
+					+ " p.SO_CreditLimit, p.SO_CreditLimit-p.SO_CreditUsed AS CreditAvailable,"
+					+ " lship.C_BPartner_Location_ID,c.AD_User_ID,"
+					+ " COALESCE(p.PO_PriceList_ID,g.PO_PriceList_ID) AS PO_PriceList_ID, p.PaymentRulePO,p.PO_PaymentTerm_ID,"
+					+ " lbill.C_BPartner_Location_ID AS Bill_Location_ID, p.SOCreditStatus, "
+					+ " p.SalesRep_ID "
+					+ "FROM C_BPartner p"
+					+ " INNER JOIN C_BP_Group g ON (p.C_BP_Group_ID=g.C_BP_Group_ID)"
+					+ " LEFT OUTER JOIN C_BPartner_Location lbill ON (p.C_BPartner_ID=lbill.C_BPartner_ID AND lbill.IsBillTo='Y' AND lbill.IsActive='Y')"
+					+ " LEFT OUTER JOIN C_BPartner_Location lship ON (p.C_BPartner_ID=lship.C_BPartner_ID AND lship.IsShipTo='Y' AND lship.IsActive='Y')"
+					+ " LEFT OUTER JOIN AD_User c ON (p.C_BPartner_ID=c.C_BPartner_ID AND c.IsActive='Y') "
+					+ "WHERE p.C_BPartner_ID=? AND p.IsActive='Y'";		//	#1
 
-    	//Sstep5:Put map of dirtyModel for save data.
-    	dirtyModel.put((Integer)poTest_ID, poTest);
+				PreparedStatement pstmt = null;
+				ResultSet rs = null;
+				try
+				{
 
-		//Hint : you can judge whether same record or not.
-		//If same record,TabNo that get from GridField is same.
-    	int tabNo = columnGridFieldMap.get(1).getGridTab().getTabNo();
+					pstmt = DB.prepareStatement(sql, null);
+					pstmt.setInt(1, C_BPartner_ID.intValue());
+					rs = pstmt.executeQuery();
+					if (rs.next())
+					{
+						Integer bill_Location_ID = rs.getInt("Bill_Location_ID");
+						dataBinder.setValue(i, y, bill_Location_ID);
 
-    	//If same record,conversionTableRowData is same data.
-    	 Object poTest_ID1 = conversionTableRowData.get(xTest);
-    	 Object poTest_ID2 = conversionTableRowData.get(xTest+1);
-    	 Object poTest_ID3 = conversionTableRowData.get(xTest+5);
-    	 Object poTest_ID4 = conversionTableRowData.get(xTest+6);
-		return null;
+					}
+
+
+				}catch (SQLException e){
+
+					return e.getLocalizedMessage();
+				}
+				finally
+				{
+					DB.close(rs, pstmt);
+					rs = null; pstmt = null;
+				}
+			}//if
+		}//for
+
+		return "";
 	}
 
 }

@@ -14,8 +14,13 @@
 package jpiere.plugin.matrixwindow.form;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
+import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
+import jpiere.plugin.matrixwindow.base.IMatrixWindowCalloutFactory;
+
+import org.adempiere.base.Service;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
@@ -68,14 +73,44 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 		this.form = form;
 	}
 
+	public ListModelMap<Object, Object>  getViewModel()
+	{
+		return viewModel;
+	}
+
+	public  ListModelMap<Object, Object>  getConvetionTable()
+	{
+		return convetionTable;
+	}
+
+	public HashMap<Integer,PO> 	getTableModel()
+	{
+		return tableModel;
+	}
+
+	public HashMap<Integer,PO> getDirtyModel()
+	{
+		return dirtyModel;
+	}
+
 	public void setColumnGridFieldMap(HashMap<Integer,GridField> columnGridFieldMap)
 	{
 		this.columnGridFieldMap = columnGridFieldMap;
 	}
 
+	public HashMap<Integer,GridField> getColumnGridFieldMap()
+	{
+		return columnGridFieldMap;
+	}
+
 	public void setColumnEditorMap(HashMap<Integer,WEditor>  columnEditorMap)
 	{
 		this.columnEditorMap = columnEditorMap;
+	}
+
+	public HashMap<Integer,WEditor>  getColumnEditorMap()
+	{
+		return columnEditorMap;
 	}
 
 
@@ -91,44 +126,84 @@ public class JPMatrixDataBinder implements ValueChangeListener {
         Object source = e.getSource();
         if (source instanceof WEditor)
         {
-        	//Get Row(Y) and Column(X) info
+        	//Step1:Get Row(Y) and Column(X) info
         	WEditor editor = (WEditor) source;
         	String[] yx = editor.getComponent().getId().split("_");
             	int y =Integer.valueOf(yx[0]);
             	int x =Integer.valueOf(yx[1]);
 
-            /** update ViewModel that is used JPMatrixGridRowRenderer.editRow() method**/
+            //Step2:Update ViewModel data for display data.Please refer to JPMatrixGridRowRenderer.editRow() method.
         	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
         	@SuppressWarnings("unchecked")
 			TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
+        	Object oldValue = viewModelRowData.get(x);
         	viewModelRowData.put(x, newValue);
 
-        	//Get Po's ID form convetionTable
-        	ListModelMap.Entry<Object, Object>  conversionTableRow = convetionTable.getElementAt(y);
+          	//Step3:Update Context : GridField.setValue method can update context
+        	editor.getGridField().setValue(newValue, false);
 
+        	//Step4:Update tableModel for consistency.Get Po's ID form convetionTable
+           	ListModelMap.Entry<Object, Object>  conversionTableRow = convetionTable.getElementAt(y);
         	@SuppressWarnings("unchecked")
-			TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
+    		TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
         	Object PO_ID = conversionTableRowData.get(x);
-
-        	//Update Table Model
         	PO po = tableModel.get(PO_ID);
         	po.set_ValueNoCheck(editor.getColumnName(), newValue);
 
-        	//Add DirtyModel for Save.
+        	//Sstep5:Put map of dirtyModel for save data.
         	dirtyModel.put((Integer)PO_ID, po);
 
+        	//Callout
+    		List<IMatrixWindowCalloutFactory> factories = Service.locator().list(IMatrixWindowCalloutFactory.class).getServices();
+    		if (factories != null)
+    		{
+    			String errorMessage = null;
+    			for(IMatrixWindowCalloutFactory factory : factories)
+    			{
+    				IMatrixWindowCallout callout = factory.getCallout(po.get_TableName(), editor.getColumnName());
+    				if(callout != null)
+    				{
+    					errorMessage =callout.start(this, x, y, newValue, oldValue);
+    					if(errorMessage != null && !errorMessage.equals(""))
+    					{
+    						;//TODO Error;
+    					}
 
-        	//Update Context
-        	GridField gridField = editor.getGridField();
-    		gridField.setValue(newValue,false);
+    				}
 
+    			}//for
 
-    		/*Test for Matrix Window Callout*/
-//    		MatrixWindowSampleCallout test = new MatrixWindowSampleCallout();
-//    		test.start(Env.getCtx(), x, columnEditorMap, columnGridFieldMap, viewModelRowData, conversionTableRowData, tableModel, dirtyModel);
+    		}//if (factories != null)
 
         }//if (source instanceof WEditor)
 
     } // ValueChange
+
+	public void setValue(int x, int y, Object newValue)
+	{
+    	//Step1:Update Editor Value for display data.
+    	WEditor editor = columnEditorMap.get(x);
+    	editor.setValue(newValue);
+
+    	//Step2:Update ViewModel data for display data.Please refer to JPMatrixGridRowRenderer.editRow() method.
+       	ListModelMap.Entry<Object, Object>  viewModelRow = viewModel.getElementAt(y);
+    	@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object> viewModelRowData = (TreeMap<Integer,Object>)viewModelRow.getValue();
+    	viewModelRowData.put(x, newValue);
+
+    	//Step3:Update Context : GridField.setValue method can update context
+    	editor.getGridField().setValue(newValue, false);
+
+    	//Step4:Update tableModel for consistency.Get Po's ID form convetionTable
+       	ListModelMap.Entry<Object, Object>  conversionTableRow = convetionTable.getElementAt(y);
+    	@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
+    	Object PO_ID = conversionTableRowData.get(x);
+    	PO po = tableModel.get(PO_ID);
+    	po.set_ValueNoCheck(editor.getColumnName(), editor.getValue());
+
+    	//Sstep5:Put map of dirtyModel for save data.
+    	dirtyModel.put((Integer)PO_ID, po);
+	}
 
 }
