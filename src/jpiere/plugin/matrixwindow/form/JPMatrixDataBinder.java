@@ -123,41 +123,9 @@ public class JPMatrixDataBinder implements ValueChangeListener {
     		gridField.setValue(newValue,false);
 
 
-        	/**Callout memo start
-
-        	int xTest = 1;
-        	Object valueTest = 9999;
-        	//Step1:Update Editor Value for display data.
-        	WEditor editorTest = columnEditorMap.get(xTest);
-        	editorTest.setValue(valueTest);
-
-        	//Step2:Update ViewModel data for display data.
-        	viewModelRowData.put(xTest,new BigDecimal(valueTest.toString()));
-
-        	//Step3:Update Context : GridField.setValue method can update context
-        	columnGridFieldMap.get(xTest).setValue(valueTest, false);
-
-        	//Step4:Update tableModel for consistency
-        	Object poTest_ID = conversionTableRowData.get(xTest);
-        	PO poTest = tableModel.get(poTest_ID);
-        	poTest.set_ValueNoCheck(editorTest.getColumnName(), new BigDecimal(valueTest.toString()));
-
-        	//Sstep5:Put map of dirtyModel for save data.
-        	dirtyModel.put((Integer)poTest_ID, poTest);
-
-			//Hint : you can judge whether same record or not.
-			//If same record,TabNo that get from GridField is same.
-        	int tabNo = columnGridFieldMap.get(1).getGridTab().getTabNo();
-
-        	//If same record,conversionTableRowData is same data.
-        	 Object poTest_ID1 = conversionTableRowData.get(xTest);
-        	 Object poTest_ID2 = conversionTableRowData.get(xTest+1);
-        	 Object poTest_ID3 = conversionTableRowData.get(xTest+5);
-        	 Object poTest_ID4 = conversionTableRowData.get(xTest+6);
-
-        	//Matrix WindowのCalloutに必要な情報:x, columnEditorMap, columnGridFieldMap,viewModelRowData,conversionTableRowData,tableModel,dirtyModel
-
-        	Callout memo finish***/
+    		/*Test for Matrix Window Callout*/
+//    		MatrixWindowSampleCallout test = new MatrixWindowSampleCallout();
+//    		test.start(Env.getCtx(), x, columnEditorMap, columnGridFieldMap, viewModelRowData, conversionTableRowData, tableModel, dirtyModel);
 
         }//if (source instanceof WEditor)
 
