@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 import org.adempiere.webui.editor.WEditor;
-import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.panel.CustomForm;
@@ -39,8 +38,10 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 
 	private final static CLogger logger = CLogger.getCLogger(JPMatrixDataBinder.class);
 
+	//View Model:Map of Data Model for Display<Identifier of Row.<Column Number,data>>
 	private ListModelMap<Object, Object>  viewModel;
 
+	//Convertion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
 	private ListModelMap<Object, Object>  convetionTable ;
 
 	private HashMap<Integer,PO> 	tableModel;
@@ -117,65 +118,49 @@ public class JPMatrixDataBinder implements ValueChangeListener {
         	dirtyModel.put((Integer)PO_ID, po);
 
 
+        	//Update Context
         	GridField gridField = editor.getGridField();
+    		gridField.setValue(newValue,false);
 
 
         	/**Callout memo start
 
         	int xTest = 1;
         	Object valueTest = 9999;
-        	//for display(Editor):Editorに数値を正しく表示するために設定する
+        	//Step1:Update Editor Value for display data.
         	WEditor editorTest = columnEditorMap.get(xTest);
         	editorTest.setValue(valueTest);
 
-        	//for display(text):Editorが外れた時に正しく表示するために設定する
+        	//Step2:Update ViewModel data for display data.
         	viewModelRowData.put(xTest,new BigDecimal(valueTest.toString()));
 
-        	//for update context:Contextに正しく表示するためにGridGieldに値を設定する
+        	//Step3:Update Context : GridField.setValue method can update context
         	columnGridFieldMap.get(xTest).setValue(valueTest, false);
 
-        	int aaaa = columnGridFieldMap.get(1).getGridTab().getTabNo();
-        	int bbbb = columnGridFieldMap.get(5).getGridTab().getTabNo();
-        	int cccc = columnGridFieldMap.get(10).getGridTab().getTabNo();
-
-        	//for save：保存するためにdirtyModelに値を設定する
+        	//Step4:Update tableModel for consistency
         	Object poTest_ID = conversionTableRowData.get(xTest);
         	PO poTest = tableModel.get(poTest_ID);
         	poTest.set_ValueNoCheck(editorTest.getColumnName(), new BigDecimal(valueTest.toString()));
+
+        	//Sstep5:Put map of dirtyModel for save data.
         	dirtyModel.put((Integer)poTest_ID, poTest);
+
+			//Hint : you can judge whether same record or not.
+			//If same record,TabNo that get from GridField is same.
+        	int tabNo = columnGridFieldMap.get(1).getGridTab().getTabNo();
+
+        	//If same record,conversionTableRowData is same data.
+        	 Object poTest_ID1 = conversionTableRowData.get(xTest);
+        	 Object poTest_ID2 = conversionTableRowData.get(xTest+1);
+        	 Object poTest_ID3 = conversionTableRowData.get(xTest+5);
+        	 Object poTest_ID4 = conversionTableRowData.get(xTest+6);
 
         	//Matrix WindowのCalloutに必要な情報:x, columnEditorMap, columnGridFieldMap,viewModelRowData,conversionTableRowData,tableModel,dirtyModel
 
         	Callout memo finish***/
 
-
-        	if(gridField != null)
-        	{
-
-        		gridField.setValue(newValue,false);
-
-        		//TODO:ここのリフレッシュは不要ではないか？→リフレッシュさせる事で、依存するフィールドの内容もリフレッシュさせている様子…要調査。
-        		if(editor instanceof WTableDirEditor)
-        			((WTableDirEditor)editor).getLookup().refresh();
-
-        		if(!gridField.isEditable(true))
-        		{
-//            		if (logger.isLoggable(Level.CONFIG)) logger.config("(" + gridTab.toString() + ") " + e.getPropertyName());
-        			return;
-        		}
-        	}
-        	else if(!editor.isReadWrite())
-        	{
-//            	if (logger.isLoggable(Level.CONFIG)) logger.config("(" + gridTab.toString() + ") " + e.getPropertyName());
-        		return;
-        	}
-        }
-        else
-        {
-//          if (logger.isLoggable(Level.CONFIG)) logger.config("(" + gridTab.toString() + ") " + e.getPropertyName());
-            return;
-        }
-
+        }//if (source instanceof WEditor)
 
     } // ValueChange
+
 }
