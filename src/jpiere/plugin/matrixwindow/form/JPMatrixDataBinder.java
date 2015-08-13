@@ -49,12 +49,16 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 	//Convertion Table:Connect View Model with Table Modle<Identifier of Row.<Column Number,Identifier of Data>>
 	private ListModelMap<Object, Object>  convetionTable ;
 
+	//Map of PO Instance that corresponding to Table.<ID of PO,PO>
 	private HashMap<Integer,PO> 	tableModel;
 
+	//Map of PO Instance that have to save.<ID of PO,PO>
 	private HashMap<Integer,PO> 	dirtyModel;
 
+	//Map of All Column GridField <Column order num,,GridField>
 	private HashMap<Integer,GridField> columnGridFieldMap;
 
+	//Map of All Column WEditor <Column order num,,WEditor>
 	private HashMap<Integer,WEditor>   columnEditorMap;
 
 	private CustomForm form;
@@ -157,16 +161,17 @@ public class JPMatrixDataBinder implements ValueChangeListener {
     		List<IMatrixWindowCalloutFactory> factories = Service.locator().list(IMatrixWindowCalloutFactory.class).getServices();
     		if (factories != null)
     		{
-    			String errorMessage = null;
+    			String calloutMessage = null;
     			for(IMatrixWindowCalloutFactory factory : factories)
     			{
     				IMatrixWindowCallout callout = factory.getCallout(po.get_TableName(), editor.getColumnName());
     				if(callout != null)
     				{
-    					errorMessage =callout.start(this, x, y, newValue, oldValue);
-    					if(errorMessage != null && !errorMessage.equals(""))
+    					calloutMessage =callout.start(this, x, y, newValue, oldValue);
+    					if(calloutMessage != null && !calloutMessage.equals(""))
     					{
-    						;//TODO Error;
+    						getColumnGridFieldMap().get(0).getGridTab().fireDataStatusEEvent("Message",calloutMessage, false);
+    						logger.saveError("Error", new Exception(calloutMessage));
     					}
 
     				}
@@ -205,5 +210,6 @@ public class JPMatrixDataBinder implements ValueChangeListener {
     	//Sstep5:Put map of dirtyModel for save data.
     	dirtyModel.put((Integer)PO_ID, po);
 	}
+
 
 }

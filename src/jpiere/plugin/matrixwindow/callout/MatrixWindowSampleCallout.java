@@ -34,6 +34,7 @@ public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 
 		for(int i = 0; i < dataBinder.getColumnGridFieldMap().size(); i++)
 		{
+
 			gridField = dataBinder.getColumnGridFieldMap().get(i);
 			if(gridField.getGridTab().getTabNo() == tabNo && gridField.getColumnName().equals("C_BPartner_Location_ID"))
 			{
@@ -82,7 +83,9 @@ public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 					DB.close(rs, pstmt);
 					rs = null; pstmt = null;
 				}
+
 			}//if
+
 		}//for
 
 		return "";
