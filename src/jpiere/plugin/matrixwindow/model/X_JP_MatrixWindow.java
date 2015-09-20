@@ -31,7 +31,7 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150805L;
+	private static final long serialVersionUID = 20150920L;
 
     /** Standard Constructor */
     public X_JP_MatrixWindow (Properties ctx, int JP_MatrixWindow_ID, String trxName)
@@ -172,6 +172,20 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set SQL Join.
+		@param JP_JoinClause SQL Join	  */
+	public void setJP_JoinClause (String JP_JoinClause)
+	{
+		set_Value (COLUMNNAME_JP_JoinClause, JP_JoinClause);
+	}
+
+	/** Get SQL Join.
+		@return SQL Join	  */
+	public String getJP_JoinClause () 
+	{
+		return (String)get_Value(COLUMNNAME_JP_JoinClause);
 	}
 
 	public org.compiere.model.I_AD_Field getJP_MatrixColumnKey() throws RuntimeException
@@ -362,4 +376,21 @@ public class X_JP_MatrixWindow extends PO implements I_JP_MatrixWindow, I_Persis
     {
         return new KeyNamePair(get_ID(), getValue());
     }
+
+	/** Set Sql WHERE.
+		@param WhereClause 
+		Fully qualified SQL WHERE clause
+	  */
+	public void setWhereClause (String WhereClause)
+	{
+		set_Value (COLUMNNAME_WhereClause, WhereClause);
+	}
+
+	/** Get Sql WHERE.
+		@return Fully qualified SQL WHERE clause
+	  */
+	public String getWhereClause () 
+	{
+		return (String)get_Value(COLUMNNAME_WhereClause);
+	}
 }

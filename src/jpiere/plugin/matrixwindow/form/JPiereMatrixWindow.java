@@ -1026,7 +1026,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 			}
 		}//for
-
+		
+		if(m_matrixWindow.getWhereClause() != null)
+		{
+			whereClause.append(" AND " + m_matrixWindow.getWhereClause() );
+		}
+			
 		return whereClause.toString();
 	}
 
@@ -1034,8 +1039,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createColumnKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + m_columnKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + m_columnKeyColumn.getColumnName();
+		StringBuilder sql =new StringBuilder("SELECT DISTINCT " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName() + " FROM " + TABLE_NAME );
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{				
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());	
+		}
+		
+		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName());
 
 		I_AD_Field keyField = m_matrixWindow.getJP_MatrixColumnKey();
 		I_AD_Column keyColumn = keyField.getAD_Column();
@@ -1045,7 +1055,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		columnKeyNameMap.clear();
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
@@ -1070,7 +1080,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
@@ -1196,8 +1206,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createRowKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + m_rowKeyColumn.getColumnName();
+		StringBuilder sql = new StringBuilder("SELECT DISTINCT "  + TABLE_NAME + "." +  m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME);
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{				
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());	
+		}
+		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_rowKeyColumn.getColumnName());
 
 		I_AD_Field keyField = m_matrixWindow.getJP_MatrixRowKey();
 		I_AD_Column keyColumn = keyField.getAD_Column();
@@ -1206,7 +1220,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ResultSet rs = null;
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
@@ -1231,7 +1245,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
@@ -1316,14 +1330,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		//
 		ArrayList<PO> list = new ArrayList<PO>();
 
-		final String sql = "SELECT *  FROM " + TABLE_NAME + whereClause
-				+ " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName();;
+		StringBuilder sql = new StringBuilder("SELECT " + TABLE_NAME+".* FROM " + TABLE_NAME );
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{				
+			sql.append(" "+ m_matrixWindow.getJP_JoinClause());	
+		}
+		sql.append(whereClause + " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName());
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 
 			List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
@@ -1347,7 +1365,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
