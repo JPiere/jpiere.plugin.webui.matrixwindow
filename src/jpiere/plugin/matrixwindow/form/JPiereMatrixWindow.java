@@ -73,6 +73,7 @@ import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
+import org.compiere.model.GridFieldVO;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridTabVO;
 import org.compiere.model.GridWindowVO;
@@ -415,100 +416,213 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 
 
-				MMatrixSearch field = m_matrixSearches[i];
+				MMatrixSearch searchField = m_matrixSearches[i];
 
 
-				if(i == 0 || actualxpos > field.getXPosition())
+				if(i == 0 || actualxpos > searchField.getXPosition())
 				{
 					actualxpos = 0;
 					row = rows.newRow();
 					row.setStyle("background-color: #ffffff");
 				}
 
+				WEditor editor = null;
 				for(int j = 0; j < gridFields.length; j++)
 				{
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
 					{
-						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
-						String DefaultValue = m_matrixSearches[i].getDefaultValue();
-						if(DefaultValue == null || DefaultValue.isEmpty())
-						{
-							;
-						}else{
-
-							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
-							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
-							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
-
-							if(editor instanceof WTableDirEditor)
-							{
-								((WTableDirEditor) editor).actionRefresh();
-								((WTableDirEditor) editor).getLookup().setSelectedItem("");
-							}
-
-						}
-
-						if(!editor.isReadWrite())
-						{
-							editor.setReadWrite(true);
-							if(editor instanceof WTableDirEditor)
-								((WTableDirEditor) editor).actionRefresh();
-
-						}
-
-						//Set zoom
-						if(editor instanceof WSearchEditor
-								|| editor instanceof WTableDirEditor)
-						{
-							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
-							if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
-								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
-							else
-								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
-						}
-
-						editor.setMandatory(m_matrixSearches[i].isMandatory());
-
-						//positioning
-						row.appendCellChild(editor.getLabel().rightAlign(),1);
-						actualxpos = actualxpos + 1;
-						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
-						actualxpos = actualxpos + field.getColumnSpan();
-
-						//Popup Menu
-						WEditorPopupMenu  popupMenu = editor.getPopupMenu();
-						List<Component> listcomp = popupMenu.getChildren();
-						Menuitem menuItem = null;
-						String image = null;
-						for(Component comp : listcomp)
-						{
-							if(comp instanceof Menuitem)
-							{
-								menuItem = (Menuitem)comp;
-								image = menuItem.getImage();
-								if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
-										|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
-								{
-									menuItem.setVisible(true);
-								}else{
-									menuItem.setVisible(false);
-								}
-							}
-						}//for
-
-			            if (popupMenu != null)
-			            {
-			            	popupMenu.addMenuListener((ContextMenuListener)editor);
-			            	row.appendChild(popupMenu);
-
-			            	popupMenu.addContextElement((XulElement) editor.getComponent());
-			            }
-
-						editor.addValueChangeListener(this);
-						searchEditorMap.put(editor.getColumnName(), editor);
+						editor = WebEditorFactory.getEditor(gridFields[j], false);
 						break;
 					}
-				}//for j
+				}
+				
+				if(editor == null)
+				{
+					GridField[] gFields = GridField.createFields(Env.getCtx(), form.getWindowNo(), 0, searchField.getAD_Tab_ID());
+					for(int k = 0; k < gFields.length; k++)
+					{
+						if(m_matrixSearches[i].getAD_Field_ID() == gFields[k].getAD_Field_ID())
+						{
+							editor = WebEditorFactory.getEditor(gFields[k], false);
+							break;
+						}
+					}
+					;
+				}
+				
+				if(editor == null)
+				{
+					;//TODO エラー
+					
+				}else{
+					String DefaultValue = m_matrixSearches[i].getDefaultValue();
+					if(DefaultValue == null || DefaultValue.isEmpty())
+					{
+						;
+					}else{
+
+						String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
+						Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
+						editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
+
+						if(editor instanceof WTableDirEditor)
+						{
+							((WTableDirEditor) editor).actionRefresh();
+							((WTableDirEditor) editor).getLookup().setSelectedItem("");
+						}
+
+					}
+
+					if(!editor.isReadWrite())
+					{
+						editor.setReadWrite(true);
+						if(editor instanceof WTableDirEditor)
+							((WTableDirEditor) editor).actionRefresh();
+
+					}
+
+					//Set zoom
+					if(editor instanceof WSearchEditor
+							|| editor instanceof WTableDirEditor)
+					{
+						editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
+						if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
+							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+						else
+							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+					}
+
+					editor.setMandatory(m_matrixSearches[i].isMandatory());
+
+					//positioning
+					row.appendCellChild(editor.getLabel().rightAlign(),1);
+					actualxpos = actualxpos + 1;
+					row.appendCellChild(editor.getComponent(),searchField.getColumnSpan());
+					actualxpos = actualxpos + searchField.getColumnSpan();
+
+					//Popup Menu
+					WEditorPopupMenu  popupMenu = editor.getPopupMenu();
+					List<Component> listcomp = popupMenu.getChildren();
+					Menuitem menuItem = null;
+					String image = null;
+					for(Component comp : listcomp)
+					{
+						if(comp instanceof Menuitem)
+						{
+							menuItem = (Menuitem)comp;
+							image = menuItem.getImage();
+							if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+									|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+							{
+								menuItem.setVisible(true);
+							}else{
+								menuItem.setVisible(false);
+							}
+						}
+					}//for
+
+		            if (popupMenu != null)
+		            {
+		            	popupMenu.addMenuListener((ContextMenuListener)editor);
+		            	row.appendChild(popupMenu);
+
+		            	popupMenu.addContextElement((XulElement) editor.getComponent());
+		            }
+
+					editor.addValueChangeListener(this);
+//					String tableName = m_matrixSearches[i].getAD_Tab().getAD_Table().getTableName();
+					searchEditorMap.put(editor.getColumnName(), editor);
+				
+				}
+				
+				
+				
+//				for(int j = 0; j < gridFields.length; j++)
+//				{
+//					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
+//					{
+//						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
+//						String DefaultValue = m_matrixSearches[i].getDefaultValue();
+//						if(DefaultValue == null || DefaultValue.isEmpty())
+//						{
+//							;
+//						}else{
+//
+//							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
+//							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
+//							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
+//
+//							if(editor instanceof WTableDirEditor)
+//							{
+//								((WTableDirEditor) editor).actionRefresh();
+//								((WTableDirEditor) editor).getLookup().setSelectedItem("");
+//							}
+//
+//						}
+//
+//						if(!editor.isReadWrite())
+//						{
+//							editor.setReadWrite(true);
+//							if(editor instanceof WTableDirEditor)
+//								((WTableDirEditor) editor).actionRefresh();
+//
+//						}
+//
+//						//Set zoom
+//						if(editor instanceof WSearchEditor
+//								|| editor instanceof WTableDirEditor)
+//						{
+//							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
+//							if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
+//								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+//							else
+//								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+//						}
+//
+//						editor.setMandatory(m_matrixSearches[i].isMandatory());
+//
+//						//positioning
+//						row.appendCellChild(editor.getLabel().rightAlign(),1);
+//						actualxpos = actualxpos + 1;
+//						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
+//						actualxpos = actualxpos + field.getColumnSpan();
+//
+//						//Popup Menu
+//						WEditorPopupMenu  popupMenu = editor.getPopupMenu();
+//						List<Component> listcomp = popupMenu.getChildren();
+//						Menuitem menuItem = null;
+//						String image = null;
+//						for(Component comp : listcomp)
+//						{
+//							if(comp instanceof Menuitem)
+//							{
+//								menuItem = (Menuitem)comp;
+//								image = menuItem.getImage();
+//								if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+//										|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+//								{
+//									menuItem.setVisible(true);
+//								}else{
+//									menuItem.setVisible(false);
+//								}
+//							}
+//						}//for
+//
+//			            if (popupMenu != null)
+//			            {
+//			            	popupMenu.addMenuListener((ContextMenuListener)editor);
+//			            	row.appendChild(popupMenu);
+//
+//			            	popupMenu.addContextElement((XulElement) editor.getComponent());
+//			            }
+//
+//						editor.addValueChangeListener(this);
+//						searchEditorMap.put(editor.getColumnName(), editor);
+//						break;
+//					}
+//				}//for j
+				
+				
 			}//for i
 		}//if
 
@@ -651,6 +765,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //	@Override
 	public void valueChange(ValueChangeEvent e)
 	{
+		String pName = e.getPropertyName();
+		Object obj = e.getSource();
+		String string = e.toString();
+		
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 
 		if(searchEditorMap.get(e.getPropertyName()) instanceof WYesNoEditor)
@@ -1000,21 +1118,40 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(entry.getValue().getValue()!=null)
 			{
-//				WEditor editor = entry.getValue();
+				
+				String tableName = null;
+				GridField gField = ((WEditor)entry.getValue()).getGridField();
+				GridTab gTab = gField.getGridTab();
+				if(gTab != null)
+				{
+					tableName = gTab.getTableName();
+				}else{
+					int AD_Tab_ID = gField.getAD_Tab_ID();
+					MTab tab = new MTab(Env.getCtx(),AD_Tab_ID,null);
+					tableName = tab.getAD_Table().getTableName();
+				}				
+				
 				if(entry.getValue() instanceof WYesNoEditor)
 				{
 					if(entry.getValue().getValue().equals(true))
-						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'Y'");
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'Y'");
 					else
-						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'N'");
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'N'");
 
 				}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.List){
 
-					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
+					
+				}else if(DisplayType.isText(entry.getValue().getGridField().getDisplayType())){
+					String string = (String)entry.getValue().getValue();
+					if(!string.isEmpty())
+					{
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " LIKE " + "'" + string + "'");
+					}
 
 				}else{
 
-					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + entry.getValue().getValue());
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + entry.getValue().getValue());
 
 				}
 
