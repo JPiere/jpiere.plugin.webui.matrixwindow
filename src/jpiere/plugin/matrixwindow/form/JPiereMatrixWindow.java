@@ -530,97 +530,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		            }
 
 					editor.addValueChangeListener(this);
-//					String tableName = m_matrixSearches[i].getAD_Tab().getAD_Table().getTableName();
 					searchEditorMap.put(editor.getColumnName(), editor);
 				
 				}
-				
-				
-				
-//				for(int j = 0; j < gridFields.length; j++)
-//				{
-//					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
-//					{
-//						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
-//						String DefaultValue = m_matrixSearches[i].getDefaultValue();
-//						if(DefaultValue == null || DefaultValue.isEmpty())
-//						{
-//							;
-//						}else{
-//
-//							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
-//							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
-//							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
-//
-//							if(editor instanceof WTableDirEditor)
-//							{
-//								((WTableDirEditor) editor).actionRefresh();
-//								((WTableDirEditor) editor).getLookup().setSelectedItem("");
-//							}
-//
-//						}
-//
-//						if(!editor.isReadWrite())
-//						{
-//							editor.setReadWrite(true);
-//							if(editor instanceof WTableDirEditor)
-//								((WTableDirEditor) editor).actionRefresh();
-//
-//						}
-//
-//						//Set zoom
-//						if(editor instanceof WSearchEditor
-//								|| editor instanceof WTableDirEditor)
-//						{
-//							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
-//							if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
-//								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
-//							else
-//								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
-//						}
-//
-//						editor.setMandatory(m_matrixSearches[i].isMandatory());
-//
-//						//positioning
-//						row.appendCellChild(editor.getLabel().rightAlign(),1);
-//						actualxpos = actualxpos + 1;
-//						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
-//						actualxpos = actualxpos + field.getColumnSpan();
-//
-//						//Popup Menu
-//						WEditorPopupMenu  popupMenu = editor.getPopupMenu();
-//						List<Component> listcomp = popupMenu.getChildren();
-//						Menuitem menuItem = null;
-//						String image = null;
-//						for(Component comp : listcomp)
-//						{
-//							if(comp instanceof Menuitem)
-//							{
-//								menuItem = (Menuitem)comp;
-//								image = menuItem.getImage();
-//								if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
-//										|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
-//								{
-//									menuItem.setVisible(true);
-//								}else{
-//									menuItem.setVisible(false);
-//								}
-//							}
-//						}//for
-//
-//			            if (popupMenu != null)
-//			            {
-//			            	popupMenu.addMenuListener((ContextMenuListener)editor);
-//			            	row.appendChild(popupMenu);
-//
-//			            	popupMenu.addContextElement((XulElement) editor.getComponent());
-//			            }
-//
-//						editor.addValueChangeListener(this);
-//						searchEditorMap.put(editor.getColumnName(), editor);
-//						break;
-//					}
-//				}//for j
 				
 				
 			}//for i
@@ -764,11 +676,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 //	@Override
 	public void valueChange(ValueChangeEvent e)
-	{
-		String pName = e.getPropertyName();
-		Object obj = e.getSource();
-		String string = e.toString();
-		
+	{		
 		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 
 		if(searchEditorMap.get(e.getPropertyName()) instanceof WYesNoEditor)
