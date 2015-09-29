@@ -18,7 +18,9 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1057,6 +1059,24 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " LIKE " + "'" + string + "'");
 					}
 
+				}else if(DisplayType.isDate(entry.getValue().getGridField().getDisplayType())){
+					
+					Timestamp timestamp = (Timestamp)entry.getValue().getValue();
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+					
+//					if(entry.getValue().getGridField().getDisplayType()==DisplayType.Date)
+//					{
+//						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+//						
+//					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.DateTime){
+//						
+//						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+//						
+//					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.Time){
+//						
+//						;						
+//					}
+					
 				}else{
 
 					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + entry.getValue().getValue());
