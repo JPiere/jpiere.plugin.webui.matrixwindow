@@ -326,7 +326,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 					//readonly for display text
 					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
-					readOnlyEditor.setReadWrite(false);
+					readOnlyEditor.setReadWrite(true);
 					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
 
 				}//if
@@ -775,11 +775,13 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
 		//skip selection and indicator column
-		for (int i = 0; i < columnEditorMap.size(); i++) {
+		for (int i = 0; i < columnEditorMap.size(); i++) 
+		{
 
 			GridField gridField = columnGridFieldMap.get(i);
 
-			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton()) {
+			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton())
+			{
 				continue;
 			}
 
@@ -807,7 +809,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				}else if(editor instanceof WSearchEditor){
 
-					//Dynamic validation of  WsearchEditor can not parse with TabnNo, Please check  WsearchEditor.getWhereClause() method.
+					//Dynamic validation of  WsearchEditor can not parse with TabNo, Please check  WsearchEditor.getWhereClause() method.
 					//Matrix window need to parse with TabNo Info.
 					//So,set Dynamic validation  to VFormat for evacuation,and Lookupinfo modify directly.
 					if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
@@ -887,8 +889,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	            }
 
 
-//				editor.setReadWrite(gridFeld.isEditableGrid(true));
-				editor.setReadWrite(true);
+				editor.setReadWrite(!gridField.isReadOnly());				
 
 				if(i == x)
 				{

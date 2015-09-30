@@ -15,3 +15,7 @@ Service-Component: OSGI-INF/JPierePluginMatrixWindowFormFactory.xml,OSGI-INF/JPi
  OSGI-INF/JPierePluginMatrixWindowCalloutFactory.xml
 Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
 Import-Package: org.compiere.model
+Bundle-ActivationPolicy: lazy
+Export-Package: jpiere.plugin.matrixwindow.base,
+ jpiere.plugin.matrixwindow.form,
+ jpiere.plugin.matrixwindow.model

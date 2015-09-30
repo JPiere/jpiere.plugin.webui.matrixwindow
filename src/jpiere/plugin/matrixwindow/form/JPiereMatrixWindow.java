@@ -536,7 +536,37 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 				
 				
-			}//for i
+			}//for i : Create Search Fields
+			
+			//Dynamic Validation
+			for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
+			{
+				WEditor otherEditor = entry.getValue();	
+				GridField gridField = otherEditor.getGridField();
+			
+				if(otherEditor instanceof WTableDirEditor || otherEditor instanceof WSearchEditor )
+				{
+
+					if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
+					{
+						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+		
+					}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
+		
+						gridField.setVFormat(gridField.getLookup().getValidation());
+						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+		
+					}
+					
+					if(otherEditor instanceof WTableDirEditor)
+						((WTableDirEditor)otherEditor).getLookup().refresh();
+						
+				}//if
+				
+			}//for Dynamic Validation
+			
 		}//if
 
 
@@ -678,13 +708,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //	@Override
 	public void valueChange(ValueChangeEvent e)
 	{		
-		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
+		
+		WEditor editor = searchEditorMap.get(e.getPropertyName());
+				
+		editor.setValue(e.getNewValue());
 
-		if(searchEditorMap.get(e.getPropertyName()) instanceof WYesNoEditor)
+		if(editor instanceof WYesNoEditor)
 		{
-			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue().equals("true") ? "Y" : "N");
+			Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), e.getNewValue().equals("true") ? "Y" : "N");
 		}else{
-			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue()==null ? null : e.getNewValue().toString());
+			Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), e.getNewValue()==null ? null : e.getNewValue().toString());
 		}
 
 		SearchButton.setEnabled(true);
@@ -696,12 +729,45 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		matrixGrid.setVisible(false);
 
-		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
+		if(e.getNewValue()==null && editor.isMandatory())
 		{
-			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+			editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
 		}else{
-			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+			editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
 		}
+		
+		
+		//Dynamic Validation
+		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
+		{
+			WEditor otherEditor = entry.getValue();	
+			GridField gridField = otherEditor.getGridField();
+		
+			if(otherEditor.getColumnName().equals(editor.getColumnName()))
+			{
+				;
+			}else if(otherEditor instanceof WTableDirEditor || otherEditor instanceof WSearchEditor ){
+
+				if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
+				{
+					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+	
+				}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
+	
+					gridField.setVFormat(gridField.getLookup().getValidation());
+					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+	
+				}
+				
+				if(otherEditor instanceof WTableDirEditor)
+					((WTableDirEditor)otherEditor).getLookup().refresh();
+					
+			}//if
+			
+		}//for
+		
 	}
 
 
