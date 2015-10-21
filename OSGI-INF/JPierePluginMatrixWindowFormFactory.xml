@@ -4,5 +4,5 @@
    <property name="service.ranking" type="Integer" value="2"/>
    <service>
    <provide interface="org.adempiere.webui.factory.IFormFactory"/>
-   </service>>
+   </service>
 </scr:component>
