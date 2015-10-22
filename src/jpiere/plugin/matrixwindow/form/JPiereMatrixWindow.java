@@ -20,7 +20,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -306,7 +305,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
-	public void prepare(String Value) throws Exception
+	private void prepare(String Value) throws Exception
 	{
 		//Create Models that is used by Matrix Window
 		m_matrixWindow = MMatrixWindow.get(Env.getCtx(), Value);
@@ -436,7 +435,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						break;
 					}
 				}
-				
+
 				if(editor == null)
 				{
 					GridField[] gFields = GridField.createFields(Env.getCtx(), form.getWindowNo(), 0, searchField.getAD_Tab_ID());
@@ -450,11 +449,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					}
 					;
 				}
-				
+
 				if(editor == null)
 				{
-					;//TODO エラー
-					
+					;//TODO Error
+
 				}else{
 					String DefaultValue = m_matrixSearches[i].getDefaultValue();
 					if(DefaultValue == null || DefaultValue.isEmpty())
@@ -532,18 +531,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 					editor.addValueChangeListener(this);
 					searchEditorMap.put(editor.getColumnName(), editor);
-				
+
 				}
-				
-				
+
+
 			}//for i : Create Search Fields
-			
+
 			//Dynamic Validation
 			for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 			{
-				WEditor otherEditor = entry.getValue();	
+				WEditor otherEditor = entry.getValue();
 				GridField gridField = otherEditor.getGridField();
-			
+
 				if(otherEditor instanceof WTableDirEditor || otherEditor instanceof WSearchEditor )
 				{
 
@@ -551,22 +550,22 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					{
 						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
 						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
-		
+
 					}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
-		
+
 						gridField.setVFormat(gridField.getLookup().getValidation());
 						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
 						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
-		
+
 					}
-					
+
 					if(otherEditor instanceof WTableDirEditor)
 						((WTableDirEditor)otherEditor).getLookup().refresh();
-						
+
 				}//if
-				
+
 			}//for Dynamic Validation
-			
+
 		}//if
 
 
@@ -707,10 +706,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 //	@Override
 	public void valueChange(ValueChangeEvent e)
-	{		
-		
+	{
+
 		WEditor editor = searchEditorMap.get(e.getPropertyName());
-				
+
 		editor.setValue(e.getNewValue());
 
 		if(editor instanceof WYesNoEditor)
@@ -735,14 +734,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}else{
 			editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
 		}
-		
-		
+
+
 		//Dynamic Validation
 		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 		{
-			WEditor otherEditor = entry.getValue();	
+			WEditor otherEditor = entry.getValue();
 			GridField gridField = otherEditor.getGridField();
-		
+
 			if(otherEditor.getColumnName().equals(editor.getColumnName()))
 			{
 				;
@@ -752,22 +751,22 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				{
 					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
 					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
-	
+
 				}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
-	
+
 					gridField.setVFormat(gridField.getLookup().getValidation());
 					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
 					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
-	
+
 				}
-				
+
 				if(otherEditor instanceof WTableDirEditor)
 					((WTableDirEditor)otherEditor).getLookup().refresh();
-					
+
 			}//if
-			
+
 		}//for
-		
+
 	}
 
 
@@ -1093,7 +1092,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			if(entry.getValue().getValue()!=null)
 			{
-				
+
 				String tableName = null;
 				GridField gField = ((WEditor)entry.getValue()).getGridField();
 				GridTab gTab = gField.getGridTab();
@@ -1104,8 +1103,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					int AD_Tab_ID = gField.getAD_Tab_ID();
 					MTab tab = new MTab(Env.getCtx(),AD_Tab_ID,null);
 					tableName = tab.getAD_Table().getTableName();
-				}				
-				
+				}
+
 				if(entry.getValue() instanceof WYesNoEditor)
 				{
 					if(entry.getValue().getValue().equals(true))
@@ -1116,7 +1115,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.List){
 
 					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
-					
+
 				}else if(DisplayType.isText(entry.getValue().getGridField().getDisplayType())){
 					String string = (String)entry.getValue().getValue();
 					if(!string.isEmpty())
@@ -1125,23 +1124,23 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					}
 
 				}else if(DisplayType.isDate(entry.getValue().getGridField().getDisplayType())){
-					
+
 					Timestamp timestamp = (Timestamp)entry.getValue().getValue();
 					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
-					
+
 //					if(entry.getValue().getGridField().getDisplayType()==DisplayType.Date)
 //					{
 //						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
-//						
+//
 //					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.DateTime){
-//						
+//
 //						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
-//						
+//
 //					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.Time){
-//						
-//						;						
+//
+//						;
 //					}
-					
+
 				}else{
 
 					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + entry.getValue().getValue());
@@ -1156,12 +1155,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 			}
 		}//for
-		
+
 		if(m_matrixWindow.getWhereClause() != null)
 		{
 			whereClause.append(" AND " + m_matrixWindow.getWhereClause() );
 		}
-			
+
 		return whereClause.toString();
 	}
 
@@ -1171,10 +1170,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ArrayList<Object> list = new ArrayList<Object>();
 		StringBuilder sql =new StringBuilder("SELECT DISTINCT " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName() + " FROM " + TABLE_NAME );
 		if(m_matrixWindow.getJP_JoinClause() != null)
-		{				
-			sql.append(" "+m_matrixWindow.getJP_JoinClause());	
+		{
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());
 		}
-		
+
 		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName());
 
 		I_AD_Field keyField = m_matrixWindow.getJP_MatrixColumnKey();
@@ -1338,8 +1337,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ArrayList<Object> list = new ArrayList<Object>();
 		StringBuilder sql = new StringBuilder("SELECT DISTINCT "  + TABLE_NAME + "." +  m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME);
 		if(m_matrixWindow.getJP_JoinClause() != null)
-		{				
-			sql.append(" "+m_matrixWindow.getJP_JoinClause());	
+		{
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());
 		}
 		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_rowKeyColumn.getColumnName());
 
@@ -1451,7 +1450,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}//createRowKeys
 
 
-	public PO[] getPOs (String whereClause,boolean reload)
+	private PO[] getPOs (String whereClause,boolean reload)
 	{
 		if (reload || m_POs == null || m_POs.length == 0)
 			;
@@ -1462,8 +1461,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		StringBuilder sql = new StringBuilder("SELECT " + TABLE_NAME+".* FROM " + TABLE_NAME );
 		if(m_matrixWindow.getJP_JoinClause() != null)
-		{				
-			sql.append(" "+ m_matrixWindow.getJP_JoinClause());	
+		{
+			sql.append(" "+ m_matrixWindow.getJP_JoinClause());
 		}
 		sql.append(whereClause + " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName());
 
@@ -1506,7 +1505,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		m_POs = new PO[list.size()];
 		list.toArray(m_POs);
 		return m_POs;
-	}	//	getLocations
+	}	//	getPOs
 
 
 	/*
