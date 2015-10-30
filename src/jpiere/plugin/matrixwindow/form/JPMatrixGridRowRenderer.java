@@ -23,9 +23,6 @@ import java.util.TreeMap;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.GridView;
-import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.NumberBox;
@@ -97,14 +94,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private RowListener rowListener;
 
 	private Grid grid = null;
-	private GridView gridView = null;
 
 	private Row currentRow;
 
 	private boolean editing = false;
 
-	private AbstractADWindowContent m_windowPanel;
-	private IADTabpanel adTabpanel;
 	private ActionListener buttonListener;
 
 	private ListModelMap<Object, Object>  viewModel;
@@ -344,7 +338,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					{
 						WButtonEditor button  = (WButtonEditor)WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
 						button.addActionListener(buttonListener);
-						button.setADTabpanel(adTabpanel);
+//						button.setADTabpanel(adTabpanel);
 						button.setValue(treeMap.get(i)); // Set Record ID in Button for process
 						div.appendChild(button.getComponent());
 					}else{
@@ -452,7 +446,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					if (editor instanceof WButtonEditor)
 					{
 						((WButtonEditor)editor).addActionListener(buttonListener);
-						((WButtonEditor)editor).setADTabpanel(adTabpanel);
+//						((WButtonEditor)editor).setADTabpanel(adTabpanel);
 						editor.setValue(treeMap.get(i)); // Set Record ID in Button for process
 					}else{
 						editor.setValue(data.get(i));
@@ -775,7 +769,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
 		//skip selection and indicator column
-		for (int i = 0; i < columnEditorMap.size(); i++) 
+		for (int i = 0; i < columnEditorMap.size(); i++)
 		{
 
 			GridField gridField = columnGridFieldMap.get(i);
@@ -889,7 +883,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	            }
 
 
-				editor.setReadWrite(!gridField.isReadOnly());				
+				editor.setReadWrite(!gridField.isReadOnly());
 
 				if(i == x)
 				{
@@ -949,12 +943,9 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 * Need to Create Process Dialog
 	 *
 	 */
-	public void setADWindowPanel(AbstractADWindowContent windowPanel,IADTabpanel adTabpanel) {
-		if (this.m_windowPanel == windowPanel)
+	public void createRecordProcessDialog() {
+		if (buttonListener != null)
 			return;
-
-		this.m_windowPanel = windowPanel;
-		this.adTabpanel = adTabpanel;
 
 		buttonListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -982,10 +973,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		};
 	}
 
-	public void setGridView(GridView gridView)
-	{
-		this.gridView = gridView;
-	}
 
 	public void setGridTab(GridTab gridTab)
 	{

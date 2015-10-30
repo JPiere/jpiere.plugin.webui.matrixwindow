@@ -38,11 +38,6 @@ import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADTabpanel;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.ADWindowContent;
-import org.adempiere.webui.adwindow.GridView;
-import org.adempiere.webui.adwindow.IADTabbox;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.ToolbarProcessButton;
 import org.adempiere.webui.apps.AEnv;
@@ -76,6 +71,7 @@ import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridTabVO;
+import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.I_AD_Column;
 import org.compiere.model.I_AD_Field;
@@ -92,6 +88,7 @@ import org.compiere.model.MToolBarButtonRestrict;
 import org.compiere.model.PO;
 import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_ToolBarButton;
+import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -266,13 +263,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	/****************************************************
 	 * Window Info
 	 ****************************************************/
-
-	private CustomForm window = new CustomForm();
-	private ADWindow adWindow;
-	private ADWindowContent adWindowContent;
-	private ADTabpanel adTabpanel;
 	private GridTab gridTab ;
-	private GridView gridView ;
 	private GridField[] gridFields ;
 
 
@@ -341,27 +332,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 		//Create Window because of use Window info.
-		if(adWindow==null)
+		GridWindowVO gridWindowVO =AEnv.getMWindowVO(form.getWindowNo(), m_matrixWindow.getAD_Window_ID(), 0);
+		GridWindow gridWindow = new GridWindow(gridWindowVO);
+		for(int i = 0; i < gridWindow.getTabCount(); i++)
 		{
-			adWindow = new ADWindow(Env.getCtx(),AD_WINDOW_ID, null);
-			adWindow.createPart(window);
-		}
-		adWindowContent = adWindow.getADWindowContent();
-		IADTabbox adTabbox = adWindowContent.getADTab();
-		int tabCount = adTabbox.getTabCount();
-		for(int i = 0; i < tabCount; i++)
-		{
-			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
+			GridTab gtab =gridWindow.getTab(i);
+			if(gtab.getAD_Tab_ID()==m_matrixWindow.getAD_Tab_ID())
 			{
-				adTabpanel =(ADTabpanel)adTabbox.getADTabpanel(i);
+				gridTab = gtab;
+				break;
 			}
 		}
-		if(adTabpanel == null)
-		{
-			;//Error
-		}
-		gridTab = adTabpanel.getGridTab();
-		gridView = adTabpanel.getGridView();
+
+		gridTab.initTab(false);
 		gridFields = gridTab.getFields();
 
 		//Set Edit Mode.
@@ -846,6 +829,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			CreateButton.setEnabled(true);
 			ProcessButton.setEnabled(true);
 
+			if(e.getName().equals("onComplete"))
+			{
+				JPiereMatrixWindowProcessModelDialog dialog = (JPiereMatrixWindowProcessModelDialog)e.getTarget();
+				ProcessInfo pInfo = dialog.getProcessInfo();
+
+//				dialog.updateUI();
+//				HtmlBasedComponent  ditailLog = dialog.getInfoResultContent();
+
+				FDialog.info(form.getWindowNo(), null, pInfo.getSummary(), pInfo.getLogInfo(), pInfo.getTitle());
+
+			}
+
 		}else if(e.getTarget().equals(SaveButton)){
 
 			boolean isOK = saveData();
@@ -962,7 +957,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
         for(MToolBarButton mToolbarButton : mToolbarButtons) {
         	Boolean access = MRole.getDefault().getProcessAccess(mToolbarButton.getAD_Process_ID());
         	if (access != null && access.booleanValue()) {
-        		ToolbarProcessButton toolbarProcessButton = new ToolbarProcessButton(mToolbarButton, adTabpanel, this, form.getWindowNo());
+        		ToolbarProcessButton toolbarProcessButton = new ToolbarProcessButton(mToolbarButton, null, this, form.getWindowNo());
         		toolbarProcessButtons.add(toolbarProcessButton);
         	}
         }
@@ -1071,10 +1066,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form,this);
 		renderer.setcColumnsSize(columnNameMap.size());
-		renderer.setGridView(gridView);
 		renderer.setGridTab(gridTab);
 		renderer.setColumnGridFieldMap(columnGridFieldMap);
-		renderer.setADWindowPanel(adWindowContent,adTabpanel);
+		renderer.createRecordProcessDialog();
 
 		matrixGrid.setRowRenderer(renderer);
 		matrixGrid.addEventListener(Events.ON_CLICK, this);
@@ -1286,7 +1280,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private LinkedHashMap<Object,GridTab> createVirtualTabMap(ArrayList<Object> columnKeys)//TODO
 	{
-		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), adWindowContent.getWindowNo(), AD_WINDOW_ID);
+		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), form.getWindowNo(), AD_WINDOW_ID);
 		virtualTabMap = new LinkedHashMap<Object,GridTab>();
 
 		PreparedStatement pstmt = null;
@@ -1911,7 +1905,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 
 		ToolbarProcessButton button = (ToolbarProcessButton)event.getSource();
-;
 
 		JPiereMatrixWindowProcessModelDialog dialog = new JPiereMatrixWindowProcessModelDialog(form.getWindowNo(),button.getProcess_ID(), 0, 0, false, this);
 
