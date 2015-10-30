@@ -538,6 +538,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private int y = 0;
 	private int x = 0;
 	private NumberBox numberbox;
+	private Searchbox searchbox;
 	private int minY = 0;
 	private int maxY = 0;
 
@@ -588,8 +589,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			if(event.getTarget().getParent() instanceof Searchbox)
 			{
 
-				Searchbox searchBox =(Searchbox)event.getTarget().getParent();
-				if(searchBox.getText().equals(""))
+				searchbox =(Searchbox)event.getTarget().getParent();
+				if(searchbox.getText().equals(""))
 				{
 					editNextRow(y,x);
 	 				event.stopPropagation();
@@ -916,6 +917,12 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 //						List<Component> aa = textbox.getChildren();
 //						textbox.select();
 //						div.focus();
+
+					}else if(div.getChildren().get(0) instanceof Searchbox){
+
+						searchbox = (Searchbox)div.getChildren().get(0);
+						searchbox.focus();
+						searchbox.getTextbox().select();
 
 					}else{
 						div.focus();
