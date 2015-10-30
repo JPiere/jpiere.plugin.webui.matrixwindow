@@ -26,6 +26,7 @@ import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.NumberBox;
+import org.adempiere.webui.component.Searchbox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
@@ -592,6 +593,18 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
      			if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
      			{
+
+     				if(event.getTarget().getParent() instanceof Searchbox)
+     				{
+
+     					Searchbox searchBox =(Searchbox)event.getTarget().getParent();
+     					if(searchBox.getText().equals(""))
+     					{
+     						y--;//If you push Enter key at Blank Search field, iDempiere dispay Info Window. So, stay same row.
+     					}
+
+     				}
+
 	 				editNextRow(y,x);
 	 				event.stopPropagation();
 	 				return;
