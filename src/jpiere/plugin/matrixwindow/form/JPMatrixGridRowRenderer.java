@@ -25,6 +25,8 @@ import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
+import org.adempiere.webui.component.Combobox;
+import org.adempiere.webui.component.Datebox;
 import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Searchbox;
 import org.adempiere.webui.editor.WButtonEditor;
@@ -538,7 +540,10 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private int y = 0;
 	private int x = 0;
 	private NumberBox numberbox;
+	private Datebox datebox ;
+	private Combobox combobox;
 	private Searchbox searchbox;
+
 	private int minY = 0;
 	private int maxY = 0;
 
@@ -910,6 +915,18 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 						numberbox = (NumberBox)div.getChildren().get(0);
 	    	        	numberbox.focus();
 	    	        	numberbox.getDecimalbox().select();
+
+					}else if(div.getChildren().get(0) instanceof Datebox){
+
+						datebox = (Datebox)div.getChildren().get(0);
+						datebox.focus();
+						datebox.select();
+
+					}else if(div.getChildren().get(0) instanceof Combobox){
+
+						combobox = (Combobox)div.getChildren().get(0);
+						combobox.focus();
+						combobox.select();
 
 //					}else if(div.getChildren().get(0) instanceof Textbox){
 //						Textbox textbox = (Textbox)div.getChildren().get(0);

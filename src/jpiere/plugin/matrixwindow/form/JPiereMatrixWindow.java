@@ -1881,7 +1881,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			FDialog.error(form.getWindowNo(), form, "Error", e.getLocalizedMessage());
+			FDialog.error(form.getWindowNo(), form, "SaveError", e.getLocalizedMessage());
 			return false;
 		}finally{
 			;
