@@ -384,9 +384,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		Row row = null;
 		if(m_matrixSearches.length > 0)
 		{
+			//Caluculate max colspan
+			int maxColspan = 0;
+			int tmpColspan = 0;
+			for(int i = 0; i < m_matrixSearches.length; i++)
+			{
+				tmpColspan = m_matrixSearches[i].getXPosition() + m_matrixSearches[i].getColumnSpan();
+				if(maxColspan < tmpColspan)
+					maxColspan = tmpColspan;
+			}
+
 			row = parameterLayoutRows.newRow();
 				Groupbox searchGB = new Groupbox();
-				row.appendCellChild(searchGB,8);
+				row.appendCellChild(searchGB, maxColspan >= 10?  maxColspan+2 : 10);
 				searchGB.appendChild(new Caption(Msg.getMsg(Env.getCtx(), "SearchCriteria")));
 				Grid searchGrid  = new Grid();
 				searchGrid.setStyle("background-color: #E9F0FF");
