@@ -792,7 +792,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	@Override
 	public void onEvent(Event e) throws Exception {
 
-		message = new StringBuilder();
+		if(message != null && !Util.isEmpty(message.toString()))
+		{
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
+			return;
+		}
 
 		if (e == null)
 		{
@@ -828,7 +833,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setEnabled(false);
 				ProcessButton.setEnabled(false);
 				matrixGrid.setVisible(false);
-				throw new Exception(message.toString());
+
+				FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+
+				return;
 			}
 
 			SearchButton.setEnabled(false);
@@ -852,10 +860,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setEnabled(true);
 				ProcessButton.setEnabled(true);
 				matrixGrid.setVisible(false);
-				if(e.getTarget().equals(SearchButton))
-					throw new Exception(Msg.getMsg(Env.getCtx(), "NotFound"));
-				else
-					return;
+				return;
 			}
 
 
@@ -887,7 +892,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(!createView ())
 				{
 					matrixGrid.setVisible(false);
-					throw new Exception(message.toString());
+					FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+					return ;
 				}
 
 			}else{
@@ -926,16 +932,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			String  JP_QuickEntryConf = m_matrixWindow.getJP_QuickEntryConf();
 			for(WEditor editor : editors)
 			{
-				//Search Field Value can not update.Search Field Value is read only
+				//Search Field Value can not update,Search Field Value is read only except WStringEditor
 				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 				{
 					if(editor.getColumnName().equals(entry.getKey()))
 					{
 						editor.setValue(entry.getValue().getValue());
 						if(entry.getValue().getValue() == null)
+						{
 							editor.setReadWrite(true);
-						else
-							editor.setReadWrite(false);
+						}else{
+							if(editor instanceof WStringEditor)
+								editor.setReadWrite(true);
+							else
+								editor.setReadWrite(false);
+						}
 					}
 				}//for
 
@@ -1021,14 +1032,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		//Create String where clause
 		whereClause = createWhere();
-		if(message.length() > 0)
+		if(!Util.isEmpty(message.toString()))
+		{
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
+		}
+
 
 		//Create Column key info from where clause
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -1036,6 +1054,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(virtualTabMap == null || virtualTabMap.size() == 0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -1044,6 +1064,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(rowKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -1052,6 +1074,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(m_POs.length==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
