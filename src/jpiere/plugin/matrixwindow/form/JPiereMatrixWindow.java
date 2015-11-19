@@ -54,6 +54,7 @@ import org.adempiere.webui.editor.IZoomableEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WSearchEditor;
+import org.adempiere.webui.editor.WStringEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
@@ -96,6 +97,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.TrxRunnable;
+import org.compiere.util.Util;
 import org.zkoss.zk.ui.AbstractComponent;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
@@ -473,6 +475,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
 						else
 							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+					}else if (editor instanceof WStringEditor){
+
+						String stringValue = (String)editor.getValue();
+						if(m_matrixSearches[i].isMandatory() && Util.isEmpty(stringValue))
+							editor.getLabel().setStyle("color:red;");
 					}
 
 					editor.setMandatory(m_matrixSearches[i].isMandatory());
@@ -711,11 +718,29 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		matrixGrid.setVisible(false);
 
-		if(e.getNewValue()==null && editor.isMandatory())
+		if(e.getNewValue()==null)
 		{
-			editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+			if(editor.isMandatory() && (editor instanceof WSearchEditor
+					|| editor instanceof WTableDirEditor))
+			{
+				editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+			}
+
 		}else{
-			editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+
+			if(editor.isMandatory() && (editor instanceof WSearchEditor
+					|| editor instanceof WTableDirEditor))
+			{
+				editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+			}else if (editor.isMandatory() && editor instanceof WStringEditor){
+
+				String stringValue =(String)e.getNewValue();
+				if(Util.isEmpty(stringValue))
+					editor.getLabel().setStyle("color:red;");
+				else
+					editor.getLabel().setStyle("color:#333;");;
+			}
+
 		}
 
 
@@ -1084,7 +1109,15 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 		{
-			if(entry.getValue().getValue()!=null)
+			Object value = entry.getValue().getValue();
+			if(entry.getValue() instanceof WStringEditor)
+			{
+				String stringValue = (String)entry.getValue().getValue();
+				if(Util.isEmpty(stringValue))
+					value = null;
+			}
+
+			if(value != null)
 			{
 
 				String tableName = null;

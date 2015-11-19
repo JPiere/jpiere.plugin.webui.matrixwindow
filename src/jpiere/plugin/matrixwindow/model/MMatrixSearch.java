@@ -16,9 +16,6 @@ package jpiere.plugin.matrixwindow.model;
 import java.sql.ResultSet;
 import java.util.Properties;
 
-import org.compiere.model.MIndexColumn;
-import org.compiere.model.MTable;
-import org.compiere.model.MTableIndex;
 import org.compiere.util.Msg;
 
 /**
@@ -111,63 +108,63 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 	protected boolean afterSave(boolean newRecord, boolean success) {
 
 		//Check unique Constraint
-		if(success || newRecord || is_ValueChanged("AD_Field_ID") || is_ValueChanged("IsMandatory"))
-		{
-			MTable mTable = MTable.get(getCtx(), getParent().getAD_Tab().getAD_Table_ID());
-			MTableIndex[] m_tableIndexes = MTableIndex.get(mTable);
-			MMatrixSearch[] matrixSearches = getParent().getMatrixSearches(" AND IsMandatory='Y' ", " SeqNo ");
-			boolean isUniqueConstraint = false;
-			int uniqueConstraintCounter = 0;
-			for(int i = 0 ; i < m_tableIndexes.length; i++)
-			{
-				MIndexColumn[] m_indexColumns = m_tableIndexes[i].getColumns(false);
-				for(int j = 0; j < m_indexColumns.length; j++)
-				{
-					if(m_indexColumns[j].getAD_Column_ID()==getParent().getJP_MatrixColumnKey().getAD_Column_ID())
-					{
-						uniqueConstraintCounter++;
-						continue;
-					}
-
-					if(m_indexColumns[j].getAD_Column_ID()==getParent().getJP_MatrixRowKey().getAD_Column_ID())
-					{
-						uniqueConstraintCounter++;
-						continue;
-					}
-
-					for(int k = 0 ; k < matrixSearches.length; k++)
-					{
-						if(m_indexColumns[j].getAD_Column_ID()==matrixSearches[k].getAD_Field().getAD_Column_ID())
-						{
-							uniqueConstraintCounter++;
-							break;
-						}
-					}//for k
-				}//for j
-
-				if(uniqueConstraintCounter==(matrixSearches.length + 2))
-				{
-					isUniqueConstraint = true;
-					break;
-				}else{
-					uniqueConstraintCounter=0;
-				}
-
-			}//for i
-
-			if(!isUniqueConstraint)
-			{
-				Object[] objects = {Msg.getElement(getCtx(),"JP_MatrixColumnKey_ID")
-									+ "," + Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")
-									+ "," + Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
-									+ "(" + Msg.getElement(getCtx(), "IsMandatory") + ")"};
-				String errorMessage = Msg.getMsg(getCtx(), "JP_UniqueConstraintNecessary", objects);
-
-				log.saveError("Error", errorMessage);
-				return false;
-			}
-
-		}//if
+//		if(success || newRecord || is_ValueChanged("AD_Field_ID") || is_ValueChanged("IsMandatory"))
+//		{
+//			MTable mTable = MTable.get(getCtx(), getParent().getAD_Tab().getAD_Table_ID());
+//			MTableIndex[] m_tableIndexes = MTableIndex.get(mTable);
+//			MMatrixSearch[] matrixSearches = getParent().getMatrixSearches(" AND IsMandatory='Y' ", " SeqNo ");
+//			boolean isUniqueConstraint = false;
+//			int uniqueConstraintCounter = 0;
+//			for(int i = 0 ; i < m_tableIndexes.length; i++)
+//			{
+//				MIndexColumn[] m_indexColumns = m_tableIndexes[i].getColumns(false);
+//				for(int j = 0; j < m_indexColumns.length; j++)
+//				{
+//					if(m_indexColumns[j].getAD_Column_ID()==getParent().getJP_MatrixColumnKey().getAD_Column_ID())
+//					{
+//						uniqueConstraintCounter++;
+//						continue;
+//					}
+//
+//					if(m_indexColumns[j].getAD_Column_ID()==getParent().getJP_MatrixRowKey().getAD_Column_ID())
+//					{
+//						uniqueConstraintCounter++;
+//						continue;
+//					}
+//
+//					for(int k = 0 ; k < matrixSearches.length; k++)
+//					{
+//						if(m_indexColumns[j].getAD_Column_ID()==matrixSearches[k].getAD_Field().getAD_Column_ID())
+//						{
+//							uniqueConstraintCounter++;
+//							break;
+//						}
+//					}//for k
+//				}//for j
+//
+//				if(uniqueConstraintCounter==(matrixSearches.length + 2))
+//				{
+//					isUniqueConstraint = true;
+//					break;
+//				}else{
+//					uniqueConstraintCounter=0;
+//				}
+//
+//			}//for i
+//
+//			if(!isUniqueConstraint)
+//			{
+//				Object[] objects = {Msg.getElement(getCtx(),"JP_MatrixColumnKey_ID")
+//									+ "," + Msg.getElement(getCtx(), "JP_MatrixRowKey_ID")
+//									+ "," + Msg.getElement(getCtx(), "JP_MatrixSearch_ID")
+//									+ "(" + Msg.getElement(getCtx(), "IsMandatory") + ")"};
+//				String errorMessage = Msg.getMsg(getCtx(), "JP_UniqueConstraintNecessary", objects);
+//
+//				log.saveError("Error", errorMessage);
+//				return false;
+//			}
+//
+//		}//if
 
 		return success;
 	}
