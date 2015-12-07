@@ -107,13 +107,13 @@ import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Auxheader;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Caption;
+import org.zkoss.zul.Cell;
 import org.zkoss.zul.Center;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Groupbox;
 import org.zkoss.zul.ListModel;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.North;
-import org.zkoss.zul.Space;
 import org.zkoss.zul.impl.XulElement;
 
 /**
@@ -366,6 +366,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private void zkInit() throws Exception
 	{
 		form.appendChild(mainLayout);
+		form.setHeight("100%");
 
 		/*Main Layout(Borderlayout)*/
 		mainLayout.setWidth("100%");
@@ -609,13 +610,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
-
-		//for space under Button
-		row = parameterLayoutRows.newRow();
-				row.appendCellChild(new Space(),1);
-
 		//Edit Area
 		Center center = new Center();
+		center.setStyle("padding-top: 16px");
 		mainLayout.appendChild(center);
 		center.appendChild(displayDataPanel);
 		displayDataPanel.appendChild(displayDataLayout);//Borderlayout
@@ -627,17 +624,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		displayDataLayout.setHeight("100%");
 		displayDataLayout.setStyle("border: none");
 
-				//Contents
-				center = new Center();
-				displayDataLayout.appendChild(center);
-				center.appendChild(matrixGrid);
-				center.setStyle("border: none");
-				matrixGrid.setWidth("100%");
-				matrixGrid.setHeight("100%");
-				matrixGrid.setVflex(true);
-				matrixGrid.setVisible(false);
-				matrixGrid.setMold("paging");
-				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
+			//Contents
+			center = new Center();
+			displayDataLayout.appendChild(center);
+			center.appendChild(matrixGrid);
+			center.setStyle("border: none");
+			matrixGrid.setWidth("100%");
+			matrixGrid.setHeight("100%");
+			matrixGrid.setVflex(true);
+			matrixGrid.setVisible(false);
+			matrixGrid.setMold("paging");
+			matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
 
@@ -810,6 +807,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			if (data != null && data instanceof Component)
 			{
 				AbstractComponent cmp = (AbstractComponent) data;
+				if(cmp instanceof Cell && !(cmp.getChildren().get(0) instanceof org.zkoss.zul.Label))
+				{
+					//control focus
+					if(renderer.setFocus(cmp.getChildren().get(0)))
+						return;
+				}
+
 				if (cmp.getParent() instanceof org.zkoss.zul.Row)
 				{
 					row = (org.zkoss.zul.Row) cmp.getParent();

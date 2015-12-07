@@ -535,15 +535,66 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	}
 
 
-	//These variables is used by onEvent() method only except y,x.
-	private String[] yx;
-	private int y = 0;
-	private int x = 0;
+	//control focus
 	private NumberBox numberbox;
 	private Datebox datebox ;
 	private Combobox combobox;
 	private Searchbox searchbox;
+	private Textbox textbox ;
+	public boolean setFocus(Component Component)
+	{
+		if(Component instanceof NumberBox)
+		{
+			numberbox = (NumberBox)Component;
+        	numberbox.focus();
+        	numberbox.getDecimalbox().select();
+        	return true;
 
+		}else if(Component instanceof Datebox){
+
+			datebox = (Datebox)Component;
+			datebox.focus();
+			datebox.select();
+			return true;
+
+		}else if(Component instanceof Combobox){
+
+			combobox = (Combobox)Component;
+			combobox.focus();
+			combobox.select();
+//			combobox.open();
+			return true;
+
+		}else if(Component instanceof Textbox){
+
+			textbox = (Textbox)Component;
+			textbox.select();
+			if(Component.getParent() instanceof Cell)
+				((Cell)Component.getParent()).focus();
+
+			return true;
+
+		}else if(Component instanceof Searchbox){
+
+			searchbox = (Searchbox)Component;
+			searchbox.focus();
+			searchbox.getTextbox().select();
+
+			return true;
+
+		}else{
+			if(Component.getParent() instanceof Cell)
+				((Cell)Component.getParent()).focus();
+
+			return false;
+		}
+
+	}
+
+	//These variables is used by onEvent() method only except y,x.
+	private String[] yx;
+	private int y = 0;
+	private int x = 0;
 	private int minY = 0;
 	private int maxY = 0;
 
@@ -909,41 +960,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				if(i == x)
 				{
-
-					if(div.getChildren().get(0) instanceof NumberBox)
-					{
-						numberbox = (NumberBox)div.getChildren().get(0);
-	    	        	numberbox.focus();
-	    	        	numberbox.getDecimalbox().select();
-
-					}else if(div.getChildren().get(0) instanceof Datebox){
-
-						datebox = (Datebox)div.getChildren().get(0);
-						datebox.focus();
-						datebox.select();
-
-					}else if(div.getChildren().get(0) instanceof Combobox){
-
-						combobox = (Combobox)div.getChildren().get(0);
-						combobox.focus();
-						combobox.select();
-
-//					}else if(div.getChildren().get(0) instanceof Textbox){
-//						Textbox textbox = (Textbox)div.getChildren().get(0);
-//						int cols =textbox.getCols();
-//						List<Component> aa = textbox.getChildren();
-//						textbox.select();
-//						div.focus();
-
-					}else if(div.getChildren().get(0) instanceof Searchbox){
-
-						searchbox = (Searchbox)div.getChildren().get(0);
-						searchbox.focus();
-						searchbox.getTextbox().select();
-
-					}else{
-						div.focus();
-					}
+					setFocus(div.getChildren().get(0));
 				}
 			}
 		}
