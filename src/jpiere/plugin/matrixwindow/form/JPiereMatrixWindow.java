@@ -1488,7 +1488,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						sortSQL.append(","+list.get(i));
 				}
 				sortSQL.append(" )");
-				sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
+				if(!Util.isEmpty(ref.getOrderByClause()))
+					sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
 			}
 
 			try
@@ -1596,7 +1597,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	/*
 	 * Create Map of PO per column of x-axis
-	 * (縦軸となるKey Column毎のPOのMAPを作成しいます。)
 	 *
 	 * @return LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
 	 */
