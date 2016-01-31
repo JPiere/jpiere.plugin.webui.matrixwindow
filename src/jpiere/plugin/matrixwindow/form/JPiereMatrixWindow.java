@@ -36,6 +36,7 @@ import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
+import org.adempiere.exceptions.DBException;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
@@ -178,6 +179,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	//Map of PO Instance that have to save.<ID of PO,PO>
 	private HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
+
+	private ArrayList<PO> notSavePO = null;
 
 
 	//Create Map of PO per column of x-axis:LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
@@ -1928,6 +1931,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private boolean saveData()
 	{
+		notSavePO = new ArrayList<PO>();
+
 		try
 		{
 
@@ -1939,13 +1944,31 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					Collection<PO> POs = dirtyModel.values();
 					for(PO po :POs)
 					{
-						po.saveEx(trxName);
+						if(checkExclusiveControl(po))
+						{
+							po.saveEx(trxName);
+
+						}else{//not save
+							notSavePO.add(po);
+						}
 					}
 
 					updateColumn();
 
 				}
 			});
+
+			if(notSavePO.size() > 0)
+			{
+				String msg = Msg.getMsg(Env.getCtx(), "SaveErrorDataChanged");//Could not save changes - data was changed after query.
+
+				for(PO po :notSavePO)
+				{
+					msg = msg + System.lineSeparator() + po.toString();
+				}
+				FDialog.error(form.getWindowNo(), form, "Next", msg);
+				createView();
+			}
 
 			return true;
 
@@ -1958,6 +1981,87 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			;
 		}
 	}   //  saveData
+
+
+	/**
+	 *
+	 *  If this method returns false, you can not save. because other people saved same record before you save.
+	 *  I refered GridTable.hasChanged() method.
+	 *
+	 */
+	private boolean checkExclusiveControl(PO po)
+	{
+		int colUpdated = po.get_ColumnIndex("Updated");
+		int colProcessed = po.get_ColumnIndex("Processed");
+
+		boolean hasUpdated = (colUpdated > 0);
+		boolean hasProcessed = (colProcessed > 0);
+
+		String columns = null;
+		if (hasUpdated && hasProcessed) {
+			columns = new String("Updated, Processed");
+		} else if (hasUpdated) {
+			columns = new String("Updated");
+		} else if (hasProcessed) {
+			columns = new String("Processed");
+		} else {
+			// no columns updated or processed to commpare
+			return false;
+		}
+
+		Timestamp dbUpdated = null;
+	   	String dbProcessedS = null;
+	   	PreparedStatement pstmt = null;
+	   	ResultSet rs = null;
+	   	String sql = "SELECT " + columns + " FROM " + TABLE_NAME + " WHERE " + TABLE_NAME + "_ID=?";
+	   	try
+	   	{
+	   		pstmt = DB.prepareStatement(sql, null);
+	   		pstmt.setInt(1, po.get_ID());
+	   		rs = pstmt.executeQuery();
+	   		if (rs.next()) {
+	   			int idx = 1;
+	   			if (hasUpdated)
+	   				dbUpdated = rs.getTimestamp(idx++);
+	   			if (hasProcessed)
+	   				dbProcessedS = rs.getString(idx++);
+	   		}
+	   		else
+	   			if (log.isLoggable(Level.INFO)) log.info("No Value " + sql);
+	   	}
+	   	catch (SQLException e)
+	   	{
+	   		throw new DBException(e, sql);
+	   	}
+	   	finally
+	   	{
+	   		DB.close(rs, pstmt);
+	   		rs = null; pstmt = null;
+	   	}
+
+	   	if (hasUpdated)
+	   	{
+				Timestamp memUpdated = null;
+				memUpdated = (Timestamp) po.get_Value(colUpdated);
+				if (memUpdated != null && ! memUpdated.equals(dbUpdated))
+					return false;
+	   	}
+
+	   	if (hasProcessed)
+	   	{
+				Boolean memProcessed = null;
+				memProcessed = (Boolean) po.get_Value(colProcessed);
+
+				Boolean dbProcessed = Boolean.TRUE;
+				if (! dbProcessedS.equals("Y"))
+					dbProcessed = Boolean.FALSE;
+				if (memProcessed != null && ! memProcessed.equals(dbProcessed))
+					return false;
+	   	}
+
+		return true;
+	}
+
 
 	public String getEditMode()
 	{
