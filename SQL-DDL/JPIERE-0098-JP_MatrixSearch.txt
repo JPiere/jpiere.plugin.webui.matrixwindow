@@ -16,6 +16,10 @@ CREATE TABLE adempiere.JP_MatrixSearch
   seqno numeric(10,0) NOT NULL DEFAULT 0::numeric,
   Description character varying(255),
   IsMandatory character(1) NOT NULL DEFAULT 'N'::bpchar,
+  DefaultValue character varying(2000) DEFAULT NULL::character varying,
+  XPosition numeric(10,0) NOT NULL DEFAULT (1)::numeric,
+  ColumnSpan numeric(10,0) NOT NULL DEFAULT (2)::numeric,
+  AD_Tab_ID numeric(10,0) NOT NULL DEFAULT NULL::numeric,
 
   CONSTRAINT JP_MatrixSearch_pkey PRIMARY KEY (JP_MatrixSearch_ID)
 )

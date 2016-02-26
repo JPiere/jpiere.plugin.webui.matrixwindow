@@ -1,5 +1,5 @@
 /******************************************************************************
- * Product: JPiere(Japan + iDempiere)                                         *
+ * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
@@ -8,7 +8,7 @@
  * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
  *                                                                            *
- * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * JPiere is maintained by OSS ERP Solutions Co., Ltd.                        *
  * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
@@ -83,7 +83,6 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 	public MMatrixField[] getMatrixFields(String whereClause, String orderClause)
 	{
-		//red1 - using new Query class from Teo / Victor's MDDOrder.java implementation
 		StringBuilder whereClauseFinal = new StringBuilder(MMatrixField.COLUMNNAME_JP_MatrixWindow_ID+"=? AND IsActive='Y'");
 		if (!Util.isEmpty(whereClause, true))
 			whereClauseFinal.append(whereClause);
@@ -96,7 +95,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 										.list();
 		//
 		return list.toArray(new MMatrixField[list.size()]);
-	}	//	getLines
+	}
 
 	/**
 	 * 	Get MatrixFields
@@ -119,7 +118,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 
 		matrixFields = getMatrixFields(null, orderClause);
 		return matrixFields;
-	}	//	getLines
+	}
 
 	/**
 	 * 	Get Matrix Fields of Matrix Window.
@@ -127,7 +126,7 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 	public MMatrixField[] getMatrixFields()
 	{
 		return getMatrixFields(false, null);
-	}	//	getLines
+	}
 
 
 	public MMatrixSearch[] getMatrixSearches(String whereClause, String orderClause)

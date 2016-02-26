@@ -1,5 +1,5 @@
 /******************************************************************************
- * Product: JPiere(Japan + iDempiere)                                         *
+ * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
@@ -8,7 +8,7 @@
  * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
  *                                                                            *
- * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * JPiere is maintained by OSS ERP Solutions Co., Ltd.                        *
  * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
@@ -23,12 +23,12 @@ import java.util.TreeMap;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.GridView;
-import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
+import org.adempiere.webui.component.Combobox;
+import org.adempiere.webui.component.Datebox;
 import org.adempiere.webui.component.NumberBox;
+import org.adempiere.webui.component.Searchbox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
@@ -97,14 +97,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private RowListener rowListener;
 
 	private Grid grid = null;
-	private GridView gridView = null;
 
 	private Row currentRow;
 
 	private boolean editing = false;
 
-	private AbstractADWindowContent m_windowPanel;
-	private IADTabpanel adTabpanel;
 	private ActionListener buttonListener;
 
 	private ListModelMap<Object, Object>  viewModel;
@@ -326,7 +323,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 					//readonly for display text
 					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
-					readOnlyEditor.setReadWrite(false);
+					readOnlyEditor.setReadWrite(true);
 					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
 
 				}//if
@@ -344,7 +341,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					{
 						WButtonEditor button  = (WButtonEditor)WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
 						button.addActionListener(buttonListener);
-						button.setADTabpanel(adTabpanel);
+//						button.setADTabpanel(adTabpanel);
 						button.setValue(treeMap.get(i)); // Set Record ID in Button for process
 						div.appendChild(button.getComponent());
 					}else{
@@ -452,7 +449,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					if (editor instanceof WButtonEditor)
 					{
 						((WButtonEditor)editor).addActionListener(buttonListener);
-						((WButtonEditor)editor).setADTabpanel(adTabpanel);
+//						((WButtonEditor)editor).setADTabpanel(adTabpanel);
 						editor.setValue(treeMap.get(i)); // Set Record ID in Button for process
 					}else{
 						editor.setValue(data.get(i));
@@ -538,11 +535,66 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	}
 
 
+	//control focus
+	private NumberBox numberbox;
+	private Datebox datebox ;
+	private Combobox combobox;
+	private Searchbox searchbox;
+	private Textbox textbox ;
+	public boolean setFocus(Component Component)
+	{
+		if(Component instanceof NumberBox)
+		{
+			numberbox = (NumberBox)Component;
+        	numberbox.focus();
+        	numberbox.getDecimalbox().select();
+        	return true;
+
+		}else if(Component instanceof Datebox){
+
+			datebox = (Datebox)Component;
+			datebox.focus();
+			datebox.select();
+			return true;
+
+		}else if(Component instanceof Combobox){
+
+			combobox = (Combobox)Component;
+			combobox.focus();
+			combobox.select();
+//			combobox.open();
+			return true;
+
+		}else if(Component instanceof Textbox){
+
+			textbox = (Textbox)Component;
+			textbox.select();
+			if(Component.getParent() instanceof Cell)
+				((Cell)Component.getParent()).focus();
+
+			return true;
+
+		}else if(Component instanceof Searchbox){
+
+			searchbox = (Searchbox)Component;
+			searchbox.focus();
+			searchbox.getTextbox().select();
+
+			return true;
+
+		}else{
+			if(Component.getParent() instanceof Cell)
+				((Cell)Component.getParent()).focus();
+
+			return false;
+		}
+
+	}
+
 	//These variables is used by onEvent() method only except y,x.
 	private String[] yx;
 	private int y = 0;
 	private int x = 0;
-	private NumberBox numberbox;
 	private int minY = 0;
 	private int maxY = 0;
 
@@ -589,6 +641,20 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 		for(int i = 0 ; i < grid.getPageSize(); i++)
      	{
+			//If you push Enter key at Blank Search field, iDempiere dispay Info Window. So, stay same row.
+			if(event.getTarget().getParent() instanceof Searchbox)
+			{
+
+				searchbox =(Searchbox)event.getTarget().getParent();
+				if(searchbox.getText().equals(""))
+				{
+					editNextRow(y,x);
+	 				event.stopPropagation();
+	 				return;
+				}
+
+			}
+
          	if(y == maxY-1)
          		y = minY - 1 ;
 
@@ -598,6 +664,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
      			if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
      			{
+
 	 				editNextRow(y,x);
 	 				event.stopPropagation();
 	 				return;
@@ -775,11 +842,13 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
 		//skip selection and indicator column
-		for (int i = 0; i < columnEditorMap.size(); i++) {
+		for (int i = 0; i < columnEditorMap.size(); i++)
+		{
 
 			GridField gridField = columnGridFieldMap.get(i);
 
-			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton()) {
+			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton())
+			{
 				continue;
 			}
 
@@ -807,7 +876,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				}else if(editor instanceof WSearchEditor){
 
-					//Dynamic validation of  WsearchEditor can not parse with TabnNo, Please check  WsearchEditor.getWhereClause() method.
+					//Dynamic validation of  WsearchEditor can not parse with TabNo, Please check  WsearchEditor.getWhereClause() method.
 					//Matrix window need to parse with TabNo Info.
 					//So,set Dynamic validation  to VFormat for evacuation,and Lookupinfo modify directly.
 					if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
@@ -887,28 +956,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	            }
 
 
-//				editor.setReadWrite(gridFeld.isEditableGrid(true));
-				editor.setReadWrite(true);
+				editor.setReadWrite(!gridField.isReadOnly());
 
 				if(i == x)
 				{
-
-					if(div.getChildren().get(0) instanceof NumberBox)
-					{
-						numberbox = (NumberBox)div.getChildren().get(0);
-	    	        	numberbox.focus();
-	    	        	numberbox.getDecimalbox().select();
-
-//					}else if(div.getChildren().get(0) instanceof Textbox){
-//						Textbox textbox = (Textbox)div.getChildren().get(0);
-//						int cols =textbox.getCols();
-//						List<Component> aa = textbox.getChildren();
-//						textbox.select();
-//						div.focus();
-
-					}else{
-						div.focus();
-					}
+					setFocus(div.getChildren().get(0));
 				}
 			}
 		}
@@ -948,12 +1000,9 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 * Need to Create Process Dialog
 	 *
 	 */
-	public void setADWindowPanel(AbstractADWindowContent windowPanel,IADTabpanel adTabpanel) {
-		if (this.m_windowPanel == windowPanel)
+	public void createRecordProcessDialog() {
+		if (buttonListener != null)
 			return;
-
-		this.m_windowPanel = windowPanel;
-		this.adTabpanel = adTabpanel;
 
 		buttonListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -981,10 +1030,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		};
 	}
 
-	public void setGridView(GridView gridView)
-	{
-		this.gridView = gridView;
-	}
 
 	public void setGridTab(GridTab gridTab)
 	{

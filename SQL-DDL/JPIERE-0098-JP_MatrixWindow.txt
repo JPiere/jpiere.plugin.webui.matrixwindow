@@ -20,6 +20,10 @@ CREATE TABLE adempiere.JP_MatrixWindow
   JP_MatrixRowKey_ID  numeric(10,0) NOT NULL,
   FieldLength numeric(10,0) DEFAULT 100::numeric,
   JP_QuickEntryWindow_ID numeric(10,0) DEFAULT NULL::numeric,
+  JP_PageSize numeric(10,0) NOT NULL DEFAULT (20)::numeric,
+  JP_QuickEntryConf character varying(2) DEFAULT NULL::character varying,
+  WhereClause character varying(2000) DEFAULT NULL::character varying,
+  JP_JoinClause character varying(2000) DEFAULT NULL::character varying,
 
   CONSTRAINT JP_MatrixWindow_pkey PRIMARY KEY (JP_MatrixWindow_ID)
 )

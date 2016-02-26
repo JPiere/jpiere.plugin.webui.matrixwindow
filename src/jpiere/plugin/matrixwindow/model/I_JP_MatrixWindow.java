@@ -149,6 +149,15 @@ public interface I_JP_MatrixWindow
 	  */
 	public boolean isActive();
 
+    /** Column name JP_JoinClause */
+    public static final String COLUMNNAME_JP_JoinClause = "JP_JoinClause";
+
+	/** Set SQL Join	  */
+	public void setJP_JoinClause (String JP_JoinClause);
+
+	/** Get SQL Join	  */
+	public String getJP_JoinClause();
+
     /** Column name JP_MatrixColumnKey_ID */
     public static final String COLUMNNAME_JP_MatrixColumnKey_ID = "JP_MatrixColumnKey_ID";
 
@@ -259,4 +268,17 @@ public interface I_JP_MatrixWindow
 	  * Search key for the record in the format required - must be unique
 	  */
 	public String getValue();
+
+    /** Column name WhereClause */
+    public static final String COLUMNNAME_WhereClause = "WhereClause";
+
+	/** Set Sql WHERE.
+	  * Fully qualified SQL WHERE clause
+	  */
+	public void setWhereClause (String WhereClause);
+
+	/** Get Sql WHERE.
+	  * Fully qualified SQL WHERE clause
+	  */
+	public String getWhereClause();
 }

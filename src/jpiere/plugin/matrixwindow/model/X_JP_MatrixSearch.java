@@ -30,7 +30,7 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150805L;
+	private static final long serialVersionUID = 20150921L;
 
     /** Standard Constructor */
     public X_JP_MatrixSearch (Properties ctx, int JP_MatrixSearch_ID, String trxName)
@@ -39,6 +39,8 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
       /** if (JP_MatrixSearch_ID == 0)
         {
 			setAD_Field_ID (0);
+			setAD_Tab_ID (0);
+// @0|AD_Tab_ID@
 			setColumnSpan (0);
 // 2
 			setIsMandatory (true);
@@ -103,6 +105,34 @@ public class X_JP_MatrixSearch extends PO implements I_JP_MatrixSearch, I_Persis
 	public int getAD_Field_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Field_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_AD_Tab getAD_Tab() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Tab)MTable.get(getCtx(), org.compiere.model.I_AD_Tab.Table_Name)
+			.getPO(getAD_Tab_ID(), get_TrxName());	}
+
+	/** Set Tab.
+		@param AD_Tab_ID 
+		Tab within a Window
+	  */
+	public void setAD_Tab_ID (int AD_Tab_ID)
+	{
+		if (AD_Tab_ID < 1) 
+			set_Value (COLUMNNAME_AD_Tab_ID, null);
+		else 
+			set_Value (COLUMNNAME_AD_Tab_ID, Integer.valueOf(AD_Tab_ID));
+	}
+
+	/** Get Tab.
+		@return Tab within a Window
+	  */
+	public int getAD_Tab_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Tab_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

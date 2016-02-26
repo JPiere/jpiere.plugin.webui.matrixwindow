@@ -1,5 +1,5 @@
 /******************************************************************************
- * Product: JPiere(Japan + iDempiere)                                         *
+ * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
@@ -8,7 +8,7 @@
  * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
  *                                                                            *
- * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * JPiere is maintained by OSS ERP Solutions Co., Ltd.                        *
  * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,13 +36,9 @@ import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
+import org.adempiere.exceptions.DBException;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADTabpanel;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.ADWindowContent;
-import org.adempiere.webui.adwindow.GridView;
-import org.adempiere.webui.adwindow.IADTabbox;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.ToolbarProcessButton;
 import org.adempiere.webui.apps.AEnv;
@@ -58,6 +55,7 @@ import org.adempiere.webui.editor.IZoomableEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
 import org.adempiere.webui.editor.WSearchEditor;
+import org.adempiere.webui.editor.WStringEditor;
 import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.editor.WYesNoEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
@@ -75,6 +73,7 @@ import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridTabVO;
+import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.I_AD_Column;
 import org.compiere.model.I_AD_Field;
@@ -91,6 +90,7 @@ import org.compiere.model.MToolBarButtonRestrict;
 import org.compiere.model.PO;
 import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_ToolBarButton;
+import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -98,6 +98,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.TrxRunnable;
+import org.compiere.util.Util;
 import org.zkoss.zk.ui.AbstractComponent;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
@@ -107,13 +108,13 @@ import org.zkoss.zul.Auxhead;
 import org.zkoss.zul.Auxheader;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Caption;
+import org.zkoss.zul.Cell;
 import org.zkoss.zul.Center;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Groupbox;
 import org.zkoss.zul.ListModel;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.North;
-import org.zkoss.zul.Space;
 import org.zkoss.zul.impl.XulElement;
 
 /**
@@ -178,6 +179,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	//Map of PO Instance that have to save.<ID of PO,PO>
 	private HashMap<Integer,PO> 				dirtyModel  = new HashMap<Integer,PO>();
+
+	private ArrayList<PO> notSavePO = null;
 
 
 	//Create Map of PO per column of x-axis:LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
@@ -265,13 +268,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	/****************************************************
 	 * Window Info
 	 ****************************************************/
-
-	private CustomForm window = new CustomForm();
-	private ADWindow adWindow;
-	private ADWindowContent adWindowContent;
-	private ADTabpanel adTabpanel;
 	private GridTab gridTab ;
-	private GridView gridView ;
 	private GridField[] gridFields ;
 
 
@@ -304,7 +301,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	}
 
-	public void prepare(String Value) throws Exception
+	private void prepare(String Value) throws Exception
 	{
 		//Create Models that is used by Matrix Window
 		m_matrixWindow = MMatrixWindow.get(Env.getCtx(), Value);
@@ -340,27 +337,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 
 		//Create Window because of use Window info.
-		if(adWindow==null)
+		GridWindowVO gridWindowVO =AEnv.getMWindowVO(form.getWindowNo(), m_matrixWindow.getAD_Window_ID(), 0);
+		GridWindow gridWindow = new GridWindow(gridWindowVO);
+		for(int i = 0; i < gridWindow.getTabCount(); i++)
 		{
-			adWindow = new ADWindow(Env.getCtx(),AD_WINDOW_ID, null);
-			adWindow.createPart(window);
-		}
-		adWindowContent = adWindow.getADWindowContent();
-		IADTabbox adTabbox = adWindowContent.getADTab();
-		int tabCount = adTabbox.getTabCount();
-		for(int i = 0; i < tabCount; i++)
-		{
-			if(adTabbox.getADTabpanel(i).getTableName().equals(m_Tab.getAD_Table().getTableName()))
+			GridTab gtab =gridWindow.getTab(i);
+			if(gtab.getAD_Tab_ID()==m_matrixWindow.getAD_Tab_ID())
 			{
-				adTabpanel =(ADTabpanel)adTabbox.getADTabpanel(i);
+				gridTab = gtab;
+				break;
 			}
 		}
-		if(adTabpanel == null)
-		{
-			;//Error
-		}
-		gridTab = adTabpanel.getGridTab();
-		gridView = adTabpanel.getGridView();
+
+		gridTab.initTab(false);
 		gridFields = gridTab.getFields();
 
 		//Set Edit Mode.
@@ -380,6 +369,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private void zkInit() throws Exception
 	{
 		form.appendChild(mainLayout);
+		form.setHeight("100%");
 
 		/*Main Layout(Borderlayout)*/
 		mainLayout.setWidth("100%");
@@ -398,9 +388,19 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		Row row = null;
 		if(m_matrixSearches.length > 0)
 		{
+			//Caluculate max colspan
+			int maxColspan = 0;
+			int tmpColspan = 0;
+			for(int i = 0; i < m_matrixSearches.length; i++)
+			{
+				tmpColspan = m_matrixSearches[i].getXPosition() + m_matrixSearches[i].getColumnSpan();
+				if(maxColspan < tmpColspan)
+					maxColspan = tmpColspan;
+			}
+
 			row = parameterLayoutRows.newRow();
 				Groupbox searchGB = new Groupbox();
-				row.appendCellChild(searchGB,8);
+				row.appendCellChild(searchGB, maxColspan >= 10?  maxColspan+2 : 10);
 				searchGB.appendChild(new Caption(Msg.getMsg(Env.getCtx(), "SearchCriteria")));
 				Grid searchGrid  = new Grid();
 				searchGrid.setStyle("background-color: #E9F0FF");
@@ -415,101 +415,161 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			{
 
 
-				MMatrixSearch field = m_matrixSearches[i];
+				MMatrixSearch searchField = m_matrixSearches[i];
 
 
-				if(i == 0 || actualxpos > field.getXPosition())
+				if(i == 0 || actualxpos > searchField.getXPosition())
 				{
 					actualxpos = 0;
 					row = rows.newRow();
 					row.setStyle("background-color: #ffffff");
 				}
 
+				WEditor editor = null;
 				for(int j = 0; j < gridFields.length; j++)
 				{
 					if(m_matrixSearches[i].getAD_Field_ID() == gridFields[j].getAD_Field_ID())
 					{
-						WEditor editor = WebEditorFactory.getEditor(gridFields[j], false);
-						String DefaultValue = m_matrixSearches[i].getDefaultValue();
-						if(DefaultValue == null || DefaultValue.isEmpty())
-						{
-							;
-						}else{
-
-							String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
-							Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
-							editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
-
-							if(editor instanceof WTableDirEditor)
-							{
-								((WTableDirEditor) editor).actionRefresh();
-								((WTableDirEditor) editor).getLookup().setSelectedItem("");
-							}
-
-						}
-
-						if(!editor.isReadWrite())
-						{
-							editor.setReadWrite(true);
-							if(editor instanceof WTableDirEditor)
-								((WTableDirEditor) editor).actionRefresh();
-
-						}
-
-						//Set zoom
-						if(editor instanceof WSearchEditor
-								|| editor instanceof WTableDirEditor)
-						{
-							editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
-							if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
-								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
-							else
-								editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
-						}
-
-						editor.setMandatory(m_matrixSearches[i].isMandatory());
-
-						//positioning
-						row.appendCellChild(editor.getLabel().rightAlign(),1);
-						actualxpos = actualxpos + 1;
-						row.appendCellChild(editor.getComponent(),field.getColumnSpan());
-						actualxpos = actualxpos + field.getColumnSpan();
-
-						//Popup Menu
-						WEditorPopupMenu  popupMenu = editor.getPopupMenu();
-						List<Component> listcomp = popupMenu.getChildren();
-						Menuitem menuItem = null;
-						String image = null;
-						for(Component comp : listcomp)
-						{
-							if(comp instanceof Menuitem)
-							{
-								menuItem = (Menuitem)comp;
-								image = menuItem.getImage();
-								if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
-										|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
-								{
-									menuItem.setVisible(true);
-								}else{
-									menuItem.setVisible(false);
-								}
-							}
-						}//for
-
-			            if (popupMenu != null)
-			            {
-			            	popupMenu.addMenuListener((ContextMenuListener)editor);
-			            	row.appendChild(popupMenu);
-
-			            	popupMenu.addContextElement((XulElement) editor.getComponent());
-			            }
-
-						editor.addValueChangeListener(this);
-						searchEditorMap.put(editor.getColumnName(), editor);
+						editor = WebEditorFactory.getEditor(gridFields[j], false);
 						break;
 					}
-				}//for j
-			}//for i
+				}
+
+				if(editor == null)
+				{
+					GridField[] gFields = GridField.createFields(Env.getCtx(), form.getWindowNo(), 0, searchField.getAD_Tab_ID());
+					for(int k = 0; k < gFields.length; k++)
+					{
+						if(m_matrixSearches[i].getAD_Field_ID() == gFields[k].getAD_Field_ID())
+						{
+							editor = WebEditorFactory.getEditor(gFields[k], false);
+							break;
+						}
+					}
+					;
+				}
+
+				if(editor == null)
+				{
+					;//TODO Error
+
+				}else{
+					String DefaultValue = m_matrixSearches[i].getDefaultValue();
+					if(DefaultValue == null || DefaultValue.isEmpty())
+					{
+						;
+					}else{
+
+						String value = Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false);
+						Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), value);
+						editor.setValue(Env.parseContext(Env.getCtx(), form.getWindowNo(), DefaultValue, false));
+
+						if(editor instanceof WTableDirEditor)
+						{
+							((WTableDirEditor) editor).actionRefresh();
+							((WTableDirEditor) editor).getLookup().setSelectedItem("");
+						}
+
+					}
+
+					if(!editor.isReadWrite())
+					{
+						editor.setReadWrite(true);
+						if(editor instanceof WTableDirEditor)
+							((WTableDirEditor) editor).actionRefresh();
+
+					}
+
+					//Set zoom
+					if(editor instanceof WSearchEditor
+							|| editor instanceof WTableDirEditor)
+					{
+						editor.getLabel().addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
+						if(m_matrixSearches[i].isMandatory() && editor.getValue()==null)
+							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+						else
+							editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333;");
+					}else if (editor instanceof WStringEditor){
+
+						String stringValue = (String)editor.getValue();
+						if(m_matrixSearches[i].isMandatory() && Util.isEmpty(stringValue))
+							editor.getLabel().setStyle("color:red;");
+					}
+
+					editor.setMandatory(m_matrixSearches[i].isMandatory());
+
+					//positioning
+					row.appendCellChild(editor.getLabel().rightAlign(),1);
+					actualxpos = actualxpos + 1;
+					row.appendCellChild(editor.getComponent(),searchField.getColumnSpan());
+					actualxpos = actualxpos + searchField.getColumnSpan();
+
+					//Popup Menu
+					WEditorPopupMenu  popupMenu = editor.getPopupMenu();
+					List<Component> listcomp = popupMenu.getChildren();
+					Menuitem menuItem = null;
+					String image = null;
+					for(Component comp : listcomp)
+					{
+						if(comp instanceof Menuitem)
+						{
+							menuItem = (Menuitem)comp;
+							image = menuItem.getImage();
+							if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+									|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+							{
+								menuItem.setVisible(true);
+							}else{
+								menuItem.setVisible(false);
+							}
+						}
+					}//for
+
+		            if (popupMenu != null)
+		            {
+		            	popupMenu.addMenuListener((ContextMenuListener)editor);
+		            	row.appendChild(popupMenu);
+
+		            	popupMenu.addContextElement((XulElement) editor.getComponent());
+		            }
+
+					editor.addValueChangeListener(this);
+					searchEditorMap.put(editor.getColumnName(), editor);
+
+				}
+
+
+			}//for i : Create Search Fields
+
+			//Dynamic Validation
+			for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
+			{
+				WEditor otherEditor = entry.getValue();
+				GridField gridField = otherEditor.getGridField();
+
+				if(otherEditor instanceof WTableDirEditor || otherEditor instanceof WSearchEditor )
+				{
+
+					if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
+					{
+						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+					}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
+
+						gridField.setVFormat(gridField.getLookup().getValidation());
+						String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+						((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+					}
+
+					if(otherEditor instanceof WTableDirEditor)
+						((WTableDirEditor)otherEditor).getLookup().refresh();
+
+				}//if
+
+			}//for Dynamic Validation
+
 		}//if
 
 
@@ -553,13 +613,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
-
-		//for space under Button
-		row = parameterLayoutRows.newRow();
-				row.appendCellChild(new Space(),1);
-
 		//Edit Area
 		Center center = new Center();
+		center.setStyle("padding-top: 16px");
 		mainLayout.appendChild(center);
 		center.appendChild(displayDataPanel);
 		displayDataPanel.appendChild(displayDataLayout);//Borderlayout
@@ -571,17 +627,17 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		displayDataLayout.setHeight("100%");
 		displayDataLayout.setStyle("border: none");
 
-				//Contents
-				center = new Center();
-				displayDataLayout.appendChild(center);
-				center.appendChild(matrixGrid);
-				center.setStyle("border: none");
-				matrixGrid.setWidth("100%");
-				matrixGrid.setHeight("100%");
-				matrixGrid.setVflex(true);
-				matrixGrid.setVisible(false);
-				matrixGrid.setMold("paging");
-				matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
+			//Contents
+			center = new Center();
+			displayDataLayout.appendChild(center);
+			center.appendChild(matrixGrid);
+			center.setStyle("border: none");
+			matrixGrid.setWidth("100%");
+			matrixGrid.setHeight("100%");
+			matrixGrid.setVflex(true);
+			matrixGrid.setVisible(false);
+			matrixGrid.setMold("paging");
+			matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}
 
 
@@ -651,13 +707,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //	@Override
 	public void valueChange(ValueChangeEvent e)
 	{
-		searchEditorMap.get(e.getPropertyName()).setValue(e.getNewValue());
 
-		if(searchEditorMap.get(e.getPropertyName()) instanceof WYesNoEditor)
+		WEditor editor = searchEditorMap.get(e.getPropertyName());
+
+		editor.setValue(e.getNewValue());
+
+		if(editor instanceof WYesNoEditor)
 		{
-			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue().equals("true") ? "Y" : "N");
+			Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), e.getNewValue().equals("true") ? "Y" : "N");
 		}else{
-			Env.setContext(Env.getCtx(), form.getWindowNo(), searchEditorMap.get(e.getPropertyName()).getColumnName(), e.getNewValue()==null ? null : e.getNewValue().toString());
+			Env.setContext(Env.getCtx(), form.getWindowNo(), editor.getColumnName(), e.getNewValue()==null ? null : e.getNewValue().toString());
 		}
 
 		SearchButton.setEnabled(true);
@@ -669,12 +728,63 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		matrixGrid.setVisible(false);
 
-		if(e.getNewValue()==null && searchEditorMap.get(e.getPropertyName()).isMandatory())
+		if(e.getNewValue()==null)
 		{
-			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+			if(editor.isMandatory() && (editor instanceof WSearchEditor
+					|| editor instanceof WTableDirEditor))
+			{
+				editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; color:red;");
+			}
+
 		}else{
-			searchEditorMap.get(e.getPropertyName()).getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+
+			if(editor.isMandatory() && (editor instanceof WSearchEditor
+					|| editor instanceof WTableDirEditor))
+			{
+				editor.getLabel().setStyle("cursor: pointer; text-decoration: underline;color: #333; ");
+			}else if (editor.isMandatory() && editor instanceof WStringEditor){
+
+				String stringValue =(String)e.getNewValue();
+				if(Util.isEmpty(stringValue))
+					editor.getLabel().setStyle("color:red;");
+				else
+					editor.getLabel().setStyle("color:#333;");;
+			}
+
 		}
+
+
+		//Dynamic Validation
+		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
+		{
+			WEditor otherEditor = entry.getValue();
+			GridField gridField = otherEditor.getGridField();
+
+			if(otherEditor.getColumnName().equals(editor.getColumnName()))
+			{
+				;
+			}else if(otherEditor instanceof WTableDirEditor || otherEditor instanceof WSearchEditor ){
+
+				if(gridField.getVFormat() != null && gridField.getVFormat().indexOf('@') != -1)
+				{
+					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+				}else if(gridField.getLookup().getValidation().indexOf('@') != -1){
+
+					gridField.setVFormat(gridField.getLookup().getValidation());
+					String validated = Env.parseContext(Env.getCtx(), form.getWindowNo(), gridField.getVFormat(), false);
+					((MLookup)gridField.getLookup()).getLookupInfo().ValidationCode=validated;
+
+				}
+
+				if(otherEditor instanceof WTableDirEditor)
+					((WTableDirEditor)otherEditor).getLookup().refresh();
+
+			}//if
+
+		}//for
+
 	}
 
 
@@ -682,7 +792,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	@Override
 	public void onEvent(Event e) throws Exception {
 
-		message = new StringBuilder();
+		if(message != null && !Util.isEmpty(message.toString()))
+		{
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
+			return;
+		}
 
 		if (e == null)
 		{
@@ -695,6 +810,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			if (data != null && data instanceof Component)
 			{
 				AbstractComponent cmp = (AbstractComponent) data;
+				if(cmp instanceof Cell && !(cmp.getChildren().get(0) instanceof org.zkoss.zul.Label))
+				{
+					//control focus
+					if(renderer.setFocus(cmp.getChildren().get(0)))
+						return;
+				}
+
 				if (cmp.getParent() instanceof org.zkoss.zul.Row)
 				{
 					row = (org.zkoss.zul.Row) cmp.getParent();
@@ -718,7 +840,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setEnabled(false);
 				ProcessButton.setEnabled(false);
 				matrixGrid.setVisible(false);
-				throw new Exception(message.toString());
+
+				FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+
+				return;
 			}
 
 			SearchButton.setEnabled(false);
@@ -742,10 +867,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setEnabled(true);
 				ProcessButton.setEnabled(true);
 				matrixGrid.setVisible(false);
-				if(e.getTarget().equals(SearchButton))
-					throw new Exception(Msg.getMsg(Env.getCtx(), "NotFound"));
-				else
-					return;
+				return;
 			}
 
 
@@ -753,6 +875,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 			ProcessButton.setEnabled(true);
+
+			if(e.getName().equals("onComplete"))
+			{
+				JPiereMatrixWindowProcessModelDialog dialog = (JPiereMatrixWindowProcessModelDialog)e.getTarget();
+				ProcessInfo pInfo = dialog.getProcessInfo();
+
+//				dialog.updateUI();
+//				HtmlBasedComponent  ditailLog = dialog.getInfoResultContent();
+
+				FDialog.info(form.getWindowNo(), null, pInfo.getSummary(), pInfo.getLogInfo(), pInfo.getTitle());
+
+			}
 
 		}else if(e.getTarget().equals(SaveButton)){
 
@@ -765,7 +899,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(!createView ())
 				{
 					matrixGrid.setVisible(false);
-					throw new Exception(message.toString());
+					FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+					return ;
 				}
 
 			}else{
@@ -804,16 +939,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			String  JP_QuickEntryConf = m_matrixWindow.getJP_QuickEntryConf();
 			for(WEditor editor : editors)
 			{
-				//Search Field Value can not update.Search Field Value is read only
+				//Search Field Value can not update,Search Field Value is read only except WStringEditor
 				for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 				{
 					if(editor.getColumnName().equals(entry.getKey()))
 					{
 						editor.setValue(entry.getValue().getValue());
 						if(entry.getValue().getValue() == null)
+						{
 							editor.setReadWrite(true);
-						else
-							editor.setReadWrite(false);
+						}else{
+							if(editor instanceof WStringEditor)
+								editor.setReadWrite(true);
+							else
+								editor.setReadWrite(false);
+						}
 					}
 				}//for
 
@@ -870,7 +1010,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
         for(MToolBarButton mToolbarButton : mToolbarButtons) {
         	Boolean access = MRole.getDefault().getProcessAccess(mToolbarButton.getAD_Process_ID());
         	if (access != null && access.booleanValue()) {
-        		ToolbarProcessButton toolbarProcessButton = new ToolbarProcessButton(mToolbarButton, adTabpanel, this, form.getWindowNo());
+        		ToolbarProcessButton toolbarProcessButton = new ToolbarProcessButton(mToolbarButton, null, this, form.getWindowNo());
         		toolbarProcessButtons.add(toolbarProcessButton);
         	}
         }
@@ -899,14 +1039,21 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		//Create String where clause
 		whereClause = createWhere();
-		if(message.length() > 0)
+		if(!Util.isEmpty(message.toString()))
+		{
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
+		}
+
 
 		//Create Column key info from where clause
 		columnKeys = createColumnKeys(whereClause);
 		if(columnKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -914,6 +1061,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(virtualTabMap == null || virtualTabMap.size() == 0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -922,6 +1071,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(rowKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -930,6 +1081,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(m_POs.length==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+			FDialog.info(form.getWindowNo(), null, message.toString());
+			message = new StringBuilder();
 			return false;
 		}
 
@@ -979,10 +1132,9 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		renderer = new JPMatrixGridRowRenderer(vmListModelMap,ctListModelMap,tableModel,dirtyModel, form,this);
 		renderer.setcColumnsSize(columnNameMap.size());
-		renderer.setGridView(gridView);
 		renderer.setGridTab(gridTab);
 		renderer.setColumnGridFieldMap(columnGridFieldMap);
-		renderer.setADWindowPanel(adWindowContent,adTabpanel);
+		renderer.createRecordProcessDialog();
 
 		matrixGrid.setRowRenderer(renderer);
 		matrixGrid.addEventListener(Events.ON_CLICK, this);
@@ -998,23 +1150,68 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		for(Map.Entry<String, WEditor> entry: searchEditorMap.entrySet())
 		{
-			if(entry.getValue().getValue()!=null)
+			Object value = entry.getValue().getValue();
+			if(entry.getValue() instanceof WStringEditor)
 			{
-//				WEditor editor = entry.getValue();
+				String stringValue = (String)entry.getValue().getValue();
+				if(Util.isEmpty(stringValue))
+					value = null;
+			}
+
+			if(value != null)
+			{
+
+				String tableName = null;
+				GridField gField = ((WEditor)entry.getValue()).getGridField();
+				GridTab gTab = gField.getGridTab();
+				if(gTab != null)
+				{
+					tableName = gTab.getTableName();
+				}else{
+					int AD_Tab_ID = gField.getAD_Tab_ID();
+					MTab tab = new MTab(Env.getCtx(),AD_Tab_ID,null);
+					tableName = tab.getAD_Table().getTableName();
+				}
+
 				if(entry.getValue() instanceof WYesNoEditor)
 				{
 					if(entry.getValue().getValue().equals(true))
-						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'Y'");
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'Y'");
 					else
-						whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'N'");
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'N'");
 
 				}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.List){
 
-					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + "'" + entry.getValue().getValue() + "'");
+
+				}else if(DisplayType.isText(entry.getValue().getGridField().getDisplayType())){
+					String string = (String)entry.getValue().getValue();
+					if(!string.isEmpty())
+					{
+						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " LIKE " + "'" + string + "'");
+					}
+
+				}else if(DisplayType.isDate(entry.getValue().getGridField().getDisplayType())){
+
+					Timestamp timestamp = (Timestamp)entry.getValue().getValue();
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+
+//					if(entry.getValue().getGridField().getDisplayType()==DisplayType.Date)
+//					{
+//						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+//
+//					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.DateTime){
+//
+//						whereClause.append(" AND "+ tableName+"."+ entry.getKey() + "=" +"TO_DATE('"+ timestamp.toString() +"','YYYY-MM-DD HH24:MI:SS')");
+//
+//					}else if(entry.getValue().getGridField().getDisplayType()==DisplayType.Time){
+//
+//						;
+//					}
 
 				}else{
 
-					whereClause.append(" AND "+ TABLE_NAME+"."+ entry.getKey() + " = " + entry.getValue().getValue());
+					whereClause.append(" AND "+ tableName+"."+ entry.getKey() + " = " + entry.getValue().getValue());
 
 				}
 
@@ -1027,6 +1224,16 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			}
 		}//for
 
+		if(m_matrixWindow.getWhereClause() != null)
+		{
+			whereClause.append(" AND " + m_matrixWindow.getWhereClause() );
+		}
+
+		MRole role = MRole.get(Env.getCtx(), Env.getAD_Role_ID(Env.getCtx()));
+		String orgAccessSQL = role.getOrgWhere(false);
+		if( orgAccessSQL != null)
+			whereClause.append(" AND ").append(gridTab.getTableName()).append(".").append(orgAccessSQL);
+
 		return whereClause.toString();
 	}
 
@@ -1034,8 +1241,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createColumnKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + m_columnKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + m_columnKeyColumn.getColumnName();
+		StringBuilder sql =new StringBuilder("SELECT DISTINCT " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName() + " FROM " + TABLE_NAME );
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());
+		}
+
+		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_columnKeyColumn.getColumnName());
 
 		I_AD_Field keyField = m_matrixWindow.getJP_MatrixColumnKey();
 		I_AD_Column keyColumn = keyField.getAD_Column();
@@ -1045,7 +1257,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		columnKeyNameMap.clear();
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
@@ -1070,7 +1282,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
@@ -1147,7 +1359,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private LinkedHashMap<Object,GridTab> createVirtualTabMap(ArrayList<Object> columnKeys)//TODO
 	{
-		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), adWindowContent.getWindowNo(), AD_WINDOW_ID);
+		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), form.getWindowNo(), AD_WINDOW_ID);
 		virtualTabMap = new LinkedHashMap<Object,GridTab>();
 
 		PreparedStatement pstmt = null;
@@ -1196,8 +1408,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private ArrayList<Object> createRowKeys(String whereClause)
 	{
 		ArrayList<Object> list = new ArrayList<Object>();
-		final String sql = "SELECT DISTINCT " + m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME + whereClause
-							+ " ORDER BY " + m_rowKeyColumn.getColumnName();
+		StringBuilder sql = new StringBuilder("SELECT DISTINCT "  + TABLE_NAME + "." +  m_rowKeyColumn.getColumnName() +" FROM " + TABLE_NAME);
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{
+			sql.append(" "+m_matrixWindow.getJP_JoinClause());
+		}
+		sql.append(whereClause).append(" ORDER BY " + TABLE_NAME + "." + m_rowKeyColumn.getColumnName());
 
 		I_AD_Field keyField = m_matrixWindow.getJP_MatrixRowKey();
 		I_AD_Column keyColumn = keyField.getAD_Column();
@@ -1206,7 +1422,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		ResultSet rs = null;
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
@@ -1231,7 +1447,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
@@ -1275,7 +1491,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						sortSQL.append(","+list.get(i));
 				}
 				sortSQL.append(" )");
-				sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
+				if(!Util.isEmpty(ref.getOrderByClause()))
+					sortSQL.append(" ORDER BY ").append(ref.getOrderByClause());
 			}
 
 			try
@@ -1307,7 +1524,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}//createRowKeys
 
 
-	public PO[] getPOs (String whereClause,boolean reload)
+	private PO[] getPOs (String whereClause,boolean reload)
 	{
 		if (reload || m_POs == null || m_POs.length == 0)
 			;
@@ -1316,14 +1533,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		//
 		ArrayList<PO> list = new ArrayList<PO>();
 
-		final String sql = "SELECT *  FROM " + TABLE_NAME + whereClause
-				+ " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName();;
+		StringBuilder sql = new StringBuilder("SELECT " + TABLE_NAME+".* FROM " + TABLE_NAME );
+		if(m_matrixWindow.getJP_JoinClause() != null)
+		{
+			sql.append(" "+ m_matrixWindow.getJP_JoinClause());
+		}
+		sql.append(whereClause + " ORDER BY " + m_columnKeyColumn.getColumnName() + "," + m_rowKeyColumn.getColumnName());
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
 		{
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql.toString(), null);
 			rs = pstmt.executeQuery();
 
 			List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
@@ -1347,7 +1568,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, sql, e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{
@@ -1358,7 +1579,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		m_POs = new PO[list.size()];
 		list.toArray(m_POs);
 		return m_POs;
-	}	//	getLocations
+	}	//	getPOs
 
 
 	/*
@@ -1379,7 +1600,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	/*
 	 * Create Map of PO per column of x-axis
-	 * (縦軸となるKey Column毎のPOのMAPを作成しいます。)
 	 *
 	 * @return LinkedHashMap<Key of Column info,LinkedHashMap<Key of Row info,PO>>
 	 */
@@ -1711,6 +1931,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 	private boolean saveData()
 	{
+		notSavePO = new ArrayList<PO>();
+
 		try
 		{
 
@@ -1722,7 +1944,13 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					Collection<PO> POs = dirtyModel.values();
 					for(PO po :POs)
 					{
-						po.saveEx(trxName);
+						if(checkExclusiveControl(po))
+						{
+							po.saveEx(trxName);
+
+						}else{//not save
+							notSavePO.add(po);
+						}
 					}
 
 					updateColumn();
@@ -1730,17 +1958,110 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				}
 			});
 
+			if(notSavePO.size() > 0)
+			{
+				String msg = Msg.getMsg(Env.getCtx(), "SaveErrorDataChanged");//Could not save changes - data was changed after query.
+
+				for(PO po :notSavePO)
+				{
+					msg = msg + System.lineSeparator() + po.toString();
+				}
+				FDialog.error(form.getWindowNo(), form, "Next", msg);
+				createView();
+			}
+
 			return true;
 
 		}
 		catch (Exception e)
 		{
-			FDialog.error(form.getWindowNo(), form, "Error", e.getLocalizedMessage());
+			FDialog.error(form.getWindowNo(), form, "SaveError", e.getLocalizedMessage());
 			return false;
 		}finally{
 			;
 		}
 	}   //  saveData
+
+
+	/**
+	 *
+	 *  If this method returns false, you can not save. because other people saved same record before you save.
+	 *  I refered GridTable.hasChanged() method.
+	 *
+	 */
+	private boolean checkExclusiveControl(PO po)
+	{
+		int colUpdated = po.get_ColumnIndex("Updated");
+		int colProcessed = po.get_ColumnIndex("Processed");
+
+		boolean hasUpdated = (colUpdated > 0);
+		boolean hasProcessed = (colProcessed > 0);
+
+		String columns = null;
+		if (hasUpdated && hasProcessed) {
+			columns = new String("Updated, Processed");
+		} else if (hasUpdated) {
+			columns = new String("Updated");
+		} else if (hasProcessed) {
+			columns = new String("Processed");
+		} else {
+			// no columns updated or processed to commpare
+			return false;
+		}
+
+		Timestamp dbUpdated = null;
+	   	String dbProcessedS = null;
+	   	PreparedStatement pstmt = null;
+	   	ResultSet rs = null;
+	   	String sql = "SELECT " + columns + " FROM " + TABLE_NAME + " WHERE " + TABLE_NAME + "_ID=?";
+	   	try
+	   	{
+	   		pstmt = DB.prepareStatement(sql, null);
+	   		pstmt.setInt(1, po.get_ID());
+	   		rs = pstmt.executeQuery();
+	   		if (rs.next()) {
+	   			int idx = 1;
+	   			if (hasUpdated)
+	   				dbUpdated = rs.getTimestamp(idx++);
+	   			if (hasProcessed)
+	   				dbProcessedS = rs.getString(idx++);
+	   		}
+	   		else
+	   			if (log.isLoggable(Level.INFO)) log.info("No Value " + sql);
+	   	}
+	   	catch (SQLException e)
+	   	{
+	   		throw new DBException(e, sql);
+	   	}
+	   	finally
+	   	{
+	   		DB.close(rs, pstmt);
+	   		rs = null; pstmt = null;
+	   	}
+
+	   	if (hasUpdated)
+	   	{
+				Timestamp memUpdated = null;
+				memUpdated = (Timestamp) po.get_Value(colUpdated);
+				if (memUpdated != null && ! memUpdated.equals(dbUpdated))
+					return false;
+	   	}
+
+	   	if (hasProcessed)
+	   	{
+				Boolean memProcessed = null;
+				memProcessed = (Boolean) po.get_Value(colProcessed);
+
+				Boolean dbProcessed = Boolean.TRUE;
+				if (! dbProcessedS.equals("Y"))
+					dbProcessed = Boolean.FALSE;
+				if (memProcessed != null && ! memProcessed.equals(dbProcessed))
+					return false;
+	   	}
+
+		return true;
+	}
+
 
 	public String getEditMode()
 	{
@@ -1764,7 +2085,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 
 		ToolbarProcessButton button = (ToolbarProcessButton)event.getSource();
-;
 
 		JPiereMatrixWindowProcessModelDialog dialog = new JPiereMatrixWindowProcessModelDialog(form.getWindowNo(),button.getProcess_ID(), 0, 0, false, this);
 
