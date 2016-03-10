@@ -757,7 +757,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 			}else if(editor.getValue() != null){
 
-            	string = editor.getValue().toString();
+//            	string = editor.getValue().toString();//Bug -- not applay display format pattern
+				string =getDisplayText(editor.getValue(), editor.getGridField(), -1, false);
 
             }else{
 
