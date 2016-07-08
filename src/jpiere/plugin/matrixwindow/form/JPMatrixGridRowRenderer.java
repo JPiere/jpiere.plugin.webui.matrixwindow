@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.Properties;
 import java.util.TreeMap;
 
@@ -41,11 +42,15 @@ import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.GridField;
+import org.compiere.model.GridFieldVO;
 import org.compiere.model.GridTab;
 import org.compiere.model.MLookup;
+import org.compiere.model.MRole;
 import org.compiere.model.PO;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
+import org.compiere.util.Evaluatee;
+import org.compiere.util.Evaluator;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
@@ -106,8 +111,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private ListModelMap<Object, Object>  viewModel;
 
-	private ListModelMap<Object, Object> convertionTable ;
+	private ListModelMap<Object, Object> conversionTable ;
 
+	//Map of PO Instance that corresponding to Table.<ID of PO,PO>
+	private HashMap<Integer,PO> 	tableModel;
+	
 	private int columnsSize=0;
 
 	private CustomForm form ;
@@ -118,10 +126,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			,HashMap<Integer,PO> tableModel, HashMap<Integer,PO> dirtyModel,CustomForm form, JPiereMatrixWindow matrixWindow)
 	{
 		this.viewModel = viewModel;
-		this.convertionTable = convetionTable;
+		this.conversionTable = convetionTable;
 		this.windowNo = form.getWindowNo();//Need to create process dialog.
 		this.form = form;
 		this.matrixWindow = matrixWindow;
+		this.tableModel = tableModel;
 		this.dataBinder = new JPMatrixDataBinder(viewModel,convetionTable,tableModel,dirtyModel,form);
 	}
 
@@ -301,7 +310,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 
 		@SuppressWarnings("unchecked")
-		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)convertionTable.get(data.get(0));
+		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)conversionTable.get(data.get(0));
 		Cell div = null;
 		WEditor editor = null;
 		String divStyle = CELL_DIV_STYLE;
@@ -636,8 +645,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
         minY = grid.getActivePage() * grid.getPageSize();
         maxY = minY + grid.getPageSize();
 
-        if(maxY > convertionTable.getSize())
-        	maxY = convertionTable.getSize();
+        if(maxY > conversionTable.getSize())
+        	maxY = conversionTable.getSize();
 
 		for(int i = 0 ; i < grid.getPageSize(); i++)
      	{
@@ -842,17 +851,41 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		TreeMap<Integer,Object> rowValueMap = (TreeMap<Integer,Object>)viewModel.getElementAt(y).getValue();
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
+		
+		Properties ctx = null;
+		PO po =null;
+		PO old_po = null;
 		//skip selection and indicator column
 		for (int i = 0; i < columnEditorMap.size(); i++)
 		{
 
 			GridField gridField = columnGridFieldMap.get(i);
-
 			if ((!gridField.isDisplayedGrid()) || gridField.isToolbarOnlyButton())
 			{
 				continue;
 			}
 
+			
+			//Contex Management
+			@SuppressWarnings("unchecked")
+			TreeMap<Integer,Object> IdentifierOfData = (TreeMap<Integer,Object>)conversionTable.get(rowValueMap.get(0));
+			Object PO_ID  = IdentifierOfData.get(i);
+			
+			if(i > 0)
+				po = tableModel.get(PO_ID);
+			
+			if(po == null)
+			{
+				ctx = gridField.getVO().ctx;
+			}else if(po.equals(old_po)){
+				gridField.getVO().ctx = ctx;
+			}else{
+				ctx = setCtxFromPO(po, gridField.getVO().ctx);
+				gridField.getVO().ctx = setCtxFromPO(po, gridField.getVO().ctx);
+				old_po = po;
+			}
+						
+			
 			if (fieldEditorMap.get(gridField) == null)
 				fieldEditorMap.put(gridField, WebEditorFactory.getEditor(gridField, true));
 
@@ -902,7 +935,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.getChildren().get(0).setVisible(true);//Button
 				}
 
-				Properties ctx = gridField.getVO().ctx;
 
 				if(getRawData(y,i) == null)
 	        	{
@@ -920,8 +952,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
 				}
 
-
-
 	            //check context
 				if (!gridField.isDisplayed(ctx, true)){
 					div.removeChild(editor.getComponent());
@@ -934,7 +964,6 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	            	popupMenu.addMenuListener((ContextMenuListener)editor);
 	            	div.appendChild(popupMenu);
 	            	popupMenu.addContextElement((XulElement) editor.getComponent());
-
 
 					List<Component> listcomp = popupMenu.getChildren();
 					Menuitem menuItem = null;
@@ -957,7 +986,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	            }
 
 
-				editor.setReadWrite(!gridField.isReadOnly());
+//				editor.setReadWrite(!gridField.isReadOnly());
+	            editor.setReadWrite(isEditable (ctx, gridField, true, true));
 
 				if(i == x)
 				{
@@ -970,7 +1000,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private Object getRawData(int y, int x)
 	{
-		ListModelMap.Entry<Object, Object> convertionTableRow = convertionTable.getElementAt(y);
+		ListModelMap.Entry<Object, Object> convertionTableRow = conversionTable.getElementAt(y);
     	@SuppressWarnings("unchecked")
 		TreeMap<Integer,Object> convertionTableRowData = (TreeMap<Integer,Object>)convertionTableRow.getValue();
 
@@ -1043,5 +1073,122 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		dataBinder.setColumnGridFieldMap(columnGridFieldMap);
 		dataBinder.setColumnEditorMap(columnEditorMap);
 	}
+	
+	private static boolean isEditable (Properties ctx, GridField gridField, boolean checkContext,boolean isGrid)
+	{
+		GridFieldVO m_vo = gridField.getVO();
+				
+		if (gridField.isVirtualColumn())
+			return false;
+		//  Fields always enabled (are usually not updateable)
+		if (m_vo.ColumnName.equals("Posted")
+			|| (m_vo.ColumnName.equals("Record_ID") && m_vo.displayType == DisplayType.Button))	//  Zoom
+			return true;
 
+		//  Tab or field is R/O
+		if (m_vo.tabReadOnly || m_vo.IsReadOnly)
+		{
+			return false;
+		}
+
+		//  Fields always updateable
+		if (m_vo.IsAlwaysUpdateable)      //  Zoom
+			return true;
+
+		//check tab context
+		if (checkContext && gridField.getGridTab() != null &&
+			! "Y".equals(Env.getContext(Env.getCtx(), gridField.getWindowNo(), "_QUICK_ENTRY_MODE_")))
+		{
+			if (gridField.getGridTab().isReadOnly())
+			{
+				return false;
+			}
+		}
+
+		//	Not Updateable - only editable if new updateable row
+		if (!m_vo.IsUpdateable)
+		{
+			return false;
+		}
+
+		//	Field is the Link Column of the tab
+		if (m_vo.ColumnName.equals(Env.getContext(ctx, m_vo.WindowNo, m_vo.TabNo, GridTab.CTX_LinkColumnName)))
+		{
+			return false;
+		}
+
+		//	Role Access & Column Access			
+//		if (checkContext)
+//		{
+//			int AD_Client_ID = Env.getContextAsInt(ctx, m_vo.WindowNo, m_vo.TabNo, "AD_Client_ID");
+//			int AD_Org_ID = Env.getContextAsInt(ctx, m_vo.WindowNo, m_vo.TabNo, "AD_Org_ID");
+//			String keyColumn = Env.getContext(ctx, m_vo.WindowNo, m_vo.TabNo, GridTab.CTX_KeyColumnName);
+//			if ("EntityType".equals(keyColumn))
+//				keyColumn = "AD_EntityType_ID";
+//			if (!keyColumn.endsWith("_ID"))
+//				keyColumn += "_ID";			//	AD_Language_ID
+//			if (gridField.getGridTab() != null) {
+//				int Record_ID = Env.getContextAsInt(ctx, m_vo.WindowNo, m_vo.TabNo, keyColumn);
+//				int AD_Table_ID = m_vo.AD_Table_ID;
+//				if (!MRole.getDefault(ctx, false).canUpdate(
+//					AD_Client_ID, AD_Org_ID, AD_Table_ID, Record_ID, false))
+//					return false;
+//				if (!MRole.getDefault(ctx, false).isColumnAccess(AD_Table_ID, m_vo.AD_Column_ID, false))
+//					return false;
+//			}
+//		}
+			
+		//  Do we have a readonly rule
+		if (checkContext && m_vo.ReadOnlyLogic.length() > 0)
+		{
+			boolean retValue = !Evaluator.evaluateLogic(gridField, m_vo.ReadOnlyLogic);
+			if (!retValue)
+				return false;
+		}
+		
+		//BF [ 2910368 ]
+		//  Always editable if Active
+		if (checkContext && "Y".equals(Env.getContext(ctx, m_vo.WindowNo, m_vo.TabNo, "IsActive"))
+				&& (   m_vo.ColumnName.equals("Processing")
+					|| m_vo.ColumnName.equals("PaymentRule")
+					|| m_vo.ColumnName.equals("DocAction") 
+					|| m_vo.ColumnName.equals("GenerateTo")))
+			return true;
+
+		//  Record is Processed	***	
+		if (checkContext 
+			&& ("Y".equals(gridField.get_ValueAsString("Processed")) || "Y".equals(gridField.get_ValueAsString("Processing"))) )
+			return false;
+
+		//  IsActive field is editable, if record not processed
+		if (m_vo.ColumnName.equals("IsActive"))
+			return true;
+		// BF [ 2910368 ]
+		// Record is not Active
+		if (checkContext && gridField.getGridTab() != null && !Env.getContext(ctx, m_vo.WindowNo,m_vo.TabNo, "IsActive").equals("Y"))
+			return false;
+		
+		return true;
+	}	//	isEditable
+
+	private Properties setCtxFromPO(PO po, Properties ctx)
+	{
+		
+		for(int i = 0; i < po.get_ColumnCount(); i++)
+		{
+			if(po.get_Value(i) != null)
+			{
+				if(po.get_Value(i).toString().equalsIgnoreCase("true"))
+				{
+					Env.setContext(ctx, windowNo,po.get_ColumnName(i), "Y");
+				}else if(po.get_Value(i).toString().equalsIgnoreCase("false")){
+					Env.setContext(ctx, windowNo,po.get_ColumnName(i), "N");
+				}else{
+					Env.setContext(ctx, windowNo,po.get_ColumnName(i), po.get_Value(i).toString());
+				}
+			}
+		}
+		
+		return ctx;
+	}
 }
