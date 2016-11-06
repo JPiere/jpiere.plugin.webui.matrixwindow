@@ -69,6 +69,7 @@ import org.adempiere.webui.event.WTableModelListener;
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.theme.ThemeManager;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
@@ -369,11 +370,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private void zkInit() throws Exception
 	{
 		form.appendChild(mainLayout);
-		form.setHeight("100%");
+		ZKUpdateUtil.setHeight(form, "100%");
 
 		/*Main Layout(Borderlayout)*/
-		mainLayout.setWidth("100%");
-		mainLayout.setHeight("100%");
+		ZKUpdateUtil.setWidth(mainLayout, "100%");
+		ZKUpdateUtil.setHeight(mainLayout, "100%");
 
 		//Main Layout(Borderlayout)-North
 		North north = new North();
@@ -383,7 +384,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		north.appendChild(parameterPanel);
 		north.setStyle("border: none");
 		parameterPanel.appendChild(parameterLayout); 		//parameterLayout = Grid
-		parameterLayout.setWidth("100%");
+		ZKUpdateUtil.setWidth(parameterLayout, "100%");
 		Rows parameterLayoutRows = parameterLayout.newRows();
 		Row row = null;
 		if(m_matrixSearches.length > 0)
@@ -619,12 +620,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		mainLayout.appendChild(center);
 		center.appendChild(displayDataPanel);
 		displayDataPanel.appendChild(displayDataLayout);//Borderlayout
-		displayDataPanel.setWidth("100%");
-		displayDataPanel.setHeight("100%");
-		displayDataPanel.setHflex("1");
-		displayDataPanel.setVflex("1");
-		displayDataLayout.setWidth("100%");
-		displayDataLayout.setHeight("100%");
+		ZKUpdateUtil.setWidth(displayDataPanel, "100%");
+		ZKUpdateUtil.setHeight(displayDataPanel, "100%");
+		ZKUpdateUtil.setHflex(displayDataPanel, "1");
+		ZKUpdateUtil.setVflex(displayDataPanel, "1");
+		ZKUpdateUtil.setWidth(displayDataLayout, "100%");
+		ZKUpdateUtil.setHeight(displayDataLayout, "100%");
 		displayDataLayout.setStyle("border: none");
 
 			//Contents
@@ -632,10 +633,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			displayDataLayout.appendChild(center);
 			center.appendChild(matrixGrid);
 			center.setStyle("border: none");
-			matrixGrid.setWidth("100%");
-			matrixGrid.setHeight("100%");
-			matrixGrid.setVflex(true);
+			ZKUpdateUtil.setWidth(matrixGrid, "100%");
+			ZKUpdateUtil.setHeight(matrixGrid, "100%");
+			ZKUpdateUtil.setVflex(matrixGrid, "true");
 			matrixGrid.setVisible(false);
+
 			matrixGrid.setMold("paging");
 			matrixGrid.setPageSize(m_matrixWindow.getJP_PageSize());
 	}

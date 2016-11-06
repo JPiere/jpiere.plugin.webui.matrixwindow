@@ -18,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.Properties;
 import java.util.TreeMap;
 
@@ -41,15 +40,14 @@ import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
 import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.CustomForm;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.model.GridField;
 import org.compiere.model.GridFieldVO;
 import org.compiere.model.GridTab;
 import org.compiere.model.MLookup;
-import org.compiere.model.MRole;
 import org.compiere.model.PO;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.Evaluatee;
 import org.compiere.util.Evaluator;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
@@ -115,7 +113,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	//Map of PO Instance that corresponding to Table.<ID of PO,PO>
 	private HashMap<Integer,PO> 	tableModel;
-	
+
 	private int columnsSize=0;
 
 	private CustomForm form ;
@@ -851,7 +849,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		TreeMap<Integer,Object> rowValueMap = (TreeMap<Integer,Object>)viewModel.getElementAt(y).getValue();
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
-		
+
 		Properties ctx = null;
 		PO po =null;
 		PO old_po = null;
@@ -865,15 +863,15 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				continue;
 			}
 
-			
+
 			//Contex Management
 			@SuppressWarnings("unchecked")
 			TreeMap<Integer,Object> IdentifierOfData = (TreeMap<Integer,Object>)conversionTable.get(rowValueMap.get(0));
 			Object PO_ID  = IdentifierOfData.get(i);
-			
+
 			if(i > 0)
 				po = tableModel.get(PO_ID);
-			
+
 			if(po == null)
 			{
 				ctx = gridField.getVO().ctx;
@@ -884,8 +882,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				gridField.getVO().ctx = setCtxFromPO(po, gridField.getVO().ctx);
 				old_po = po;
 			}
-						
-			
+
+
 			if (fieldEditorMap.get(gridField) == null)
 				fieldEditorMap.put(gridField, WebEditorFactory.getEditor(gridField, true));
 
@@ -949,7 +947,8 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					div.appendChild(new Label(editor.getDisplay()));
 				}else{
 					div.appendChild(editor.getComponent());
-					((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
+//					((HtmlBasedComponent)div.getChildren().get(0)).setWidth("100%");
+					ZKUpdateUtil.setWidth(((HtmlBasedComponent)div.getChildren().get(0)), "100%");
 				}
 
 	            //check context
@@ -1073,11 +1072,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		dataBinder.setColumnGridFieldMap(columnGridFieldMap);
 		dataBinder.setColumnEditorMap(columnEditorMap);
 	}
-	
+
 	private static boolean isEditable (Properties ctx, GridField gridField, boolean checkContext,boolean isGrid)
 	{
 		GridFieldVO m_vo = gridField.getVO();
-				
+
 		if (gridField.isVirtualColumn())
 			return false;
 		//  Fields always enabled (are usually not updateable)
@@ -1117,7 +1116,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			return false;
 		}
 
-		//	Role Access & Column Access			
+		//	Role Access & Column Access
 //		if (checkContext)
 //		{
 //			int AD_Client_ID = Env.getContextAsInt(ctx, m_vo.WindowNo, m_vo.TabNo, "AD_Client_ID");
@@ -1137,7 +1136,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 //					return false;
 //			}
 //		}
-			
+
 		//  Do we have a readonly rule
 		if (checkContext && m_vo.ReadOnlyLogic.length() > 0)
 		{
@@ -1145,18 +1144,18 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 			if (!retValue)
 				return false;
 		}
-		
+
 		//BF [ 2910368 ]
 		//  Always editable if Active
 		if (checkContext && "Y".equals(Env.getContext(ctx, m_vo.WindowNo, m_vo.TabNo, "IsActive"))
 				&& (   m_vo.ColumnName.equals("Processing")
 					|| m_vo.ColumnName.equals("PaymentRule")
-					|| m_vo.ColumnName.equals("DocAction") 
+					|| m_vo.ColumnName.equals("DocAction")
 					|| m_vo.ColumnName.equals("GenerateTo")))
 			return true;
 
-		//  Record is Processed	***	
-		if (checkContext 
+		//  Record is Processed	***
+		if (checkContext
 			&& ("Y".equals(gridField.get_ValueAsString("Processed")) || "Y".equals(gridField.get_ValueAsString("Processing"))) )
 			return false;
 
@@ -1167,13 +1166,13 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		// Record is not Active
 		if (checkContext && gridField.getGridTab() != null && !Env.getContext(ctx, m_vo.WindowNo,m_vo.TabNo, "IsActive").equals("Y"))
 			return false;
-		
+
 		return true;
 	}	//	isEditable
 
 	private Properties setCtxFromPO(PO po, Properties ctx)
 	{
-		
+
 		for(int i = 0; i < po.get_ColumnCount(); i++)
 		{
 			if(po.get_Value(i) != null)
@@ -1188,7 +1187,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				}
 			}
 		}
-		
+
 		return ctx;
 	}
 }
