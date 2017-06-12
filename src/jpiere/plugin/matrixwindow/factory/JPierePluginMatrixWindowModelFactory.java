@@ -35,39 +35,50 @@ import org.compiere.util.Env;
 public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 
 	@Override
-	public Class<?> getClass(String tableName) {
-		if(tableName.equals(MMatrixWindow.Table_Name)){
-			return MMatrixWindow.class;
-		}else if(tableName.equals(MMatrixField.Table_Name)){
-			return MMatrixField.class;
-		}else if(tableName.equals(MMatrixSearch.Table_Name)){
-			return MMatrixSearch.class;
+	public Class<?> getClass(String tableName) 
+	{
+		if(tableName.startsWith("JP_Matrix"))
+		{
+			if(tableName.equals(MMatrixWindow.Table_Name)){
+				return MMatrixWindow.class;
+			}else if(tableName.equals(MMatrixField.Table_Name)){
+				return MMatrixField.class;
+			}else if(tableName.equals(MMatrixSearch.Table_Name)){
+				return MMatrixSearch.class;
+			}
 		}
 		return null;
 	}
 
 	@Override
-	public PO getPO(String tableName, int Record_ID, String trxName) {
-		if(tableName.equals(MMatrixWindow.Table_Name)){
-			return  new MMatrixWindow(Env.getCtx(), Record_ID, trxName);
-		}else if(tableName.equals(MMatrixField.Table_Name)){
-			return  new MMatrixField(Env.getCtx(), Record_ID, trxName);
-		}else if(tableName.equals(MMatrixSearch.Table_Name)){
-			return  new MMatrixSearch(Env.getCtx(), Record_ID, trxName);
+	public PO getPO(String tableName, int Record_ID, String trxName)
+	{
+		if(tableName.startsWith("JP_Matrix"))
+		{
+			if(tableName.equals(MMatrixWindow.Table_Name)){
+				return  new MMatrixWindow(Env.getCtx(), Record_ID, trxName);
+			}else if(tableName.equals(MMatrixField.Table_Name)){
+				return  new MMatrixField(Env.getCtx(), Record_ID, trxName);
+			}else if(tableName.equals(MMatrixSearch.Table_Name)){
+				return  new MMatrixSearch(Env.getCtx(), Record_ID, trxName);
+			}
 		}
 		return null;
 	}
 
 	@Override
-	public PO getPO(String tableName, ResultSet rs, String trxName) {
-		if(tableName.equals(MMatrixWindow.Table_Name)){
-			return  new MMatrixWindow(Env.getCtx(), rs, trxName);
-		}else if(tableName.equals(MMatrixField.Table_Name)){
-			return  new MMatrixField(Env.getCtx(), rs, trxName);
-		}else if(tableName.equals(MMatrixSearch.Table_Name)){
-			return  new MMatrixSearch(Env.getCtx(), rs, trxName);
+	public PO getPO(String tableName, ResultSet rs, String trxName) 
+	{
+		if(tableName.startsWith("JP_Matrix"))
+		{
+			if(tableName.equals(MMatrixWindow.Table_Name)){
+				return  new MMatrixWindow(Env.getCtx(), rs, trxName);
+			}else if(tableName.equals(MMatrixField.Table_Name)){
+				return  new MMatrixField(Env.getCtx(), rs, trxName);
+			}else if(tableName.equals(MMatrixSearch.Table_Name)){
+				return  new MMatrixSearch(Env.getCtx(), rs, trxName);
+			}
 		}
-
 		return null;
 	}
 
