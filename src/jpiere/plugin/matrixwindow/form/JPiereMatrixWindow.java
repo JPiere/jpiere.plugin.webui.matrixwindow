@@ -518,8 +518,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 						{
 							menuItem = (Menuitem)comp;
 							image = menuItem.getImage();
-							if(image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
-									|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png"))
+							if(image != null && ( image.endsWith("Zoom16.png")||image.endsWith("Refresh16.png")
+									|| image.endsWith("New16.png") || image.endsWith("InfoBPartner16.png") ) )
 							{
 								menuItem.setVisible(true);
 							}else{
@@ -582,7 +582,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
 				SearchButton.setEnabled(true);
-				SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
+				if (ThemeManager.isUseFontIconForImage())
+					SearchButton.setIconSclass("z-icon-Find");
+				else
+					SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
 				row.appendCellChild(SearchButton);
 
 
@@ -591,7 +594,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				SaveButton.setEnabled(false);
-				SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
+				if (ThemeManager.isUseFontIconForImage())
+					SaveButton.setIconSclass("z-icon-Save");
+				else
+					SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
 
 				if(!editMode.equals(EDITMODE_READ))
 					row.appendCellChild(SaveButton);
@@ -600,7 +606,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setId("CreateButton");
 				CreateButton.addActionListener(this);
 				CreateButton.setEnabled(false);
-				CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
+				if (ThemeManager.isUseFontIconForImage())
+					CreateButton.setIconSclass("z-icon-New");
+				else
+					CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
 				{
 					if(!editMode.equals(EDITMODE_READ))
@@ -612,7 +621,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				ProcessButton.setId("ProcessButton");
 				ProcessButton.addActionListener(this);
 				ProcessButton.setEnabled(false);
-				ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
+				if (ThemeManager.isUseFontIconForImage())
+					ProcessButton.setIconSclass("z-icon-Process");
+				else
+					ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
