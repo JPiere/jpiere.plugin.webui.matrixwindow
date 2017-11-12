@@ -30,10 +30,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
-import jpiere.plugin.matrixwindow.model.MMatrixField;
-import jpiere.plugin.matrixwindow.model.MMatrixSearch;
-import jpiere.plugin.matrixwindow.model.MMatrixWindow;
-
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
 import org.adempiere.exceptions.DBException;
@@ -118,6 +114,10 @@ import org.zkoss.zul.ListModel;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.North;
 import org.zkoss.zul.impl.XulElement;
+
+import jpiere.plugin.matrixwindow.model.MMatrixField;
+import jpiere.plugin.matrixwindow.model.MMatrixSearch;
+import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 /**
  * JPiereMatrixWindow
@@ -582,7 +582,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
 				SearchButton.setEnabled(true);
-				if (ThemeManager.isUseFontIconForImage())
+				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
 					SearchButton.setIconSclass("z-icon-Find");
 				else
 					SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
@@ -594,7 +594,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				SaveButton.setEnabled(false);
-				if (ThemeManager.isUseFontIconForImage())
+				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
 					SaveButton.setIconSclass("z-icon-Save");
 				else
 					SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
@@ -606,7 +606,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setId("CreateButton");
 				CreateButton.addActionListener(this);
 				CreateButton.setEnabled(false);
-				if (ThemeManager.isUseFontIconForImage())
+				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
 					CreateButton.setIconSclass("z-icon-New");
 				else
 					CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
@@ -621,7 +621,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				ProcessButton.setId("ProcessButton");
 				ProcessButton.addActionListener(this);
 				ProcessButton.setEnabled(false);
-				if (ThemeManager.isUseFontIconForImage())
+				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
 					ProcessButton.setIconSclass("z-icon-Process");
 				else
 					ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
