@@ -582,7 +582,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SearchButton.setId("SearchButton");
 				SearchButton.addActionListener(this);
 				SearchButton.setEnabled(true);
-				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+				if (ThemeManager.isUseFontIconForImage())
 					SearchButton.setIconSclass("z-icon-Find");
 				else
 					SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
@@ -594,7 +594,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton.setId("SaveButton");
 				SaveButton.addActionListener(this);
 				SaveButton.setEnabled(false);
-				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+				if (ThemeManager.isUseFontIconForImage())
 					SaveButton.setIconSclass("z-icon-Save");
 				else
 					SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
@@ -606,7 +606,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				CreateButton.setId("CreateButton");
 				CreateButton.addActionListener(this);
 				CreateButton.setEnabled(false);
-				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+				if (ThemeManager.isUseFontIconForImage())
 					CreateButton.setIconSclass("z-icon-New");
 				else
 					CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
@@ -621,7 +621,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				ProcessButton.setId("ProcessButton");
 				ProcessButton.addActionListener(this);
 				ProcessButton.setEnabled(false);
-				if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+				if (ThemeManager.isUseFontIconForImage())
 					ProcessButton.setIconSclass("z-icon-Process");
 				else
 					ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
@@ -1014,8 +1014,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			}
 
 			popup.render(buttonList);
+			if (popup.getChildren().size() > 0) {
+				popup.setPage(ProcessButton.getPage());
+				popup.open(ProcessButton, "after_start");
+			}
 
-			LayoutUtils.openPopupWindow(ProcessButton, popup, "after_start");
+//			LayoutUtils.openPopupWindow(ProcessButton, popup, "after_start");TODO
 		}
 
 	}//onEvent()
