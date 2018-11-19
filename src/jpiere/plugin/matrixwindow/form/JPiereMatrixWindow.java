@@ -1019,7 +1019,6 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				popup.open(ProcessButton, "after_start");
 			}
 
-//			LayoutUtils.openPopupWindow(ProcessButton, popup, "after_start");TODO
 		}
 
 	}//onEvent()

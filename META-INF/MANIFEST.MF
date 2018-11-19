@@ -28,3 +28,4 @@ Bundle-ActivationPolicy: lazy
 Export-Package: jpiere.plugin.matrixwindow.base,
  jpiere.plugin.matrixwindow.form,
  jpiere.plugin.matrixwindow.model
+Automatic-Module-Name: jpiere.plugin.webui.matrixwindow

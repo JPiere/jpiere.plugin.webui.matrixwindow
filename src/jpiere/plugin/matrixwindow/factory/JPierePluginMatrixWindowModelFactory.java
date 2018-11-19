@@ -16,13 +16,13 @@ package jpiere.plugin.matrixwindow.factory;
 
 import java.sql.ResultSet;
 
-import jpiere.plugin.matrixwindow.model.MMatrixField;
-import jpiere.plugin.matrixwindow.model.MMatrixSearch;
-import jpiere.plugin.matrixwindow.model.MMatrixWindow;
-
 import org.adempiere.base.IModelFactory;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
+
+import jpiere.plugin.matrixwindow.model.MMatrixField;
+import jpiere.plugin.matrixwindow.model.MMatrixSearch;
+import jpiere.plugin.matrixwindow.model.MMatrixWindow;
 
 /**
  *  JPiere Plugins Matrix Window Model Factory
@@ -35,7 +35,7 @@ import org.compiere.util.Env;
 public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 
 	@Override
-	public Class<?> getClass(String tableName) 
+	public Class<?> getClass(String tableName)
 	{
 		if(tableName.startsWith("JP_Matrix"))
 		{
@@ -67,7 +67,7 @@ public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 	}
 
 	@Override
-	public PO getPO(String tableName, ResultSet rs, String trxName) 
+	public PO getPO(String tableName, ResultSet rs, String trxName)
 	{
 		if(tableName.startsWith("JP_Matrix"))
 		{
