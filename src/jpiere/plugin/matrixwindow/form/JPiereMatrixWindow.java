@@ -1748,6 +1748,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				auxhead.appendChild(auxheader);
 				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
+				auxheader.setTooltiptext(columnKeyNameMap.get(columnKeys.get(i)));
 			}
 		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
 			;//no auxhead
