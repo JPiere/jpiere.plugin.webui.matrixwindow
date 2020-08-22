@@ -398,9 +398,10 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				if (fieldEditorMap.get(columnGridFieldMap.get(i)) == null)
 				{
 					//readonly for display text
-					WEditor readOnlyEditor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
-					readOnlyEditor.setReadWrite(false);
-					readOnlyEditors.put(columnGridFieldMap.get(i), readOnlyEditor);
+					editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+					editor.setReadWrite(false);
+					fieldEditorMap.put(columnGridFieldMap.get(i), editor);
+					readOnlyEditors.put(columnGridFieldMap.get(i), editor);
 				}//if
 
 				div = new Cell();
@@ -408,7 +409,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 				if (treeMap.get(i) != null )
 				{
-					editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
+					//editor = WebEditorFactory.getEditor(columnGridFieldMap.get(i), true);
 
 					Component component = getDisplayComponent(rowIndex, data.get(i), columnGridFieldMap.get(i), false);
 					if (component instanceof Button)
