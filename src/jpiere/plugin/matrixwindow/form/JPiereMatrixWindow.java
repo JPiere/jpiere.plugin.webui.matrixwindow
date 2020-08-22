@@ -69,7 +69,6 @@ import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
-import org.compiere.model.GridTabVO;
 import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.I_AD_Column;
@@ -197,8 +196,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	 //Map of Column key and Column name <key column, column name>
 	private HashMap<Object,String> columnKeyNameMap = new HashMap<Object,String>();
 
-	//Map of Column key and Virtual GridTab
-	private LinkedHashMap<Object,GridTab> virtualTabMap = new LinkedHashMap<Object,GridTab>();
+//	//Map of Column key and Virtual GridTab
+//	private LinkedHashMap<Object,GridTab> virtualTabMap = new LinkedHashMap<Object,GridTab>();
 
 	//List of Row Key(Key of Row info)
 	private ArrayList<Object> rowKeys = new ArrayList<Object>();
@@ -1076,14 +1075,14 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			return false;
 		}
 
-		virtualTabMap = createVirtualTabMap(columnKeys);
-		if(virtualTabMap == null || virtualTabMap.size() == 0)
-		{
-			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
-			FDialog.info(form.getWindowNo(), null, message.toString());
-			message = new StringBuilder();
-			return false;
-		}
+//		virtualTabMap = createVirtualTabMap(columnKeys);
+//		if(virtualTabMap == null || virtualTabMap.size() == 0)
+//		{
+//			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
+//			FDialog.info(form.getWindowNo(), null, message.toString());
+//			message = new StringBuilder();
+//			return false;
+//		}
 
 		//Create Row key info from where clause
 		rowKeys = createRowKeys(whereClause);
@@ -1376,53 +1375,53 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 
-	private LinkedHashMap<Object,GridTab> createVirtualTabMap(ArrayList<Object> columnKeys)//TODO
-	{
-		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), form.getWindowNo(), AD_WINDOW_ID);
-		virtualTabMap = new LinkedHashMap<Object,GridTab>();
-
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		String sql = "SELECT * FROM AD_Tab_vt WHERE AD_Tab_ID=? ";
-		pstmt = DB.prepareStatement(sql, null);
-		try
-		{
-			for(int i = 0; i < columnKeys.size(); i++)
-			{
-				pstmt.setInt(1, gridTab.getAD_Tab_ID());
-				rs = pstmt.executeQuery();
-
-				while (rs.next())
-				{
-					//  Create TabVO
-					GridTabVO gridTabVO = GridTabVO.create(gridWindowVO, i, rs,
-							editMode.equals(EDITMODE_READ),  //  isRO
-							true);   //  onlyCurrentRows
-					if (gridTabVO != null)
-					{
-						GridTab gtab = new GridTab(gridTabVO, gridTab.getGridWindow());
-						virtualTabMap.put(columnKeys.get(i), gtab);
-					}else{
-						break;
-					}
-				}//while
-			}//for
-
-		}
-		catch (SQLException e)
-		{
-			CLogger.get().log(Level.SEVERE, "createTabs", e);
-			return null;
-		}
-		finally
-		{
-			DB.close(rs, pstmt);
-			rs = null; pstmt = null;
-		}
-
-
-		return virtualTabMap;
-	}
+//	private LinkedHashMap<Object,GridTab> createVirtualTabMap(ArrayList<Object> columnKeys)//TODO
+//	{
+//		GridWindowVO gridWindowVO = GridWindowVO.create(Env.getCtx(), form.getWindowNo(), AD_WINDOW_ID);
+//		virtualTabMap = new LinkedHashMap<Object,GridTab>();
+//
+//		PreparedStatement pstmt = null;
+//		ResultSet rs = null;
+//		String sql = "SELECT * FROM AD_Tab_vt WHERE AD_Tab_ID=? ";
+//		pstmt = DB.prepareStatement(sql, null);
+//		try
+//		{
+//			for(int i = 0; i < columnKeys.size(); i++)
+//			{
+//				pstmt.setInt(1, gridTab.getAD_Tab_ID());
+//				rs = pstmt.executeQuery();
+//
+//				while (rs.next())
+//				{
+//					//  Create TabVO
+//					GridTabVO gridTabVO = GridTabVO.create(gridWindowVO, i, rs,
+//							editMode.equals(EDITMODE_READ),  //  isRO
+//							true);   //  onlyCurrentRows
+//					if (gridTabVO != null)
+//					{
+//						GridTab gtab = new GridTab(gridTabVO, gridTab.getGridWindow());
+//						virtualTabMap.put(columnKeys.get(i), gtab);
+//					}else{
+//						break;
+//					}
+//				}//while
+//			}//for
+//
+//		}
+//		catch (SQLException e)
+//		{
+//			CLogger.get().log(Level.SEVERE, "createTabs", e);
+//			return null;
+//		}
+//		finally
+//		{
+//			DB.close(rs, pstmt);
+//			rs = null; pstmt = null;
+//		}
+//
+//
+//		return virtualTabMap;
+//	}
 
 	private ArrayList<Object> createRowKeys(String whereClause)
 	{
@@ -1838,40 +1837,88 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(int i = 0; i < columnKeys.size(); i++)
 		{
 
-			GridTab gtab =virtualTabMap.get(columnKeys.get(i));
-			gtab.initTab(false);
-			GridField[] gFields = gtab.getFields();
-
 			for(int j = 0; j < m_contentFields.length; j++)//TODO
 			{
 				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
 				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
 				columnSummarizedMap.put(c, m_matrixFields[j].isSummarized());
-				for(int k = 0; k < gFields.length; k++)
+				for(int k = 0; k < gridFields.length; k++)
 				{
-					if(m_contentFields[j].getAD_Field_ID()==gFields[k].getAD_Field_ID())
-						columnGridFieldMap.put(c, gFields[k]);
+					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())
+						columnGridFieldMap.put(c, gridFields[k]);
 				}//k
 				c++;
 			}//j
-
-//			for(int j = 0; j < m_contentFields.length; j++)
-//			{
-//				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
-//				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
-//				columnSummarizedMap.put(c, m_matrixFields[j].isSummarized());
-//				for(int k = 0; k < gridFields.length; k++)
-//				{
-//					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())
-//						columnGridFieldMap.put(c, gridFields[k]);
-//				}//k
-//				c++;
-//			}//j
 
 		}//i
 
 		return;
 	}
+
+
+	/**
+	 * Old Method --Delete--
+	 */
+//	private void createtColumnMap()
+//	{
+//		int c = 0;	//	Column counter
+//		columnNameMap.clear();
+//		columnLengthMap.clear();
+//		columnGridFieldMap.clear();
+//		columnSummarizedMap.clear();
+//
+//		//Fix Column
+//		for(int i = 0; i < fixItemFieldIDMap.size(); i++)
+//		{
+//			columnNameMap.put(c, Msg.getElement(Env.getCtx(), fixItem.get(i)));
+//			columnLengthMap.put(c,m_matrixWindow.getFieldLength());
+//			columnSummarizedMap.put(c, false);
+//			for(int j = 0; j < gridFields.length; j++)
+//			{
+//				if(fixItemFieldIDMap.get(i).intValue() == gridFields[j].getAD_Field_ID())
+//					columnGridFieldMap.put(c, gridFields[j]);
+//			}
+//			c++;
+//		}
+//
+//		//Repetition Column
+//		for(int i = 0; i < columnKeys.size(); i++)
+//		{
+//
+//			GridTab gtab =virtualTabMap.get(columnKeys.get(i));
+//			gtab.initTab(false);
+//			GridField[] gFields = gtab.getFields();
+//
+//			for(int j = 0; j < m_contentFields.length; j++)//TODO
+//			{
+//				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
+//				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
+//				columnSummarizedMap.put(c, m_matrixFields[j].isSummarized());
+//				for(int k = 0; k < gFields.length; k++)
+//				{
+//					if(m_contentFields[j].getAD_Field_ID()==gFields[k].getAD_Field_ID())
+//						columnGridFieldMap.put(c, gFields[k]);
+//				}//k
+//				c++;
+//			}//j
+//
+////			for(int j = 0; j < m_contentFields.length; j++)
+////			{
+////				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
+////				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
+////				columnSummarizedMap.put(c, m_matrixFields[j].isSummarized());
+////				for(int k = 0; k < gridFields.length; k++)
+////				{
+////					if(m_contentFields[j].getAD_Field_ID()==gridFields[k].getAD_Field_ID())
+////						columnGridFieldMap.put(c, gridFields[k]);
+////				}//k
+////				c++;
+////			}//j
+//
+//		}//i
+//
+//		return;
+//	}
 
 	String sum = Msg.getMsg(Env.getCtx(), "Sum");
 	private void updateColumn()
