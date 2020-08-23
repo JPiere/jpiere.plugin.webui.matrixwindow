@@ -83,6 +83,9 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 	private static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
 	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
+	private static final String CELL_DIV_STYLE_READONLY = "height: 100%;";
+	private static final String CELL_DIV_STYLE_READONLY_COLOR_ODD = "background-color: #dddddd;";
+	private static final String CELL_DIV_STYLE_READONLY_COLOR_EVEN = "background-color: #eeeeee;";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
 
@@ -311,7 +314,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		TreeMap<Integer,Object>  treeMap = (TreeMap<Integer,Object>)conversionTable.get(data.get(0));
 		Cell div = null;
 		WEditor editor = null;
-		String divStyle = CELL_DIV_STYLE;
+		String divStyle = null;
 
 		//Edit Mode start
 		if(matrixWindow.getEditMode().equals(JPiereMatrixWindow.EDITMODE_EDIT))
@@ -378,6 +381,10 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					Component component = new Label("");
 					div.appendChild(component);
 					div.setAttribute("display.component", component);
+					if(rowIndex % 2== 0)
+						divStyle = CELL_DIV_STYLE_READONLY + CELL_DIV_STYLE_READONLY_COLOR_EVEN;
+					else
+						divStyle = CELL_DIV_STYLE_READONLY + CELL_DIV_STYLE_READONLY_COLOR_ODD;
 					div.setStyle(divStyle);
 					div.setWidth("100%");
 					div.setAttribute("columnName", columnGridFieldMap.get(i).getColumnName());
@@ -405,7 +412,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 				}//if
 
 				div = new Cell();
-				divStyle = CELL_DIV_STYLE;
+				divStyle = CELL_DIV_STYLE_READONLY;
 
 				if (treeMap.get(i) != null )
 				{
@@ -437,6 +444,10 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 					Component component = new Label("");
 					div.appendChild(component);
 					div.setAttribute("display.component", component);
+					if(rowIndex % 2== 0)
+						divStyle = CELL_DIV_STYLE_READONLY + CELL_DIV_STYLE_READONLY_COLOR_EVEN;
+					else
+						divStyle = CELL_DIV_STYLE_READONLY + CELL_DIV_STYLE_READONLY_COLOR_ODD;
 					div.setStyle(divStyle);
 					div.setWidth("100%");
 					row.appendChild(div);
