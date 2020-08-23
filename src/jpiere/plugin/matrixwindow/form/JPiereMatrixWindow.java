@@ -1015,6 +1015,12 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				popup.open(ProcessButton, "after_start");
 			}
 
+		}else if(e.getTarget() instanceof Auxheader) { //TODO
+
+			Auxheader header = (Auxheader)e.getTarget() ;
+			Object record_id = header.getAttribute("record_id");
+			Object table_name = header.getAttribute("table_name");
+			AEnv.zoom(MTable.getTable_ID(table_name.toString()), Integer.valueOf(record_id.toString()));
 		}
 
 	}//onEvent()
@@ -1684,12 +1690,29 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
-				Auxheader auxheader = new Auxheader(columnKeyNameMap.get(columnKeys.get(i)));
+				Auxheader auxheader = new Auxheader(columnKeyNameMap.get(columnKeys.get(i)));//TODO
 				auxhead.appendChild(auxheader);
 				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
 				auxheader.setTooltiptext(columnKeyNameMap.get(columnKeys.get(i)));
+				auxheader.addEventListener("onClick", this);
+				auxheader.setAttribute("record_id", columnKeys.get(i));
+				auxheader.setStyle("cursor: pointer;text-decoration: underline;");
+
+				String zoom_TableName = null;
+				if(keyColumn.getAD_Reference_Value_ID()==0)
+				{
+					zoom_TableName = keyColumn.getColumnName().substring(0, keyColumn.getColumnName().indexOf("_ID"));
+
+				}else {
+
+					MRefTable refTable = MRefTable.get(Env.getCtx(), keyColumn.getAD_Reference_Value_ID());
+					zoom_TableName = MTable.getTableName(Env.getCtx(), refTable.getAD_Table_ID());
+				}
+
+				auxheader.setAttribute("table_name", zoom_TableName);
 			}
+
 		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_INTEGER ){
 			;//no auxhead
 		}else if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_STRING ){
@@ -1778,7 +1801,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		for(int i = 0; i < columnKeys.size(); i++)
 		{
 
-			for(int j = 0; j < m_contentFields.length; j++)//TODO
+			for(int j = 0; j < m_contentFields.length; j++)
 			{
 				columnNameMap.put(c, Msg.getElement(Env.getCtx(), m_contentColumns[j].getColumnName()));
 				columnLengthMap.put(c, m_matrixFields[j].getFieldLength());
