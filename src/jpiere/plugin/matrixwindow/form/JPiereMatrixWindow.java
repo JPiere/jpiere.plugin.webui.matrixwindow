@@ -1015,7 +1015,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				popup.open(ProcessButton, "after_start");
 			}
 
-		}else if(e.getTarget() instanceof Auxheader) { //TODO
+		}else if(e.getTarget() instanceof Auxheader) {
 
 			Auxheader header = (Auxheader)e.getTarget() ;
 			Object record_id = header.getAttribute("record_id");
@@ -1239,7 +1239,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		if(m_matrixWindow.getWhereClause() != null)
 		{
-			whereClause.append(" AND " + m_matrixWindow.getWhereClause() );
+			String parsed = Env.parseContext(Env.getCtx(), form.getWindowNo(), m_matrixWindow.getWhereClause(), false);
+			whereClause.append(" AND " + parsed);
 		}
 
 		MRole role = MRole.get(Env.getCtx(), Env.getAD_Role_ID(Env.getCtx()));
@@ -1690,7 +1691,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		{
 			for(int i = 0 ; i < columnKeys.size(); i++)
 			{
-				Auxheader auxheader = new Auxheader(columnKeyNameMap.get(columnKeys.get(i)));//TODO
+				Auxheader auxheader = new Auxheader(columnKeyNameMap.get(columnKeys.get(i)));
 				auxhead.appendChild(auxheader);
 				auxheader.setColspan(m_contentFields.length);
 				auxheader.setAlign("center");
