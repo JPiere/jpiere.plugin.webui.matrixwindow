@@ -1304,6 +1304,11 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			rs = null; pstmt = null;
 		}
 
+		if(list.size() == 0)
+		{
+			return list;
+		}
+
 		//Sort List
 		if(keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLEDIR
 				|| keyColumn.getAD_Reference_ID()==SystemIDs.REFERENCE_DATATYPE_TABLE
