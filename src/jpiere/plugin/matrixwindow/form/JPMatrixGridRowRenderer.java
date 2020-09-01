@@ -155,7 +155,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	 * @param isForceGetValue
 	 * @return
 	 */
-	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
+	public String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
 	{
 		if (value == null)
 			return "";

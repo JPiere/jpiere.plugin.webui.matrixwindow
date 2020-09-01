@@ -13,6 +13,7 @@
  *****************************************************************************/
 package jpiere.plugin.matrixwindow.form;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -87,6 +88,7 @@ import org.compiere.model.PO;
 import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_ToolBarButton;
 import org.compiere.process.ProcessInfo;
+import org.compiere.tools.FileUtil;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -107,6 +109,7 @@ import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Caption;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Center;
+import org.zkoss.zul.Filedownload;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Groupbox;
 import org.zkoss.zul.ListModel;
@@ -156,6 +159,10 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private Button CreateButton;
 
 	private Button ProcessButton;
+
+	private Button matrixExportButton;
+
+	private Button matrixExportXLS ;
 
 
 	/**********************************************************************
@@ -254,7 +261,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	private I_AD_Column m_rowKeyColumn ;
 
 	//AD_Window_ID
-	private int AD_WINDOW_ID = 0;
+	//private int AD_WINDOW_ID = 0;
 
 	//Table Name
 	private String TABLE_NAME ;
@@ -318,7 +325,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 
 
-		AD_WINDOW_ID = m_matrixWindow.getAD_Window_ID();
+		//AD_WINDOW_ID = m_matrixWindow.getAD_Window_ID();
 		m_Tab = new MTab(Env.getCtx(), m_matrixWindow.getAD_Tab_ID(), null);
 		TABLE_NAME = MTable.get(Env.getCtx(), m_Tab.getAD_Table_ID()).getTableName();
 
@@ -624,6 +631,18 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
+				matrixExportButton = new Button(Msg.getMsg(Env.getCtx(), "Export"));
+				matrixExportButton.setId("ExportButton");
+				matrixExportButton.addActionListener(this);
+				matrixExportButton.setEnabled(false);
+				if (ThemeManager.isUseFontIconForImage())
+					matrixExportButton.setIconSclass("z-icon-Export");
+				else
+					matrixExportButton.setImage(ThemeManager.getThemeResource("images/Export16.png"));
+				row.appendCellChild(matrixExportButton);
+
+
+
 		//Edit Area
 		Center center = new Center();
 		center.setStyle("padding-top: 16px");
@@ -735,6 +754,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		SaveButton.setEnabled(false);
 		CreateButton.setEnabled(false);
 		ProcessButton.setEnabled(false);
+		matrixExportButton.setEnabled(false);
 
 		quickEntry = null;
 
@@ -851,6 +871,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(false);
 				ProcessButton.setEnabled(false);
+				matrixExportButton.setEnabled(false);
+
 				matrixGrid.setVisible(false);
 
 				FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
@@ -862,6 +884,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 			ProcessButton.setEnabled(true);
+			matrixExportButton.setEnabled(true);
+
 
 			quickEntry = null;
 
@@ -878,6 +902,8 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				SaveButton.setEnabled(false);
 				CreateButton.setEnabled(true);
 				ProcessButton.setEnabled(true);
+				matrixExportButton.setEnabled(true);
+
 				matrixGrid.setVisible(false);
 				return;
 			}
@@ -887,6 +913,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			SaveButton.setEnabled(true);
 			CreateButton.setEnabled(true);
 			ProcessButton.setEnabled(true);
+			matrixExportButton.setEnabled(true);
 
 			if(e.getName().equals("onComplete"))
 			{
@@ -1021,6 +1048,50 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			Object record_id = header.getAttribute("record_id");
 			Object table_name = header.getAttribute("table_name");
 			AEnv.zoom(MTable.getTable_ID(table_name.toString()), Integer.valueOf(record_id.toString()));
+
+
+		}else if (e.getTarget().equals(matrixExportButton)) {
+
+			MatrixWindowButtonPopup popup = new MatrixWindowButtonPopup();
+			popup.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "exportButtonPopup");
+
+			List<org.zkoss.zul.Button> buttonList = new ArrayList<org.zkoss.zul.Button>();
+			matrixExportXLS = new Button();
+			matrixExportXLS.setId("matrixExportXLS");
+			matrixExportXLS.addActionListener(this);
+			matrixExportXLS.setLabel("xls");
+			matrixExportXLS.setEnabled(true);
+			buttonList.add(matrixExportXLS);
+
+			popup.render(buttonList);
+			LayoutUtils.openPopupWindow(matrixExportButton, popup, "after_start");
+
+		}else if (e.getTarget().equals(matrixExportXLS)){
+
+			int recordSize = viewModel.size();
+
+			if(recordSize == 0)
+			{
+				FDialog.info(form.getWindowNo(), form, "not.found", "",Msg.getElement(Env.getCtx(), "JP_MatrixWindow_ID"));
+			}else{
+
+				JPiereMatrixExcelExporter exporter = new JPiereMatrixExcelExporter(this);
+				File file;
+				try {
+
+					file = new File(FileUtil.getTempMailName(form.getFormName(), ".xls"));
+					exporter.export(file);
+					Filedownload.save(file, "application/vnd.ms-excel");
+
+				} catch (Exception exception) {
+
+					FDialog.info(form.getWindowNo(), null, "Error", Msg.getMsg(Env.getCtx(), "ExportExcel") + " : " + exception.toString());
+					throw new RuntimeException(exception);
+				}
+
+
+			}
+
 		}
 
 	}//onEvent()
@@ -2078,5 +2149,43 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 	}
 
 
+	public LinkedHashMap<Object,TreeMap<Integer,Object>> getViewModel()
+	{
+		return viewModel ;
+	}
 
+	public 	 HashMap<Object,String> getColumnKeyNameMap()
+	{
+		return columnKeyNameMap;
+	}
+
+	public HashMap<Integer,String> getColumnNameMap()
+	{
+		return columnNameMap;
+	}
+
+	public 	ArrayList<Object> getColumnKeys()
+	{
+		return columnKeys;
+	}
+
+	public ArrayList<Object> getRowKeys()
+	{
+		return rowKeys;
+	}
+
+	public MField[]	 getContentFields()
+	{
+		return m_contentFields;
+	}
+
+	public HashMap<Integer,GridField> getColumnGridFieldMap()
+	{
+		return columnGridFieldMap;
+	}
+
+	public JPMatrixGridRowRenderer getRowRenderer()
+	{
+		return renderer;
+	}
 }
