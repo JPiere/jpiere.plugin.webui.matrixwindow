@@ -17,19 +17,29 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFooter;
 import org.apache.poi.hssf.usermodel.HSSFHeader;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.compiere.model.GridField;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
+import org.compiere.util.Util;
 
 
 /**
@@ -93,12 +103,17 @@ public class JPiereMatrixExcelExporter {
 		HSSFCell cell = row.createCell(colCounter);//Spaece
 		colCounter++;
 
+		int cellLength = matrixWindow.getContentFields().length;
 		for(Object obj : ColumnKeys)
 		{
 			cell = row.createCell(colCounter);
 			String name = columnKeyNameMap.get(obj);
 			cell.setCellValue(name);
 
+			if(cellLength > 1)
+			{
+				sheet.addMergedRegion(new CellRangeAddress(0,0, colCounter, (colCounter + matrixWindow.getContentFields().length-1) ));
+			}
 			colCounter = colCounter + matrixWindow.getContentFields().length;
 			;
 		}
@@ -131,20 +146,58 @@ public class JPiereMatrixExcelExporter {
 		HSSFCell cell = null;
 		GridField gField = null;
 		int rowCounter = 0;
+		int displayType = 0;
 		for(Object rowKey : rowKeys)
 		{
 			objectList = viewModel.get(rowKey);
 			row = sheet.createRow(rowCounter + 2);
 			for (int col = 0; col < objectList.size(); col++)
 			{
-				Object value = objectList.get(col);
-				if(value==null)
+				Object obj_Value = objectList.get(col);
+				if(obj_Value==null)
 					continue;
 
 				cell = row.createCell(col);
 				gField = columnGridFieldMap.get(col);
-				String  text = renderer.getDisplayText(value,gField, rowCounter + 2,false);
-				cell.setCellValue(text);
+				displayType = gField.getDisplayType();
+				String  text = renderer.getDisplayText(obj_Value, gField, rowCounter + 2,false);
+
+
+				if (DisplayType.isDate(displayType))
+				{
+					Timestamp value = null;
+					if (obj_Value instanceof Date)
+						value = new Timestamp(((Date)obj_Value).getTime());
+					else
+						value = (Timestamp)obj_Value;
+					cell.setCellValue(value);
+
+				}else if (DisplayType.isNumeric(displayType)) {
+
+					double value = 0;
+					if (obj_Value instanceof Number) {
+						value = ((Number)obj_Value).doubleValue();
+					}
+					cell.setCellValue(value);
+
+				}else if (DisplayType.YesNo == displayType) {
+
+					boolean value = false;
+					if (obj_Value instanceof Boolean)
+						value = (Boolean)obj_Value;
+					else
+						value = "Y".equals(obj_Value);
+					cell.setCellValue(new HSSFRichTextString(Msg.getMsg(Env.getAD_Language(Env.getCtx()), value == true ? "Y" : "N")));
+
+				}else {
+					String value = fixString(obj_Value.toString());	//	formatted
+					cell.setCellValue(new HSSFRichTextString(value));
+				}
+
+
+				HSSFCellStyle style = getStyle(col, displayType);
+				cell.setCellStyle(style);
+
 
 			}
 
@@ -154,6 +207,86 @@ public class JPiereMatrixExcelExporter {
 
 	}
 
+	private String fixString(String str)
+	{
+		// ms excel doesn't support UTF8 charset
+		return Util.stripDiacritics(str);
+	}
 
+	private HashMap<String, HSSFCellStyle> m_styles = new HashMap<String, HSSFCellStyle>();
 
+	private HSSFCellStyle getStyle(int col, int displayType)
+	{
+		String key = "cell-"+col+"-"+displayType;
+		HSSFCellStyle cs = m_styles.get(key);
+		if (cs == null)
+		{
+			cs = m_workbook.createCellStyle();
+//			HSSFFont font = getFont(false);
+//			cs.setFont(font);
+			// Border
+//			cs.setBorderLeft(BorderStyle.THIN);   //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+//			cs.setBorderTop(BorderStyle.THIN);    //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+//			cs.setBorderRight(BorderStyle.THIN);  //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+//			cs.setBorderBottom(BorderStyle.THIN); //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+			//
+			String cellFormat = getCellFormat(displayType);
+//			if (cellFormat != null)
+//				cs.setDataFormat(m_dataFormat.getFormat(cellFormat));
+			m_styles.put(key, cs);
+		}
+		return cs;
+
+	}
+
+	protected String getCellFormat(int displayType) {
+		boolean isHighlightNegativeNumbers = true;
+
+		String cellFormat = null;
+
+//		if (DisplayType.isDate(displayType)) {
+//			cellFormat = DisplayType.getDateFormat(getLanguage()).toPattern();
+//		} else
+
+		if (DisplayType.isNumeric(displayType)) {
+			DecimalFormat df = DisplayType.getNumberFormat(displayType, Env.getLanguage(Env.getCtx()));
+			cellFormat = getFormatString(df, isHighlightNegativeNumbers);
+		}
+
+		return cellFormat;
+	}
+
+	private String getFormatString(NumberFormat df, boolean isHighlightNegativeNumbers) {
+		StringBuffer format = new StringBuffer();
+		int integerDigitsMin = df.getMinimumIntegerDigits();
+		int integerDigitsMax = df.getMaximumIntegerDigits();
+		for (int i = 0; i < integerDigitsMax; i++) {
+			if (i < integerDigitsMin)
+				format.insert(0, "0");
+			else
+				format.insert(0, "#");
+			if (i == 2) {
+				format.insert(0, ",");
+			}
+		}
+		int fractionDigitsMin = df.getMinimumFractionDigits();
+		int fractionDigitsMax = df.getMaximumFractionDigits();
+		for (int i = 0; i < fractionDigitsMax; i++) {
+			if (i == 0)
+				format.append(".");
+			if (i < fractionDigitsMin)
+				format.append("0");
+			else
+				format.append("#");
+		}
+		if (isHighlightNegativeNumbers) {
+			String f = format.toString();
+			format = new StringBuffer(f).append(";[RED]-").append(f);
+		}
+		//
+		//if (log.isLoggable(Level.FINEST)) log.finest("NumberFormat: "+format);
+
+		return format.toString();
+
+	}
 }

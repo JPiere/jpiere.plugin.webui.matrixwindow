@@ -631,7 +631,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
-				matrixExportButton = new Button(Msg.getMsg(Env.getCtx(), "Export"));//TODO
+				matrixExportButton = new Button(Msg.getMsg(Env.getCtx(), "Export"));
 				matrixExportButton.setId("ExportButton");
 				matrixExportButton.addActionListener(this);
 				matrixExportButton.setEnabled(false);
@@ -1050,7 +1050,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 			AEnv.zoom(MTable.getTable_ID(table_name.toString()), Integer.valueOf(record_id.toString()));
 
 
-		}else if (e.getTarget().equals(matrixExportButton)) {//TODO
+		}else if (e.getTarget().equals(matrixExportButton)) {
 
 			MatrixWindowButtonPopup popup = new MatrixWindowButtonPopup();
 			popup.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "exportButtonPopup");
