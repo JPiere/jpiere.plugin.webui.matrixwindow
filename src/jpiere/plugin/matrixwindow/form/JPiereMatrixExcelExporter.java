@@ -160,7 +160,6 @@ public class JPiereMatrixExcelExporter {
 				cell = row.createCell(col);
 				gField = columnGridFieldMap.get(col);
 				displayType = gField.getDisplayType();
-				String  text = renderer.getDisplayText(obj_Value, gField, rowCounter + 2,false);
 
 
 				if (DisplayType.isDate(displayType))
@@ -188,6 +187,12 @@ public class JPiereMatrixExcelExporter {
 					else
 						value = "Y".equals(obj_Value);
 					cell.setCellValue(new HSSFRichTextString(Msg.getMsg(Env.getAD_Language(Env.getCtx()), value == true ? "Y" : "N")));
+
+				}else if(DisplayType.isID(displayType) || DisplayType.List == displayType){
+
+					String  text = renderer.getDisplayText(obj_Value, gField, rowCounter + 2,false);
+					cell.setCellValue(new HSSFRichTextString(text));
+
 
 				}else {
 					String value = fixString(obj_Value.toString());	//	formatted
