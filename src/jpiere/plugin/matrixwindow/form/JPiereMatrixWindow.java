@@ -589,6 +589,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					SearchButton.setIconSclass("z-icon-Find");
 				else
 					SearchButton.setImage(ThemeManager.getThemeResource("images/Find16.png"));
+				ZKUpdateUtil.setWidth(SearchButton, "100%");
 				row.appendCellChild(SearchButton);
 
 
@@ -601,7 +602,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					SaveButton.setIconSclass("z-icon-Save");
 				else
 					SaveButton.setImage(ThemeManager.getThemeResource("images/Save16.png"));
-
+				ZKUpdateUtil.setWidth(SaveButton, "100%");
 				if(!editMode.equals(EDITMODE_READ))
 					row.appendCellChild(SaveButton);
 
@@ -613,6 +614,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					CreateButton.setIconSclass("z-icon-New");
 				else
 					CreateButton.setImage(ThemeManager.getThemeResource("images/New16.png"));
+				ZKUpdateUtil.setWidth(CreateButton, "100%");
 				if(m_matrixWindow.getJP_QuickEntryWindow_ID() > 0)
 				{
 					if(!editMode.equals(EDITMODE_READ))
@@ -628,6 +630,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					ProcessButton.setIconSclass("z-icon-Process");
 				else
 					ProcessButton.setImage(ThemeManager.getThemeResource("images/Process16.png"));
+				ZKUpdateUtil.setWidth(ProcessButton, "100%");
 				if(toolbarProcessButtons.size()> 0 && !editMode.equals(EDITMODE_READ))
 					row.appendCellChild(ProcessButton);
 
@@ -639,6 +642,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 					matrixExportButton.setIconSclass("z-icon-Export");
 				else
 					matrixExportButton.setImage(ThemeManager.getThemeResource("images/Export16.png"));
+				ZKUpdateUtil.setWidth(matrixExportButton, "100%");
 				row.appendCellChild(matrixExportButton);
 
 
