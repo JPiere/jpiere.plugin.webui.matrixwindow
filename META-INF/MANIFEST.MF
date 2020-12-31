@@ -20,7 +20,6 @@ Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.apache.poi.poi
 Service-Component: OSGI-INF/JPierePluginMatrixWindowFormFactory.xml,OSGI-INF/JPierePluginMatrixWindowModelFactory.xml,
  OSGI-INF/JPierePluginMatrixWindowCalloutFactory.xml
-Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
 Import-Package: org.apache.poi.hssf.usermodel,
  org.compiere.model,
  org.slf4j;version="1.7.2",
