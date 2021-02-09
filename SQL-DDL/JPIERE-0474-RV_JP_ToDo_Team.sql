@@ -37,8 +37,16 @@ SELECT
     ,p.JP_Statistics_DateAndTime
     ,p.JP_Statistics_Number
     ,p.jp_Statistics_YesNo
+    ,u.C_Job_ID
+    ,u.supervisor_ID
+    ,u.AD_OrgTrx_ID
+    ,oi.AD_OrgType_ID
+    ,oi.JP_BusinessUnit_ID
+    ,oi.JP_Corporation_ID
 FROM adempiere.JP_ToDo_Team t
-	INNER JOIN adempiere.JP_ToDo p ON (t.JP_ToDo_Team_ID = p.JP_ToDo_Team_ID);
+	INNER JOIN adempiere.JP_ToDo p ON (t.JP_ToDo_Team_ID = p.JP_ToDo_Team_ID)
+	INNER JOIN adempiere.AD_User u ON (p.AD_User_ID = u.AD_User_ID)
+     	LEFT OUTER JOIN adempiere.AD_OrgInfo oi ON (u.AD_OrgTrx_ID = oi.AD_Org_ID);
 
 ALTER TABLE adempiere.RV_JP_ToDo_Team
     OWNER TO adempiere;
