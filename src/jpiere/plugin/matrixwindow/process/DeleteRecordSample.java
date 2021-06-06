@@ -50,6 +50,10 @@ public class DeleteRecordSample extends SvrProcess {
 //		MPatternLine pl = new MPatternLine(getCtx(),record_ID,get_TrxName());
 //		pl.deleteEx(true, get_TrxName());
 
+		if(p_AD_Org_ID == 0)
+		{
+			return "OK";
+		}
 
 		return "OK";
 	}

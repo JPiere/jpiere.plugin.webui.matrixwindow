@@ -55,8 +55,10 @@ public class JPiereMatrixWindowProcessModelDialog extends ProcessModalDialog {
 
 	private Table logMessageTable;
 
+	@SuppressWarnings("unused")
 	private int[]		    m_ids = null;
 
+	@SuppressWarnings("unused")
 	private boolean isParameterPage = true;
 
 	public JPiereMatrixWindowProcessModelDialog(int WindowNo, ProcessInfo pi,

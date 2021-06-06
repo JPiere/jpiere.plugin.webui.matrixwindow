@@ -290,15 +290,15 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 		return true;
 	}
 
-	private MTab getTab()
-	{
-
-		if (mTab == null) {
-			mTab = new MTab(getCtx(), getAD_Tab_ID(), get_TrxName());
-		}
-
-		return mTab;
-	}
+//	private MTab getTab()
+//	{
+//
+//		if (mTab == null) {
+//			mTab = new MTab(getCtx(), getAD_Tab_ID(), get_TrxName());
+//		}
+//
+//		return mTab;
+//	}
 
 	/**
 	 * 	Get MMatrixWindow with Value

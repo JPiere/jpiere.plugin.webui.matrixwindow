@@ -15,7 +15,6 @@ package jpiere.plugin.matrixwindow.form;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,6 +45,7 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 	/** The number of columns in the table. */
 	private int m_noColumns;
 
+	@SuppressWarnings("unused")
 	private Sortable<Object> sorter = null;
 
 	/**
@@ -113,8 +113,8 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 	 */
     private void ensureRowSize()
 	{
-		@SuppressWarnings("unchecked")
-		Map<Object,Object> imap = getInnerMap();
+//		@SuppressWarnings("unchecked")
+//		Map<Object,Object> imap = getInnerMap();
 //		Iterator<List<Object>> rowIterator = (Iterator<List<Object>>)(Object)this.getInnerList().iterator();
 
 //        while (rowIterator.hasNext())
@@ -252,8 +252,8 @@ public class JPListModelMapTable extends ListModelMap<Object, Object> {
 	 */
 	public void setNoRows(int rowCount)
 	{
-		List<Object> newRow = null;
-
+//		List<Object> newRow = null;
+//
 //		int currentSize = getSize();
 //		if (rowCount >= currentSize)
 //		{

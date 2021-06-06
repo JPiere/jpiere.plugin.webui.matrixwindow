@@ -235,7 +235,7 @@ public class JPiereMatrixExcelExporter {
 //			cs.setBorderRight(BorderStyle.THIN);  //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
 //			cs.setBorderBottom(BorderStyle.THIN); //JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
 			//
-			String cellFormat = getCellFormat(displayType);
+//			String cellFormat = getCellFormat(displayType);
 //			if (cellFormat != null)
 //				cs.setDataFormat(m_dataFormat.getFormat(cellFormat));
 			m_styles.put(key, cs);

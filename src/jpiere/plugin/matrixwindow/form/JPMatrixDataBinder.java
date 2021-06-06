@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
-import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
-import jpiere.plugin.matrixwindow.base.IMatrixWindowCalloutFactory;
-
 import org.adempiere.base.Service;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.event.ValueChangeEvent;
@@ -29,6 +26,9 @@ import org.compiere.model.GridField;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.zkoss.zul.ListModelMap;
+
+import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
+import jpiere.plugin.matrixwindow.base.IMatrixWindowCalloutFactory;
 
 /**
  * Transfer data from editor to GridTab
@@ -61,6 +61,7 @@ public class JPMatrixDataBinder implements ValueChangeListener {
 	//Map of All Column WEditor <Column order num,,WEditor>
 	private HashMap<Integer,WEditor>   columnEditorMap;
 
+	@SuppressWarnings("unused")
 	private CustomForm form;
 
 	/**
