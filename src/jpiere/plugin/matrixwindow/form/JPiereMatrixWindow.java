@@ -67,7 +67,7 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridWindow;
@@ -830,7 +830,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 		if(message != null && !Util.isEmpty(message.toString()))
 		{
-			FDialog.info(form.getWindowNo(), null, message.toString());
+			Dialog.info(form.getWindowNo(), null, message.toString());
 			message = new StringBuilder();
 			return;
 		}
@@ -879,7 +879,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 				matrixGrid.setVisible(false);
 
-				FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+				Dialog.info(form.getWindowNo(), null, message.toString());
 
 				return;
 			}
@@ -927,7 +927,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 //				dialog.updateUI();
 //				HtmlBasedComponent  ditailLog = dialog.getInfoResultContent();
 
-				FDialog.info(form.getWindowNo(), null, pInfo.getSummary(), pInfo.getLogInfo(), pInfo.getTitle());
+				Dialog.info(form.getWindowNo(), pInfo.getSummary(), pInfo.getLogInfo(), pInfo.getTitle());
 
 			}
 
@@ -942,7 +942,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				if(!createView ())
 				{
 					matrixGrid.setVisible(false);
-					FDialog.info(form.getWindowNo(), null, message.toString());//FDialog.
+					Dialog.info(form.getWindowNo(), message.toString());//FDialog.
 					return ;
 				}
 
@@ -1076,7 +1076,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 			if(recordSize == 0)
 			{
-				FDialog.info(form.getWindowNo(), form, "not.found", "",Msg.getElement(Env.getCtx(), "JP_MatrixWindow_ID"));
+				Dialog.info(form.getWindowNo(), "not.found", "",Msg.getElement(Env.getCtx(), "JP_MatrixWindow_ID"));
 			}else{
 
 				JPiereMatrixExcelExporter exporter = new JPiereMatrixExcelExporter(this);
@@ -1089,7 +1089,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 
 				} catch (Exception exception) {
 
-					FDialog.info(form.getWindowNo(), null, "Error", Msg.getMsg(Env.getCtx(), "ExportExcel") + " : " + exception.toString());
+					Dialog.info(form.getWindowNo(), "Error", Msg.getMsg(Env.getCtx(), "ExportExcel") + " : " + exception.toString());
 					throw new RuntimeException(exception);
 				}
 
@@ -1137,7 +1137,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		whereClause = createWhere();
 		if(!Util.isEmpty(message.toString()))
 		{
-			FDialog.info(form.getWindowNo(), null, message.toString());
+			Dialog.info(form.getWindowNo(), message.toString());
 			message = new StringBuilder();
 			return false;
 		}
@@ -1148,7 +1148,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(columnKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
-			FDialog.info(form.getWindowNo(), null, message.toString());
+			Dialog.info(form.getWindowNo(), message.toString());
 			message = new StringBuilder();
 			return false;
 		}
@@ -1159,7 +1159,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(rowKeys.size()==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
-			FDialog.info(form.getWindowNo(), null, message.toString());
+			Dialog.info(form.getWindowNo(),message.toString());
 			message = new StringBuilder();
 			return false;
 		}
@@ -1169,7 +1169,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		if(m_POs.length==0)
 		{
 			message.append(System.getProperty("line.separator") + Msg.getMsg(Env.getCtx(), "not.found"));
-			FDialog.info(form.getWindowNo(), null, message.toString());
+			Dialog.info(form.getWindowNo(), message.toString());
 			message = new StringBuilder();
 			return false;
 		}
@@ -2017,7 +2017,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 				{
 					msg = msg + System.lineSeparator() + po.toString();
 				}
-				FDialog.error(form.getWindowNo(), form, "Next", msg);
+				Dialog.error(form.getWindowNo(), "Next", msg);
 				createView();
 			}
 
@@ -2026,7 +2026,7 @@ public class JPiereMatrixWindow extends AbstractMatrixWindowForm implements Even
 		}
 		catch (Exception e)
 		{
-			FDialog.error(form.getWindowNo(), form, "SaveError", e.getLocalizedMessage());
+			Dialog.error(form.getWindowNo(), "SaveError", e.getLocalizedMessage());
 			return false;
 		}finally{
 			;
