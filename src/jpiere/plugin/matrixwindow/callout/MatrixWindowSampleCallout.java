@@ -16,12 +16,14 @@ package jpiere.plugin.matrixwindow.callout;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
-import jpiere.plugin.matrixwindow.form.JPMatrixDataBinder;
+import java.util.TreeMap;
 
 import org.compiere.model.GridField;
 import org.compiere.util.DB;
+import org.zkoss.zul.ListModelMap;
+
+import jpiere.plugin.matrixwindow.base.IMatrixWindowCallout;
+import jpiere.plugin.matrixwindow.form.JPMatrixDataBinder;
 
 public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 
@@ -29,9 +31,15 @@ public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 	public String start(JPMatrixDataBinder dataBinder, int x, int y , Object newValue, Object oldValue)
 	{
 
-		GridField gridField = dataBinder.getColumnGridFieldMap().get(x);
-		int tabNo = gridField.getGridTab().getTabNo();
-
+		GridField xGridField = dataBinder.getColumnGridFieldMap().get(x);
+		int tabNo = xGridField.getGridTab().getTabNo();
+		
+		ListModelMap.Entry<Object, Object>  conversionTableRow = dataBinder.getConvetionTable().getElementAt(y);
+		@SuppressWarnings("unchecked")
+		TreeMap<Integer,Object> conversionTableRowData = (TreeMap<Integer,Object>)conversionTableRow.getValue();
+    	Object PO_ID = conversionTableRowData.get(x);
+		
+		GridField gridField = null;
 		for(int i = 0; i < dataBinder.getColumnGridFieldMap().size(); i++)
 		{
 
@@ -42,48 +50,59 @@ public class MatrixWindowSampleCallout implements IMatrixWindowCallout {
 				Integer C_BPartner_ID = (Integer)newValue;
 				if (C_BPartner_ID == null || C_BPartner_ID.intValue() == 0)
 					return "";
-				String sql = "SELECT p.AD_Language,p.C_PaymentTerm_ID,"
-					+ " COALESCE(p.M_PriceList_ID,g.M_PriceList_ID) AS M_PriceList_ID, p.PaymentRule,p.POReference,"
-					+ " p.SO_Description,p.IsDiscountPrinted,"
-					+ " p.InvoiceRule,p.DeliveryRule,p.FreightCostRule,DeliveryViaRule,"
-					+ " p.SO_CreditLimit, p.SO_CreditLimit-p.SO_CreditUsed AS CreditAvailable,"
-					+ " lship.C_BPartner_Location_ID,c.AD_User_ID,"
-					+ " COALESCE(p.PO_PriceList_ID,g.PO_PriceList_ID) AS PO_PriceList_ID, p.PaymentRulePO,p.PO_PaymentTerm_ID,"
-					+ " lbill.C_BPartner_Location_ID AS Bill_Location_ID, p.SOCreditStatus, "
-					+ " p.SalesRep_ID "
-					+ "FROM C_BPartner p"
-					+ " INNER JOIN C_BP_Group g ON (p.C_BP_Group_ID=g.C_BP_Group_ID)"
-					+ " LEFT OUTER JOIN C_BPartner_Location lbill ON (p.C_BPartner_ID=lbill.C_BPartner_ID AND lbill.IsBillTo='Y' AND lbill.IsActive='Y')"
-					+ " LEFT OUTER JOIN C_BPartner_Location lship ON (p.C_BPartner_ID=lship.C_BPartner_ID AND lship.IsShipTo='Y' AND lship.IsActive='Y')"
-					+ " LEFT OUTER JOIN AD_User c ON (p.C_BPartner_ID=c.C_BPartner_ID AND c.IsActive='Y') "
-					+ "WHERE p.C_BPartner_ID=? AND p.IsActive='Y'";		//	#1
-
-				PreparedStatement pstmt = null;
-				ResultSet rs = null;
-				try
+				
+				
+				Object check_ID = conversionTableRowData.get(i);
+				if(check_ID == null)
+					continue;
+				
+				if(PO_ID.equals(check_ID))
 				{
-
-					pstmt = DB.prepareStatement(sql, null);
-					pstmt.setInt(1, C_BPartner_ID.intValue());
-					rs = pstmt.executeQuery();
-					if (rs.next())
+					
+					String sql = "SELECT p.AD_Language,p.C_PaymentTerm_ID,"
+						+ " COALESCE(p.M_PriceList_ID,g.M_PriceList_ID) AS M_PriceList_ID, p.PaymentRule,p.POReference,"
+						+ " p.SO_Description,p.IsDiscountPrinted,"
+						+ " p.InvoiceRule,p.DeliveryRule,p.FreightCostRule,DeliveryViaRule,"
+						+ " p.SO_CreditLimit, p.SO_CreditLimit-p.SO_CreditUsed AS CreditAvailable,"
+						+ " lship.C_BPartner_Location_ID,c.AD_User_ID,"
+						+ " COALESCE(p.PO_PriceList_ID,g.PO_PriceList_ID) AS PO_PriceList_ID, p.PaymentRulePO,p.PO_PaymentTerm_ID,"
+						+ " lbill.C_BPartner_Location_ID AS Bill_Location_ID, p.SOCreditStatus, "
+						+ " p.SalesRep_ID "
+						+ "FROM C_BPartner p"
+						+ " INNER JOIN C_BP_Group g ON (p.C_BP_Group_ID=g.C_BP_Group_ID)"
+						+ " LEFT OUTER JOIN C_BPartner_Location lbill ON (p.C_BPartner_ID=lbill.C_BPartner_ID AND lbill.IsBillTo='Y' AND lbill.IsActive='Y')"
+						+ " LEFT OUTER JOIN C_BPartner_Location lship ON (p.C_BPartner_ID=lship.C_BPartner_ID AND lship.IsShipTo='Y' AND lship.IsActive='Y')"
+						+ " LEFT OUTER JOIN AD_User c ON (p.C_BPartner_ID=c.C_BPartner_ID AND c.IsActive='Y') "
+						+ "WHERE p.C_BPartner_ID=? AND p.IsActive='Y'";		//	#1
+	
+					PreparedStatement pstmt = null;
+					ResultSet rs = null;
+					try
 					{
-						Integer bill_Location_ID = rs.getInt("Bill_Location_ID");
-						dataBinder.setValue(i, y, bill_Location_ID);
-
+	
+						pstmt = DB.prepareStatement(sql, null);
+						pstmt.setInt(1, C_BPartner_ID.intValue());
+						rs = pstmt.executeQuery();
+						if (rs.next())
+						{
+							Integer bill_Location_ID = rs.getInt("Bill_Location_ID");
+							dataBinder.setValue(i, y, bill_Location_ID);
+	
+						}
+	
+	
+					}catch (SQLException e){
+	
+						return e.getLocalizedMessage();
+					}
+					finally
+					{
+						DB.close(rs, pstmt);
+						rs = null; pstmt = null;
 					}
 
-
-				}catch (SQLException e){
-
-					return e.getLocalizedMessage();
 				}
-				finally
-				{
-					DB.close(rs, pstmt);
-					rs = null; pstmt = null;
-				}
-
+				
 			}//if
 
 		}//for
