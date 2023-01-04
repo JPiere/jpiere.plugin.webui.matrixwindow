@@ -25,10 +25,10 @@ import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
+import org.adempiere.webui.component.ComboEditorBox;
 import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.component.Datebox;
 import org.adempiere.webui.component.NumberBox;
-import org.adempiere.webui.component.Searchbox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
@@ -558,7 +558,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 	private NumberBox numberbox;
 	private Datebox datebox ;
 	private Combobox combobox;
-	private Searchbox searchbox;
+	private ComboEditorBox searchbox;
 	private Textbox textbox ;
 	public boolean setFocus(Component Component)
 	{
@@ -593,11 +593,11 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 			return true;
 
-		}else if(Component instanceof Searchbox){
+		}else if(Component instanceof ComboEditorBox){
 
-			searchbox = (Searchbox)Component;
+			searchbox = (ComboEditorBox)Component;
 			searchbox.focus();
-			searchbox.getTextbox().select();
+			searchbox.getCombobox().select();;
 
 			return true;
 
@@ -626,7 +626,7 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 
 		if(!event.getName().equals(Events.ON_OK))
 			return;
-
+		
 		//Get Row(Y) and Column(X) info
 		if(event.getTarget() instanceof Decimalbox)
 		{
@@ -661,10 +661,10 @@ public class JPMatrixGridRowRenderer implements RowRenderer<Map.Entry<Integer,Ob
 		for(int i = 0 ; i < grid.getPageSize(); i++)
      	{
 			//If you push Enter key at Blank Search field, iDempiere dispay Info Window. So, stay same row.
-			if(event.getTarget().getParent() instanceof Searchbox)
+			if(event.getTarget().getParent() instanceof ComboEditorBox)//Ref: IDEMPIERE-2902 UX: Implement Radio buttons
 			{
 
-				searchbox =(Searchbox)event.getTarget().getParent();
+				searchbox =(ComboEditorBox)event.getTarget().getParent();
 				if(searchbox.getText().equals(""))
 				{
 					editNextRow(y,x);
