@@ -30,6 +30,8 @@ import org.zkoss.zk.ui.event.Event;
  */
 public class JPiereMatrixWindowQuickEntry extends WQuickEntry {
 
+	private static final long serialVersionUID = 147788092065462088L;
+	
 	private JPiereMatrixWindow matrixWindow;
 
 	public JPiereMatrixWindowQuickEntry(int WindowNo, int AD_Window_ID,JPiereMatrixWindow mw) {

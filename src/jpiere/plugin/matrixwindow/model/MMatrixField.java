@@ -29,6 +29,8 @@ import org.compiere.util.Msg;
  */
 public class MMatrixField extends X_JP_MatrixField {
 
+	private static final long serialVersionUID = 8194939865716912467L;
+	
 	MMatrixWindow m_matrixWindow;
 
 	public MMatrixField(Properties ctx, int JP_MatrixField_ID, String trxName)

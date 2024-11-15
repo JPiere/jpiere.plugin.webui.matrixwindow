@@ -43,6 +43,8 @@ import org.compiere.util.Util;
  */
 public class MMatrixWindow extends X_JP_MatrixWindow {
 
+	private static final long serialVersionUID = -8616230710326924392L;
+
 	MMatrixField[] matrixFields ;
 
 	MMatrixSearch[] matrixSearches ;

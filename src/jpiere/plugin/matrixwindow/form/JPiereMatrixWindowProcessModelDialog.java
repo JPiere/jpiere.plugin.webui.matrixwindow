@@ -49,6 +49,8 @@ import org.zkoss.zul.Vlayout;
  */
 public class JPiereMatrixWindowProcessModelDialog extends ProcessModalDialog {
 
+	private static final long serialVersionUID = -841430924578844533L;
+
 	private JPiereMatrixWindow matrixWindow;
 
 	private HtmlBasedComponent resultPanelLayout;

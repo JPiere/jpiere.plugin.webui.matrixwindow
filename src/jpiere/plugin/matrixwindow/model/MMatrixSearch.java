@@ -28,6 +28,8 @@ import org.compiere.util.Msg;
  */
 public class MMatrixSearch extends X_JP_MatrixSearch {
 
+	private static final long serialVersionUID = -8030318858132594493L;
+	
 	MMatrixWindow m_matrixWindow;
 
 	public MMatrixSearch(Properties ctx, int JP_MatrixSearch_ID, String trxName)
