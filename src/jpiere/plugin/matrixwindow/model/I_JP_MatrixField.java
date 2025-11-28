@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for JP_MatrixField
  *  @author iDempiere (generated) 
- *  @version Release 2.1
+ *  @version Release 12
  */
 @SuppressWarnings("all")
 public interface I_JP_MatrixField 
@@ -46,8 +46,8 @@ public interface I_JP_MatrixField
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client.
-	  * Client/Tenant for this installation.
+	/** Get Tenant.
+	  * Tenant for this installation.
 	  */
 	public int getAD_Client_ID();
 
@@ -70,12 +70,12 @@ public interface I_JP_MatrixField
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
 	/** Set Organization.
-	  * Organizational entity within client
+	  * Organizational entity within tenant
 	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
 	/** Get Organization.
-	  * Organizational entity within client
+	  * Organizational entity within tenant
 	  */
 	public int getAD_Org_ID();
 
@@ -137,12 +137,14 @@ public interface I_JP_MatrixField
     /** Column name IsSummarized */
     public static final String COLUMNNAME_IsSummarized = "IsSummarized";
 
-	/** Set Calculate Sum (Σ).
+	/** Set Calculate Sum (&#931;
+).
 	  * Calculate the Sum of numeric content or length
 	  */
 	public void setIsSummarized (boolean IsSummarized);
 
-	/** Get Calculate Sum (Σ).
+	/** Get Calculate Sum (&#931;
+).
 	  * Calculate the Sum of numeric content or length
 	  */
 	public boolean isSummarized();

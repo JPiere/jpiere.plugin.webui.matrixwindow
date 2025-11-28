@@ -36,6 +36,11 @@ public class MMatrixSearch extends X_JP_MatrixSearch {
 	{
 		super(ctx, JP_MatrixSearch_ID, trxName);
 	}
+	
+	public MMatrixSearch(Properties ctx, String JP_MatrixSearch_UU, String trxName)
+	{
+		super(ctx, JP_MatrixSearch_UU, trxName);
+	}
 
 	public MMatrixSearch(Properties ctx, ResultSet rs, String trxName)
 	{

@@ -57,6 +57,10 @@ public class MMatrixWindow extends X_JP_MatrixWindow {
 		super(ctx, JP_MatrixWindow_ID, trxName);
 	}
 
+	public MMatrixWindow(Properties ctx, String JP_MatrixWindow_UU, String trxName) {
+		super(ctx, JP_MatrixWindow_UU, trxName);
+	}
+	
 	public MMatrixWindow(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
 	}

@@ -65,6 +65,22 @@ public class JPierePluginMatrixWindowModelFactory implements IModelFactory {
 		}
 		return null;
 	}
+	
+	@Override
+	public PO getPO(String tableName, String Record_UU, String trxName)
+	{
+		if(tableName.startsWith("JP_Matrix"))
+		{
+			if(tableName.equals(MMatrixWindow.Table_Name)){
+				return  new MMatrixWindow(Env.getCtx(), Record_UU, trxName);
+			}else if(tableName.equals(MMatrixField.Table_Name)){
+				return  new MMatrixField(Env.getCtx(), Record_UU, trxName);
+			}else if(tableName.equals(MMatrixSearch.Table_Name)){
+				return  new MMatrixSearch(Env.getCtx(), Record_UU, trxName);
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public PO getPO(String tableName, ResultSet rs, String trxName)

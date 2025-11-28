@@ -22,21 +22,76 @@ import java.util.Properties;
 import org.compiere.model.*;
 
 /** Generated Model for JP_MatrixField
- *  @author iDempiere (generated) 
- *  @version Release 2.1 - $Id$ */
-public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persistent 
+ *  @author iDempiere (generated)
+ *  @version Release 12 - $Id$ */
+@org.adempiere.base.Model(table="JP_MatrixField")
+public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persistent
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20150805L;
+	private static final long serialVersionUID = 20251128L;
 
     /** Standard Constructor */
     public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName)
     {
       super (ctx, JP_MatrixField_ID, trxName);
       /** if (JP_MatrixField_ID == 0)
+        {
+			setAD_Field_ID (0);
+			setFieldLength (0);
+// 0
+			setIsSummarized (false);
+// N
+			setJP_MatrixField_ID (0);
+			setJP_MatrixWindow_ID (0);
+			setSeqNo (0);
+// @SQL=SELECT COALESCE(MAX(SeqNo),0)+10 AS DefaultValue FROM JP_MatrixField WHERE JP_MatrixWindow_ID=@JP_MatrixWindow_ID@
+        } */
+    }
+
+    /** Standard Constructor */
+    public X_JP_MatrixField (Properties ctx, int JP_MatrixField_ID, String trxName, String ... virtualColumns)
+    {
+      super (ctx, JP_MatrixField_ID, trxName, virtualColumns);
+      /** if (JP_MatrixField_ID == 0)
+        {
+			setAD_Field_ID (0);
+			setFieldLength (0);
+// 0
+			setIsSummarized (false);
+// N
+			setJP_MatrixField_ID (0);
+			setJP_MatrixWindow_ID (0);
+			setSeqNo (0);
+// @SQL=SELECT COALESCE(MAX(SeqNo),0)+10 AS DefaultValue FROM JP_MatrixField WHERE JP_MatrixWindow_ID=@JP_MatrixWindow_ID@
+        } */
+    }
+
+    /** Standard Constructor */
+    public X_JP_MatrixField (Properties ctx, String JP_MatrixField_UU, String trxName)
+    {
+      super (ctx, JP_MatrixField_UU, trxName);
+      /** if (JP_MatrixField_UU == null)
+        {
+			setAD_Field_ID (0);
+			setFieldLength (0);
+// 0
+			setIsSummarized (false);
+// N
+			setJP_MatrixField_ID (0);
+			setJP_MatrixWindow_ID (0);
+			setSeqNo (0);
+// @SQL=SELECT COALESCE(MAX(SeqNo),0)+10 AS DefaultValue FROM JP_MatrixField WHERE JP_MatrixWindow_ID=@JP_MatrixWindow_ID@
+        } */
+    }
+
+    /** Standard Constructor */
+    public X_JP_MatrixField (Properties ctx, String JP_MatrixField_UU, String trxName, String ... virtualColumns)
+    {
+      super (ctx, JP_MatrixField_UU, trxName, virtualColumns);
+      /** if (JP_MatrixField_UU == null)
         {
 			setAD_Field_ID (0);
 			setFieldLength (0);
@@ -57,7 +112,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
     }
 
     /** AccessLevel
-      * @return 4 - System 
+      * @return 4 - System
       */
     protected int get_AccessLevel()
     {
@@ -73,32 +128,32 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 
     public String toString()
     {
-      StringBuffer sb = new StringBuffer ("X_JP_MatrixField[")
+      StringBuilder sb = new StringBuilder ("X_JP_MatrixField[")
         .append(get_ID()).append("]");
       return sb.toString();
     }
 
 	public org.compiere.model.I_AD_Field getAD_Field() throws RuntimeException
-    {
-		return (org.compiere.model.I_AD_Field)MTable.get(getCtx(), org.compiere.model.I_AD_Field.Table_Name)
-			.getPO(getAD_Field_ID(), get_TrxName());	}
+	{
+		return (org.compiere.model.I_AD_Field)MTable.get(getCtx(), org.compiere.model.I_AD_Field.Table_ID)
+			.getPO(getAD_Field_ID(), get_TrxName());
+	}
 
 	/** Set Field.
-		@param AD_Field_ID 
-		Field on a database table
-	  */
+		@param AD_Field_ID Field on a database table
+	*/
 	public void setAD_Field_ID (int AD_Field_ID)
 	{
-		if (AD_Field_ID < 1) 
+		if (AD_Field_ID < 1)
 			set_ValueNoCheck (COLUMNNAME_AD_Field_ID, null);
-		else 
+		else
 			set_ValueNoCheck (COLUMNNAME_AD_Field_ID, Integer.valueOf(AD_Field_ID));
 	}
 
 	/** Get Field.
 		@return Field on a database table
 	  */
-	public int getAD_Field_ID () 
+	public int getAD_Field_ID()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Field_ID);
 		if (ii == null)
@@ -107,9 +162,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	}
 
 	/** Set Description.
-		@param Description 
-		Optional short description of the record
-	  */
+		@param Description Optional short description of the record
+	*/
 	public void setDescription (String Description)
 	{
 		set_Value (COLUMNNAME_Description, Description);
@@ -118,15 +172,14 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/** Get Description.
 		@return Optional short description of the record
 	  */
-	public String getDescription () 
+	public String getDescription()
 	{
 		return (String)get_Value(COLUMNNAME_Description);
 	}
 
 	/** Set Length.
-		@param FieldLength 
-		Length of the column in the database
-	  */
+		@param FieldLength Length of the column in the database
+	*/
 	public void setFieldLength (int FieldLength)
 	{
 		set_Value (COLUMNNAME_FieldLength, Integer.valueOf(FieldLength));
@@ -135,7 +188,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/** Get Length.
 		@return Length of the column in the database
 	  */
-	public int getFieldLength () 
+	public int getFieldLength()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_FieldLength);
 		if (ii == null)
@@ -143,43 +196,43 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 		return ii.intValue();
 	}
 
-	/** Set Calculate Sum (Σ).
-		@param IsSummarized 
-		Calculate the Sum of numeric content or length
-	  */
+	/** Set Calculate Sum (&#931;).
+		@param IsSummarized Calculate the Sum of numeric content or length
+	*/
 	public void setIsSummarized (boolean IsSummarized)
 	{
 		set_Value (COLUMNNAME_IsSummarized, Boolean.valueOf(IsSummarized));
 	}
 
-	/** Get Calculate Sum (Σ).
+	/** Get Calculate Sum (&#931;).
 		@return Calculate the Sum of numeric content or length
 	  */
-	public boolean isSummarized () 
+	public boolean isSummarized()
 	{
 		Object oo = get_Value(COLUMNNAME_IsSummarized);
-		if (oo != null) 
+		if (oo != null)
 		{
-			 if (oo instanceof Boolean) 
-				 return ((Boolean)oo).booleanValue(); 
+			 if (oo instanceof Boolean)
+				 return ((Boolean)oo).booleanValue();
 			return "Y".equals(oo);
 		}
 		return false;
 	}
 
 	/** Set JPiere Matrix Field.
-		@param JP_MatrixField_ID JPiere Matrix Field	  */
+		@param JP_MatrixField_ID JPiere Matrix Field
+	*/
 	public void setJP_MatrixField_ID (int JP_MatrixField_ID)
 	{
-		if (JP_MatrixField_ID < 1) 
+		if (JP_MatrixField_ID < 1)
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixField_ID, null);
-		else 
+		else
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixField_ID, Integer.valueOf(JP_MatrixField_ID));
 	}
 
 	/** Get JPiere Matrix Field.
 		@return JPiere Matrix Field	  */
-	public int getJP_MatrixField_ID () 
+	public int getJP_MatrixField_ID()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixField_ID);
 		if (ii == null)
@@ -188,7 +241,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	}
 
 	/** Set JP_MatrixField_UU.
-		@param JP_MatrixField_UU JP_MatrixField_UU	  */
+		@param JP_MatrixField_UU JP_MatrixField_UU
+	*/
 	public void setJP_MatrixField_UU (String JP_MatrixField_UU)
 	{
 		set_ValueNoCheck (COLUMNNAME_JP_MatrixField_UU, JP_MatrixField_UU);
@@ -196,29 +250,31 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 
 	/** Get JP_MatrixField_UU.
 		@return JP_MatrixField_UU	  */
-	public String getJP_MatrixField_UU () 
+	public String getJP_MatrixField_UU()
 	{
 		return (String)get_Value(COLUMNNAME_JP_MatrixField_UU);
 	}
 
 	public I_JP_MatrixWindow getJP_MatrixWindow() throws RuntimeException
-    {
-		return (I_JP_MatrixWindow)MTable.get(getCtx(), I_JP_MatrixWindow.Table_Name)
-			.getPO(getJP_MatrixWindow_ID(), get_TrxName());	}
+	{
+		return (I_JP_MatrixWindow)MTable.get(getCtx(), I_JP_MatrixWindow.Table_ID)
+			.getPO(getJP_MatrixWindow_ID(), get_TrxName());
+	}
 
 	/** Set Matrix Window.
-		@param JP_MatrixWindow_ID Matrix Window	  */
+		@param JP_MatrixWindow_ID Matrix Window
+	*/
 	public void setJP_MatrixWindow_ID (int JP_MatrixWindow_ID)
 	{
-		if (JP_MatrixWindow_ID < 1) 
+		if (JP_MatrixWindow_ID < 1)
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, null);
-		else 
+		else
 			set_ValueNoCheck (COLUMNNAME_JP_MatrixWindow_ID, Integer.valueOf(JP_MatrixWindow_ID));
 	}
 
 	/** Get Matrix Window.
 		@return Matrix Window	  */
-	public int getJP_MatrixWindow_ID () 
+	public int getJP_MatrixWindow_ID()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_JP_MatrixWindow_ID);
 		if (ii == null)
@@ -227,9 +283,8 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	}
 
 	/** Set Sequence.
-		@param SeqNo 
-		Method of ordering records; lowest number comes first
-	  */
+		@param SeqNo Method of ordering records; lowest number comes first
+	*/
 	public void setSeqNo (int SeqNo)
 	{
 		set_Value (COLUMNNAME_SeqNo, Integer.valueOf(SeqNo));
@@ -238,7 +293,7 @@ public class X_JP_MatrixField extends PO implements I_JP_MatrixField, I_Persiste
 	/** Get Sequence.
 		@return Method of ordering records; lowest number comes first
 	  */
-	public int getSeqNo () 
+	public int getSeqNo()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_SeqNo);
 		if (ii == null)

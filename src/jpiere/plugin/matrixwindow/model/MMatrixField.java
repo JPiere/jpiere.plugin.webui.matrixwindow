@@ -37,6 +37,11 @@ public class MMatrixField extends X_JP_MatrixField {
 	{
 		super(ctx, JP_MatrixField_ID, trxName);
 	}
+	
+	public MMatrixField(Properties ctx, String JP_MatrixField_UU, String trxName)
+	{
+		super(ctx, JP_MatrixField_UU, trxName);
+	}
 
 	public MMatrixField(Properties ctx, ResultSet rs, String trxName)
 	{

@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for JP_MatrixWindow
  *  @author iDempiere (generated) 
- *  @version Release 2.1
+ *  @version Release 12
  */
 @SuppressWarnings("all")
 public interface I_JP_MatrixWindow 
@@ -46,8 +46,8 @@ public interface I_JP_MatrixWindow
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client.
-	  * Client/Tenant for this installation.
+	/** Get Tenant.
+	  * Tenant for this installation.
 	  */
 	public int getAD_Client_ID();
 
@@ -55,12 +55,12 @@ public interface I_JP_MatrixWindow
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
 	/** Set Organization.
-	  * Organizational entity within client
+	  * Organizational entity within tenant
 	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
 	/** Get Organization.
-	  * Organizational entity within client
+	  * Organizational entity within tenant
 	  */
 	public int getAD_Org_ID();
 
@@ -152,10 +152,10 @@ public interface I_JP_MatrixWindow
     /** Column name JP_JoinClause */
     public static final String COLUMNNAME_JP_JoinClause = "JP_JoinClause";
 
-	/** Set SQL Join	  */
+	/** Set SQL JOIN	  */
 	public void setJP_JoinClause (String JP_JoinClause);
 
-	/** Get SQL Join	  */
+	/** Get SQL JOIN	  */
 	public String getJP_JoinClause();
 
     /** Column name JP_MatrixColumnKey_ID */
